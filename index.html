@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260723-2">
+    <link rel="stylesheet" href="style.css?v=20260723-3">
 </head>
 <body>
 
@@ -165,8 +165,24 @@
 
                 <!-- COLUNA 3: Equipamentos, Carga e Barra Visual -->
                 <div class="coluna-direita">
-                    <div class="caixa-generica">
-                        <div class="titulo-combate">TRAÇOS E CARACTERÍSTICAS</div>
+                    <div class="caixa-generica caixa-tracos">
+                        <div class="cabecalho-tracos">
+                            <span class="titulo-combate">TRAÇOS E CARACTERÍSTICAS</span>
+                            <div class="filtro-tracos">
+                                <button class="btn-filtro-tracos" type="button" onclick="alternarMenuFiltroTracos()" title="Filtrar traços" aria-label="Filtrar traços">☷</button>
+                                <div id="menu-filtro-tracos" class="menu-filtro-tracos" hidden>
+                                    <button type="button" data-filtro="todos" class="ativo" onclick="filtrarTracos('todos', this)">Todos</button>
+                                    <button type="button" data-filtro="racial" onclick="filtrarTracos('racial', this)">Racial</button>
+                                    <button type="button" data-filtro="antecedente" onclick="filtrarTracos('antecedente', this)">Antecedente</button>
+                                    <button type="button" data-filtro="classe" onclick="filtrarTracos('classe', this)">Classe</button>
+                                    <button type="button" data-filtro="talento" onclick="filtrarTracos('talento', this)">Talentos</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="lista-tracos" class="lista-tracos">
+                            <em class="texto-vazio">Nenhum traço ou característica adicionado.</em>
+                        </div>
+                        <button class="btn-add-item btn-add-traco" onclick="abrirModalTraco()" title="Adicionar traço ou característica" aria-label="Adicionar traço ou característica">+</button>
                     </div>
                     
                     <div class="caixa-equipamentos">
@@ -196,6 +212,41 @@
         <div id="pagina-3" class="aba"><h2>Página 3: Conjuração</h2></div>
     </div>
 
+    <!-- MODAL DE TRAÇOS E CARACTERÍSTICAS -->
+    <div id="modal-traco" class="modal-overlay" style="display: none;">
+        <div class="modal-conteudo modal-traco-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-traco">
+            <div class="modal-cabecalho">
+                <h3 id="titulo-modal-traco">Adicionar traço ou característica</h3>
+                <button class="btn-fechar" type="button" onclick="fecharModalTraco()" aria-label="Fechar">&times;</button>
+            </div>
+            <form id="form-traco" class="form-traco" onsubmit="salvarTraco(event)">
+                <input type="hidden" id="traco-id">
+                <div class="grupo-input">
+                    <label for="traco-nome">Nome</label>
+                    <input id="traco-nome" class="input-elegante" maxlength="80" required placeholder="Ex.: Visão no Escuro">
+                </div>
+                <div class="grupo-input">
+                    <label for="traco-tipo">Tipo</label>
+                    <select id="traco-tipo" class="input-elegante" required>
+                        <option value="">-- Escolha o Tipo --</option>
+                        <option value="racial">Racial</option>
+                        <option value="antecedente">Antecedente</option>
+                        <option value="classe">Classe</option>
+                        <option value="talento">Talento</option>
+                    </select>
+                </div>
+                <div class="grupo-input">
+                    <label for="traco-descricao">Descrição</label>
+                    <textarea id="traco-descricao" class="input-elegante textarea-traco" maxlength="2000" required placeholder="Explique o que essa habilidade faz"></textarea>
+                </div>
+                <div class="acoes-modal-traco">
+                    <button class="btn-secundario" type="button" onclick="fecharModalTraco()">Cancelar</button>
+                    <button class="btn-primario btn-inline" type="submit">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL DE EQUIPAMENTOS -->
     <div id="modal-equipamentos" class="modal-overlay" style="display: none;">
         <div class="modal-conteudo">
@@ -217,6 +268,6 @@
     </div>
 
     <script src="banco_phb.js?v=20260723-2"></script>
-    <script src="app.js?v=20260723-2"></script>
+    <script src="app.js?v=20260723-3"></script>
 </body>
 </html>
