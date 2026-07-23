@@ -264,7 +264,7 @@ body {
 .contador-escolhas { text-align:right; font-size:14px; color:#555; }
 @media (max-width:600px) {
   .grid-pericias-criacao { grid-template-columns:1fr; }
-  .progresso-criacao { grid-template-columns:repeat(4,1fr); gap:4px; }
+  .progresso-criacao { grid-template-columns:repeat(5,1fr); gap:4px; }
   .passo-indicador { padding:8px 2px; font-size:10px; }
 }
 
@@ -303,3 +303,14 @@ body {
 @media (max-width:600px) {
     .toast-notificacao { top:10px; right:10px; width:calc(100vw - 20px); box-sizing:border-box; }
 }
+
+
+/* Escolhas de origem e antecedente */
+.opcoes-inline { display:flex; gap:18px; flex-wrap:wrap; padding:10px 0; }
+.opcoes-inline label { display:flex; align-items:center; gap:7px; cursor:pointer; font-weight:500; }
+.opcoes-inline input { width:18px; height:18px; accent-color:var(--cor-primaria); }
+.rotulo-grupo { display:block; font-weight:700; margin-bottom:3px; }
+.resumo-antecedente { display:grid; gap:7px; padding:14px 16px; border:var(--borda-suave); border-left:4px solid var(--cor-primaria); border-radius:8px; background:#fff8f8; color:#444; }
+.resumo-antecedente strong { color:var(--cor-primaria); }
+.info-secundaria { margin-top:4px; opacity:.82; font-size:.92em; }
+[hidden] { display:none !important; }
