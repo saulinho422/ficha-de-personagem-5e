@@ -136,6 +136,7 @@ function iniciarPersonagem(restaurando = false) {
     if (!validarPericiasDaClasse(restaurando)) return;
     aplicarPericiasDaClasse();
     calcularTodasPericias();
+    atualizarPercepcaoEProficiencias();
     renderizarTracos();
     renderizarAtaques();
     
@@ -171,6 +172,124 @@ function calcularAtributos(racaEscolhida, subracaEscolhida = '') {
         document.getElementById('final-' + attr).innerText = valorFinal;
         document.getElementById('mod-' + attr).innerText = stringModificador;
     });
+}
+
+function normalizarListaProficiencias(lista) {
+    const vistos = new Set();
+    return (Array.isArray(lista) ? lista : []).filter(item => {
+        const chave = String(item || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+        if (!chave || vistos.has(chave)) return false;
+        vistos.add(chave);
+        return true;
+    });
+}
+
+function adicionarListaUnica(destino, itens) {
+    const existentes = new Set(destino.map(item =>
+        String(item).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim()
+    ));
+    (Array.isArray(itens) ? itens : []).forEach(item => {
+        const chave = String(item || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+        if (chave && !existentes.has(chave)) {
+            destino.push(item);
+            existentes.add(chave);
+        }
+    });
+}
+
+function criarGrupoProficiencias(titulo, icone, itens, pendencias = []) {
+    if (!itens.length && !pendencias.length) return null;
+    const grupo = document.createElement('section');
+    grupo.className = 'grupo-proficiencia-automatica';
+
+    const cabecalho = document.createElement('div');
+    cabecalho.className = 'titulo-grupo-proficiencia';
+    const simbolo = document.createElement('span');
+    simbolo.className = 'icone-grupo-proficiencia';
+    simbolo.textContent = icone;
+    const nome = document.createElement('strong');
+    nome.textContent = titulo;
+    cabecalho.append(simbolo, nome);
+
+    const lista = document.createElement('div');
+    lista.className = 'chips-proficiencias';
+    normalizarListaProficiencias(itens).forEach(texto => {
+        const chip = document.createElement('span');
+        chip.className = 'chip-proficiencia';
+        chip.textContent = texto;
+        lista.appendChild(chip);
+    });
+    pendencias.forEach(texto => {
+        const chip = document.createElement('span');
+        chip.className = 'chip-proficiencia chip-pendente';
+        chip.textContent = texto;
+        lista.appendChild(chip);
+    });
+
+    grupo.append(cabecalho, lista);
+    return grupo;
+}
+
+function atualizarPercepcaoEProficiencias() {
+    const modificadorSabedoria = parseInt(document.getElementById('mod-sab')?.innerText, 10) || 0;
+    const percepcaoPassiva = 10 + modificadorSabedoria;
+    const displayPercepcao = document.getElementById('display-percepcao-passiva');
+    const calculoPercepcao = document.getElementById('calculo-percepcao-passiva');
+    if (displayPercepcao) displayPercepcao.textContent = percepcaoPassiva;
+    if (calculoPercepcao) {
+        calculoPercepcao.textContent = '10 ' + (modificadorSabedoria >= 0 ? '+ ' : '- ') +
+            Math.abs(modificadorSabedoria) + ' de Sabedoria';
+    }
+
+    const racaNome = document.getElementById('select-raca')?.value || personagemAtual.raca;
+    const subracaNome = document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim'
+        ? document.getElementById('select-subraca')?.value || personagemAtual.subraca : personagemAtual.subraca;
+    const classeNome = document.getElementById('select-classe')?.value || personagemAtual.classe;
+    const antecedenteNome = document.getElementById('select-antecedente')?.value || personagemAtual.antecedente;
+
+    const raca = bancoDnD.racas?.[racaNome] || {};
+    const subraca = raca.subracas?.[subracaNome] || {};
+    const classe = bancoDnD.classes?.[classeNome] || {};
+    const antecedente = bancoDnD.antecedentes?.[antecedenteNome] || {};
+
+    const dados = { idiomas: [], armas: [], armaduras: [], ferramentas: [] };
+    adicionarListaUnica(dados.idiomas, raca.idiomas);
+    adicionarListaUnica(dados.idiomas, subraca.idiomas);
+    adicionarListaUnica(dados.idiomas, antecedente.idiomas);
+    adicionarListaUnica(dados.armas, raca.proficienciasArmas);
+    adicionarListaUnica(dados.armas, subraca.proficienciasArmas);
+    adicionarListaUnica(dados.armas, classe.proficienciasArmas);
+    adicionarListaUnica(dados.armaduras, raca.proficienciasArmaduras);
+    adicionarListaUnica(dados.armaduras, subraca.proficienciasArmaduras);
+    adicionarListaUnica(dados.armaduras, classe.proficienciasArmaduras);
+    adicionarListaUnica(dados.ferramentas, raca.proficienciasFerramentas);
+    adicionarListaUnica(dados.ferramentas, subraca.proficienciasFerramentas);
+    adicionarListaUnica(dados.ferramentas, classe.proficienciasFerramentas);
+    adicionarListaUnica(dados.ferramentas, antecedente.proficienciasFerramentas || antecedente.ferramentas);
+
+    const escolhasIdiomas = (Number(raca.idiomasEscolha) || 0) + (Number(subraca.idiomasEscolha) || 0) +
+        (Number(antecedente.idiomasEscolha) || 0);
+    const escolhasFerramentas = (Number(raca.ferramentasEscolha) || 0) + (Number(subraca.ferramentasEscolha) || 0) +
+        (Number(classe.ferramentasEscolha) || 0) + (Number(antecedente.ferramentasEscolha) || 0);
+
+    const container = document.getElementById('lista-proficiencias-automaticas');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const grupos = [
+        criarGrupoProficiencias('Idiomas', '文', dados.idiomas,
+            escolhasIdiomas ? ['Escolha ' + escolhasIdiomas + (escolhasIdiomas === 1 ? ' idioma' : ' idiomas')] : []),
+        criarGrupoProficiencias('Armas', '⚔', dados.armas),
+        criarGrupoProficiencias('Armaduras e escudos', '◆', dados.armaduras),
+        criarGrupoProficiencias('Ferramentas e veículos', '⚒', dados.ferramentas,
+            escolhasFerramentas ? ['Escolha ' + escolhasFerramentas + (escolhasFerramentas === 1 ? ' proficiência' : ' proficiências')] : [])
+    ].filter(Boolean);
+
+    if (!grupos.length) {
+        container.innerHTML = '<em class="texto-vazio">Nenhum idioma ou proficiência informado.</em>';
+        return;
+    }
+    grupos.forEach(grupo => container.appendChild(grupo));
 }
 
 function calcularCombate(racaEscolhida, classeEscolhida) {
