@@ -3,10 +3,26 @@
 let inventarioPersonagem = [];
 let ataquesPersonagem = [];
 let tracosPersonagem = [];
+let proficienciasAdicionais = [];
 let tracosAutomaticosExpandidos = new Set();
 let filtroTracosAtual = 'todos';
 const CHAVE_FICHA = 'forjaPersonagens.ficha.v2';
 let personagemAtual = { raca: '', classe: '' };
+
+const CATALOGO_IDIOMAS = [
+    'Comum', 'Anão', 'Élfico', 'Gigante', 'Gnômico', 'Goblin', 'Halfling', 'Orc',
+    'Abissal', 'Celestial', 'Dracônico', 'Dialeto Subterrâneo', 'Infernal', 'Primordial', 'Silvestre', 'Subcomum'
+];
+const CATALOGO_FERRAMENTAS = [
+    'Ferramentas de alquimista', 'Suprimentos de cervejeiro', 'Ferramentas de calígrafo',
+    'Ferramentas de carpinteiro', 'Ferramentas de cartógrafo', 'Ferramentas de sapateiro',
+    'Utensílios de cozinheiro', 'Ferramentas de vidreiro', 'Ferramentas de joalheiro',
+    'Ferramentas de coureiro', 'Ferramentas de pedreiro', 'Suprimentos de pintor',
+    'Ferramentas de oleiro', 'Ferramentas de ferreiro', 'Ferramentas de funileiro',
+    'Ferramentas de tecelão', 'Ferramentas de entalhador', 'Kit de disfarce',
+    'Kit de falsificação', 'Kit de herbalismo', 'Kit de venenos', 'Ferramentas de ladrão',
+    'Ferramentas de navegador', 'Instrumento musical', 'Jogo', 'Veículos terrestres', 'Veículos aquáticos'
+];
 
 const PERICIAS_POR_CLASSE = {
     'Bárbaro': { quantidade: 2, opcoes: ['Lidar com Animais', 'Atletismo', 'Intimidação', 'Natureza', 'Percepção', 'Sobrevivência'] },
@@ -177,19 +193,21 @@ function calcularAtributos(racaEscolhida, subracaEscolhida = '') {
 function normalizarListaProficiencias(lista) {
     const vistos = new Set();
     return (Array.isArray(lista) ? lista : []).filter(item => {
-        const chave = String(item || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+        const chave = normalizarTextoProficiencia(item);
         if (!chave || vistos.has(chave)) return false;
         vistos.add(chave);
         return true;
     });
 }
 
+function normalizarTextoProficiencia(valor) {
+    return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+}
+
 function adicionarListaUnica(destino, itens) {
-    const existentes = new Set(destino.map(item =>
-        String(item).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim()
-    ));
+    const existentes = new Set(destino.map(normalizarTextoProficiencia));
     (Array.isArray(itens) ? itens : []).forEach(item => {
-        const chave = String(item || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
+        const chave = normalizarTextoProficiencia(item);
         if (chave && !existentes.has(chave)) {
             destino.push(item);
             existentes.add(chave);
@@ -197,11 +215,88 @@ function adicionarListaUnica(destino, itens) {
     });
 }
 
-function criarGrupoProficiencias(titulo, icone, itens, pendencias = []) {
-    if (!itens.length && !pendencias.length) return null;
+function obterDadosProficienciasAutomaticas() {
+    const racaNome = document.getElementById('select-raca')?.value || personagemAtual.raca;
+    const usarSubraca = document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim';
+    const subracaNome = usarSubraca
+        ? document.getElementById('select-subraca')?.value || personagemAtual.subraca
+        : personagemAtual.subraca;
+    const classeNome = document.getElementById('select-classe')?.value || personagemAtual.classe;
+    const antecedenteNome = document.getElementById('select-antecedente')?.value || personagemAtual.antecedente;
+    const raca = bancoDnD.racas?.[racaNome] || {};
+    const subraca = raca.subracas?.[subracaNome] || {};
+    const classe = bancoDnD.classes?.[classeNome] || {};
+    const antecedente = bancoDnD.antecedentes?.[antecedenteNome] || {};
+
+    const dados = { idioma: [], arma: [], armadura: [], ferramenta: [], limites: { idioma: 0, ferramenta: 0 } };
+    adicionarListaUnica(dados.idioma, raca.idiomas);
+    adicionarListaUnica(dados.idioma, subraca.idiomas);
+    adicionarListaUnica(dados.idioma, antecedente.idiomas);
+    adicionarListaUnica(dados.arma, raca.proficienciasArmas);
+    adicionarListaUnica(dados.arma, subraca.proficienciasArmas);
+    adicionarListaUnica(dados.arma, classe.proficienciasArmas);
+    adicionarListaUnica(dados.armadura, raca.proficienciasArmaduras);
+    adicionarListaUnica(dados.armadura, subraca.proficienciasArmaduras);
+    adicionarListaUnica(dados.armadura, classe.proficienciasArmaduras);
+    adicionarListaUnica(dados.ferramenta, raca.proficienciasFerramentas);
+    adicionarListaUnica(dados.ferramenta, subraca.proficienciasFerramentas);
+    adicionarListaUnica(dados.ferramenta, classe.proficienciasFerramentas);
+    adicionarListaUnica(dados.ferramenta, antecedente.proficienciasFerramentas || antecedente.ferramentas);
+    dados.limites.idioma = (Number(raca.idiomasEscolha) || 0) + (Number(subraca.idiomasEscolha) || 0) +
+        (Number(antecedente.idiomasEscolha) || 0);
+    dados.limites.ferramenta = (Number(raca.ferramentasEscolha) || 0) + (Number(subraca.ferramentasEscolha) || 0) +
+        (Number(classe.ferramentasEscolha) || 0) + (Number(antecedente.ferramentasEscolha) || 0);
+    return dados;
+}
+
+function limitarEscolhasAtuais(dados) {
+    ['idioma', 'ferramenta'].forEach(tipo => {
+        let usadas = 0;
+        proficienciasAdicionais = proficienciasAdicionais.filter(item => {
+            if (item.origem !== 'escolha' || item.tipo !== tipo) return true;
+            usadas += 1;
+            return usadas <= dados.limites[tipo];
+        });
+    });
+}
+
+function criarChipAdicional(item) {
+    const chip = document.createElement('span');
+    chip.className = 'chip-proficiencia ' + (item.origem === 'escolha' ? 'chip-escolhido' : 'chip-manual');
+    const texto = document.createElement('span');
+    texto.textContent = item.nome;
+    chip.appendChild(texto);
+
+    if (item.origem === 'manual') {
+        const editar = document.createElement('button');
+        editar.type = 'button';
+        editar.className = 'acao-chip-proficiencia';
+        editar.title = 'Editar';
+        editar.setAttribute('aria-label', 'Editar ' + item.nome);
+        editar.textContent = '✎';
+        editar.onclick = () => abrirModalProficiencia('editar', item.tipo, item.id);
+        chip.appendChild(editar);
+    }
+
+    const remover = document.createElement('button');
+    remover.type = 'button';
+    remover.className = 'acao-chip-proficiencia';
+    remover.title = item.origem === 'escolha' ? 'Escolher novamente' : 'Remover';
+    remover.setAttribute('aria-label', remover.title + ' ' + item.nome);
+    remover.textContent = '×';
+    remover.onclick = () => removerProficienciaAdicional(item.id);
+    chip.appendChild(remover);
+    return chip;
+}
+
+function criarGrupoProficiencias(titulo, icone, tipo, itensAutomaticos, limiteEscolhas = 0) {
+    const adicionais = proficienciasAdicionais.filter(item => item.tipo === tipo);
+    const escolhasFeitas = adicionais.filter(item => item.origem === 'escolha').length;
+    const pendentes = Math.max(0, limiteEscolhas - escolhasFeitas);
+    if (!itensAutomaticos.length && !adicionais.length && !pendentes) return null;
+
     const grupo = document.createElement('section');
     grupo.className = 'grupo-proficiencia-automatica';
-
     const cabecalho = document.createElement('div');
     cabecalho.className = 'titulo-grupo-proficiencia';
     const simbolo = document.createElement('span');
@@ -213,18 +308,25 @@ function criarGrupoProficiencias(titulo, icone, itens, pendencias = []) {
 
     const lista = document.createElement('div');
     lista.className = 'chips-proficiencias';
-    normalizarListaProficiencias(itens).forEach(texto => {
+    normalizarListaProficiencias(itensAutomaticos).forEach(valor => {
         const chip = document.createElement('span');
-        chip.className = 'chip-proficiencia';
-        chip.textContent = texto;
+        chip.className = 'chip-proficiencia chip-automatico';
+        chip.textContent = valor;
+        chip.title = 'Concedido automaticamente';
         lista.appendChild(chip);
     });
-    pendencias.forEach(texto => {
-        const chip = document.createElement('span');
-        chip.className = 'chip-proficiencia chip-pendente';
-        chip.textContent = texto;
-        lista.appendChild(chip);
-    });
+    adicionais.forEach(item => lista.appendChild(criarChipAdicional(item)));
+
+    if (pendentes) {
+        const botao = document.createElement('button');
+        botao.type = 'button';
+        botao.className = 'chip-proficiencia chip-pendente';
+        botao.textContent = '+ Escolher ' + pendentes + (tipo === 'idioma'
+            ? (pendentes === 1 ? ' idioma' : ' idiomas')
+            : (pendentes === 1 ? ' proficiência' : ' proficiências'));
+        botao.onclick = () => abrirModalProficiencia('escolha', tipo);
+        lista.appendChild(botao);
+    }
 
     grupo.append(cabecalho, lista);
     return grupo;
@@ -241,55 +343,137 @@ function atualizarPercepcaoEProficiencias() {
             Math.abs(modificadorSabedoria) + ' de Sabedoria';
     }
 
-    const racaNome = document.getElementById('select-raca')?.value || personagemAtual.raca;
-    const subracaNome = document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim'
-        ? document.getElementById('select-subraca')?.value || personagemAtual.subraca : personagemAtual.subraca;
-    const classeNome = document.getElementById('select-classe')?.value || personagemAtual.classe;
-    const antecedenteNome = document.getElementById('select-antecedente')?.value || personagemAtual.antecedente;
-
-    const raca = bancoDnD.racas?.[racaNome] || {};
-    const subraca = raca.subracas?.[subracaNome] || {};
-    const classe = bancoDnD.classes?.[classeNome] || {};
-    const antecedente = bancoDnD.antecedentes?.[antecedenteNome] || {};
-
-    const dados = { idiomas: [], armas: [], armaduras: [], ferramentas: [] };
-    adicionarListaUnica(dados.idiomas, raca.idiomas);
-    adicionarListaUnica(dados.idiomas, subraca.idiomas);
-    adicionarListaUnica(dados.idiomas, antecedente.idiomas);
-    adicionarListaUnica(dados.armas, raca.proficienciasArmas);
-    adicionarListaUnica(dados.armas, subraca.proficienciasArmas);
-    adicionarListaUnica(dados.armas, classe.proficienciasArmas);
-    adicionarListaUnica(dados.armaduras, raca.proficienciasArmaduras);
-    adicionarListaUnica(dados.armaduras, subraca.proficienciasArmaduras);
-    adicionarListaUnica(dados.armaduras, classe.proficienciasArmaduras);
-    adicionarListaUnica(dados.ferramentas, raca.proficienciasFerramentas);
-    adicionarListaUnica(dados.ferramentas, subraca.proficienciasFerramentas);
-    adicionarListaUnica(dados.ferramentas, classe.proficienciasFerramentas);
-    adicionarListaUnica(dados.ferramentas, antecedente.proficienciasFerramentas || antecedente.ferramentas);
-
-    const escolhasIdiomas = (Number(raca.idiomasEscolha) || 0) + (Number(subraca.idiomasEscolha) || 0) +
-        (Number(antecedente.idiomasEscolha) || 0);
-    const escolhasFerramentas = (Number(raca.ferramentasEscolha) || 0) + (Number(subraca.ferramentasEscolha) || 0) +
-        (Number(classe.ferramentasEscolha) || 0) + (Number(antecedente.ferramentasEscolha) || 0);
-
+    const dados = obterDadosProficienciasAutomaticas();
+    limitarEscolhasAtuais(dados);
     const container = document.getElementById('lista-proficiencias-automaticas');
     if (!container) return;
     container.innerHTML = '';
-
     const grupos = [
-        criarGrupoProficiencias('Idiomas', '文', dados.idiomas,
-            escolhasIdiomas ? ['Escolha ' + escolhasIdiomas + (escolhasIdiomas === 1 ? ' idioma' : ' idiomas')] : []),
-        criarGrupoProficiencias('Armas', '⚔', dados.armas),
-        criarGrupoProficiencias('Armaduras e escudos', '◆', dados.armaduras),
-        criarGrupoProficiencias('Ferramentas e veículos', '⚒', dados.ferramentas,
-            escolhasFerramentas ? ['Escolha ' + escolhasFerramentas + (escolhasFerramentas === 1 ? ' proficiência' : ' proficiências')] : [])
+        criarGrupoProficiencias('Idiomas', '文', 'idioma', dados.idioma, dados.limites.idioma),
+        criarGrupoProficiencias('Armas', '⚔', 'arma', dados.arma),
+        criarGrupoProficiencias('Armaduras e escudos', '◆', 'armadura', dados.armadura),
+        criarGrupoProficiencias('Ferramentas e veículos', '⚒', 'ferramenta', dados.ferramenta, dados.limites.ferramenta)
     ].filter(Boolean);
-
     if (!grupos.length) {
         container.innerHTML = '<em class="texto-vazio">Nenhum idioma ou proficiência informado.</em>';
         return;
     }
     grupos.forEach(grupo => container.appendChild(grupo));
+}
+
+function catalogoPorTipoProficiencia(tipo) {
+    if (tipo === 'idioma') return CATALOGO_IDIOMAS;
+    if (tipo === 'ferramenta') return CATALOGO_FERRAMENTAS;
+    if (tipo === 'arma') {
+        const armas = [];
+        Object.values(bancoDnD.equipamentos?.armas || {}).forEach(lista =>
+            lista.forEach(item => armas.push(item.nome))
+        );
+        return normalizarListaProficiencias(armas);
+    }
+    if (tipo === 'armadura') {
+        const armaduras = [];
+        Object.values(bancoDnD.equipamentos?.armaduras || {}).forEach(lista =>
+            lista.forEach(item => armaduras.push(item.nome))
+        );
+        return normalizarListaProficiencias(armaduras);
+    }
+    return [];
+}
+
+function atualizarSugestoesProficiencia() {
+    const tipo = document.getElementById('proficiencia-tipo').value;
+    const rotulos = { idioma: 'Idioma', arma: 'Arma', armadura: 'Armadura ou escudo', ferramenta: 'Ferramenta, instrumento, jogo ou veículo' };
+    document.getElementById('rotulo-valor-proficiencia').textContent = rotulos[tipo];
+    const datalist = document.getElementById('sugestoes-proficiencia');
+    datalist.innerHTML = '';
+    catalogoPorTipoProficiencia(tipo).forEach(valor => {
+        const opcao = document.createElement('option');
+        opcao.value = valor;
+        datalist.appendChild(opcao);
+    });
+}
+
+function abrirModalProficiencia(modo = 'manual', tipo = 'idioma', id = '') {
+    const modal = document.getElementById('modal-proficiencia');
+    const form = document.getElementById('form-proficiencia');
+    form.reset();
+    document.getElementById('proficiencia-id-edicao').value = id;
+    document.getElementById('proficiencia-origem').value = modo === 'escolha' ? 'escolha' : 'manual';
+    const selectTipo = document.getElementById('proficiencia-tipo');
+    const itemEdicao = proficienciasAdicionais.find(item => item.id === id);
+
+    if (itemEdicao) {
+        selectTipo.value = itemEdicao.tipo;
+        document.getElementById('proficiencia-valor').value = itemEdicao.nome;
+    } else {
+        selectTipo.value = tipo;
+    }
+    selectTipo.disabled = modo === 'escolha' || modo === 'editar';
+    document.getElementById('titulo-modal-proficiencia').textContent =
+        modo === 'escolha' ? 'Concluir escolha' : modo === 'editar' ? 'Editar informação' : 'Adicionar à ficha';
+    document.getElementById('subtitulo-modal-proficiencia').textContent =
+        modo === 'escolha' ? 'Escolha uma opção concedida pela criação do personagem.' :
+        modo === 'editar' ? 'Atualize a informação adicionada manualmente.' :
+        'Inclua um idioma ou proficiência personalizada.';
+    document.getElementById('btn-salvar-proficiencia').textContent =
+        modo === 'editar' ? 'Salvar alteração' : modo === 'escolha' ? 'Confirmar escolha' : 'Adicionar à ficha';
+    atualizarSugestoesProficiencia();
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('proficiencia-valor').focus(), 0);
+}
+
+function fecharModalProficiencia() {
+    document.getElementById('modal-proficiencia').style.display = 'none';
+    document.getElementById('proficiencia-tipo').disabled = false;
+    document.getElementById('form-proficiencia').reset();
+}
+
+function salvarProficiencia(evento) {
+    evento.preventDefault();
+    const tipo = document.getElementById('proficiencia-tipo').value;
+    const nome = document.getElementById('proficiencia-valor').value.trim();
+    const origem = document.getElementById('proficiencia-origem').value;
+    const idEdicao = document.getElementById('proficiencia-id-edicao').value;
+    if (!nome) return;
+
+    const dados = obterDadosProficienciasAutomaticas();
+    const todosDaCategoria = [...(dados[tipo] || []), ...proficienciasAdicionais.filter(item => item.tipo === tipo && item.id !== idEdicao).map(item => item.nome)];
+    if (todosDaCategoria.some(item => normalizarTextoProficiencia(item) === normalizarTextoProficiencia(nome))) {
+        mostrarToast('Essa informação já está presente na ficha.', 'aviso');
+        return;
+    }
+    if (origem === 'escolha') {
+        const feitas = proficienciasAdicionais.filter(item => item.origem === 'escolha' && item.tipo === tipo).length;
+        if (feitas >= (dados.limites[tipo] || 0)) {
+            mostrarToast('Todas as escolhas desta categoria já foram concluídas.', 'aviso');
+            fecharModalProficiencia();
+            return;
+        }
+    }
+
+    if (idEdicao) {
+        const item = proficienciasAdicionais.find(valor => valor.id === idEdicao);
+        if (item) item.nome = nome;
+    } else {
+        proficienciasAdicionais.push({
+            id: 'prof-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+            tipo,
+            nome,
+            origem
+        });
+    }
+    atualizarPercepcaoEProficiencias();
+    salvarEstado();
+    fecharModalProficiencia();
+    mostrarToast(idEdicao ? 'Informação atualizada.' : 'Informação adicionada à ficha.', 'sucesso');
+}
+
+function removerProficienciaAdicional(id) {
+    proficienciasAdicionais = proficienciasAdicionais.filter(item => item.id !== id);
+    atualizarPercepcaoEProficiencias();
+    salvarEstado();
+    mostrarToast('Informação removida da ficha.', 'sucesso');
 }
 
 function calcularCombate(racaEscolhida, classeEscolhida) {
@@ -797,6 +981,7 @@ function salvarEstado() {
         inventario: inventarioPersonagem,
         ataques: ataquesPersonagem,
         tracos: tracosPersonagem,
+        proficienciasAdicionais,
         fichaGerada: document.getElementById('ficha-completa')?.style.display === 'block'
     }));
 }
@@ -824,7 +1009,9 @@ function restaurarEstado() {
     carregarSubclasses();
     document.getElementById('select-subclasse').value = estado.subclasse || '';
     document.getElementById('select-alinhamento').value = estado.alinhamento || '';
-    document.getElementById('select-antecedente').value = estado.antecedente || '';
+    const nomesAntecedentesMigrados = { 'Artisao da Guilda': 'Artesão da Guilda', 'Orfao': 'Órfão' };
+    estado.antecedente = nomesAntecedentesMigrados[estado.antecedente] || estado.antecedente || '';
+    document.getElementById('select-antecedente').value = estado.antecedente;
     atualizarResumoAntecedente();
     Object.entries(estado.atributos || {}).forEach(([attr, valor]) => {
         const campo = document.getElementById('attr-' + attr);
@@ -833,6 +1020,7 @@ function restaurarEstado() {
     inventarioPersonagem = Array.isArray(estado.inventario) ? estado.inventario : [];
     ataquesPersonagem = Array.isArray(estado.ataques) ? estado.ataques : [];
     tracosPersonagem = Array.isArray(estado.tracos) ? estado.tracos : [];
+    proficienciasAdicionais = Array.isArray(estado.proficienciasAdicionais) ? estado.proficienciasAdicionais : [];
     renderizarTracos();
     renderizarAtaques();
     renderizarPericiasDaClasse();
