@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260723-7">
+    <link rel="stylesheet" href="style.css?v=20260723-8">
 </head>
 <body>
 
@@ -313,67 +313,98 @@
 
             <div class="modal-lista" id="modal-lista-itens"></div>
 
-            <form id="form-item-personalizado" class="form-item-personalizado" onsubmit="salvarItemPersonalizado(event)" hidden>
-                <p class="texto-apoio">Crie itens próprios da campanha, como mapas, relíquias, armas, armaduras ou poções.</p>
-                <div class="grid-personalizado">
-                    <label class="campo-formulario campo-largo">
-                        <span>Nome do item</span>
-                        <input id="item-personalizado-nome" type="text" maxlength="80" required placeholder="Ex.: Mapa rasgado">
-                    </label>
-                    <label class="campo-formulario">
-                        <span>Peso (kg)</span>
-                        <input id="item-personalizado-peso" type="number" min="0" step="0.01" required value="0">
-                    </label>
-                    <label class="campo-formulario">
-                        <span>Tipo</span>
-                        <select id="item-personalizado-tipo" required onchange="atualizarCamposItemPersonalizado()">
-                            <option value="comum">Item comum</option>
-                            <option value="arma">Arma</option>
-                            <option value="armadura">Armadura</option>
-                            <option value="pocao">Poção</option>
-                        </select>
-                    </label>
-                </div>
-
-                <div id="campos-personalizado-arma" class="bloco-campos-personalizados" hidden>
-                    <h4>Dados da arma</h4>
-                    <div class="grid-personalizado">
-                        <label class="campo-formulario"><span>Quantidade de dados</span><input id="arma-personalizada-quantidade" type="number" min="1" max="20" value="1"></label>
-                        <label class="campo-formulario"><span>Dado</span><select id="arma-personalizada-dado"><option>d4</option><option>d6</option><option selected>d8</option><option>d10</option><option>d12</option><option>d20</option></select></label>
-                        <label class="campo-formulario"><span>Tipo de dano</span><select id="arma-personalizada-dano"><option value="cortante">Cortante</option><option value="perfurante">Perfurante</option><option value="contundente">Contundente</option><option value="ácido">Ácido</option><option value="fogo">Fogo</option><option value="frio">Frio</option><option value="elétrico">Elétrico</option><option value="veneno">Veneno</option><option value="psíquico">Psíquico</option><option value="radiante">Radiante</option><option value="necrótico">Necrótico</option><option value="trovejante">Trovejante</option><option value="força">Força</option></select></label>
-                        <label class="campo-formulario"><span>Uso</span><select id="arma-personalizada-modalidade"><option value="corpo a corpo">Corpo a corpo</option><option value="distância">À distância</option></select></label>
-                        <label class="campo-formulario"><span>Categoria</span><select id="arma-personalizada-categoria"><option value="simples">Simples</option><option value="marcial">Marcial</option></select></label>
-                        <label class="opcao-check"><input id="arma-personalizada-acuidade" type="checkbox"> Acuidade (Força ou Destreza)</label>
+            <form id="form-item-personalizado" class="form-item-personalizado" onsubmit="salvarItemPersonalizado(event)" oninput="atualizarResumoItemPersonalizado()" hidden>
+                <div class="personalizado-introducao">
+                    <span class="personalizado-introducao-icone" aria-hidden="true">✦</span>
+                    <div>
+                        <strong>Crie um item exclusivo</strong>
+                        <p>Adicione objetos da sua campanha que não existem no catálogo oficial.</p>
                     </div>
                 </div>
 
-                <div id="campos-personalizado-armadura" class="bloco-campos-personalizados" hidden>
-                    <h4>Dados da armadura</h4>
-                    <div class="grid-personalizado">
-                        <label class="campo-formulario"><span>CA base</span><input id="armadura-personalizada-ca" type="number" min="1" max="30" value="10"></label>
-                        <label class="campo-formulario"><span>Cálculo da CA</span><select id="armadura-personalizada-calculo"><option value="fixa">CA bruta (fixa)</option><option value="destreza">CA + Destreza</option></select></label>
+                <section class="secao-personalizado">
+                    <div class="titulo-secao-personalizado"><span>1</span><div><strong>Informações básicas</strong><small>Como o item será identificado no inventário</small></div></div>
+                    <div class="grid-personalizado grid-basico">
+                        <label class="campo-formulario campo-largo">
+                            <span>Nome do item</span>
+                            <input id="item-personalizado-nome" type="text" maxlength="80" required placeholder="Ex.: Mapa rasgado">
+                        </label>
+                        <label class="campo-formulario">
+                            <span>Peso</span>
+                            <div class="input-com-sufixo"><input id="item-personalizado-peso" type="number" min="0" step="0.01" required value="0"><span>kg</span></div>
+                        </label>
                     </div>
-                </div>
+                </section>
 
-                <div id="campos-personalizado-pocao" class="bloco-campos-personalizados" hidden>
-                    <h4>Dados da poção</h4>
-                    <label class="opcao-check"><input id="pocao-personalizada-tem-rolagem" type="checkbox" onchange="atualizarCamposRolagemPocao()"> Possui rolagem</label>
-                    <div id="campos-rolagem-pocao" class="grid-personalizado" hidden>
-                        <label class="campo-formulario"><span>Quantidade de dados</span><input id="pocao-personalizada-quantidade" type="number" min="1" max="20" value="1"></label>
-                        <label class="campo-formulario"><span>Dado</span><select id="pocao-personalizada-dado"><option>d4</option><option selected>d6</option><option>d8</option><option>d10</option><option>d12</option><option>d20</option></select></label>
-                        <label class="campo-formulario"><span>Bônus</span><input id="pocao-personalizada-bonus" type="number" step="1" value="0"></label>
+                <section class="secao-personalizado">
+                    <div class="titulo-secao-personalizado"><span>2</span><div><strong>Escolha o tipo</strong><small>Os próximos campos mudam conforme sua escolha</small></div></div>
+                    <input id="item-personalizado-tipo" type="hidden" value="comum">
+                    <div class="tipos-item-grid">
+                        <button class="tipo-item-card selecionado" type="button" data-tipo="comum" onclick="selecionarTipoItemPersonalizado('comum', this)">
+                            <span class="tipo-item-icone">📦</span><strong>Item comum</strong><small>Objetos, mapas e relíquias</small>
+                        </button>
+                        <button class="tipo-item-card" type="button" data-tipo="arma" onclick="selecionarTipoItemPersonalizado('arma', this)">
+                            <span class="tipo-item-icone">⚔️</span><strong>Arma</strong><small>Dano e propriedades de combate</small>
+                        </button>
+                        <button class="tipo-item-card" type="button" data-tipo="armadura" onclick="selecionarTipoItemPersonalizado('armadura', this)">
+                            <span class="tipo-item-icone">🛡️</span><strong>Armadura</strong><small>CA fixa ou com Destreza</small>
+                        </button>
+                        <button class="tipo-item-card" type="button" data-tipo="pocao" onclick="selecionarTipoItemPersonalizado('pocao', this)">
+                            <span class="tipo-item-icone">🧪</span><strong>Poção</strong><small>Com ou sem rolagem</small>
+                        </button>
                     </div>
+                </section>
+
+                <section id="secao-configuracao-personalizada" class="secao-personalizado secao-configuracao">
+                    <div class="titulo-secao-personalizado"><span>3</span><div><strong>Configuração</strong><small id="ajuda-tipo-personalizado">O item comum não precisa de informações adicionais</small></div></div>
+
+                    <div id="campos-personalizado-comum" class="estado-item-comum">
+                        <span aria-hidden="true">✓</span>
+                        <p>Está tudo pronto. Confira a prévia abaixo e adicione o item ao inventário.</p>
+                    </div>
+
+                    <div id="campos-personalizado-arma" class="bloco-campos-personalizados" hidden>
+                        <div class="grid-personalizado">
+                            <label class="campo-formulario"><span>Quantidade de dados</span><input id="arma-personalizada-quantidade" type="number" min="1" max="20" value="1"></label>
+                            <label class="campo-formulario"><span>Dado de dano</span><select id="arma-personalizada-dado"><option>d4</option><option>d6</option><option selected>d8</option><option>d10</option><option>d12</option><option>d20</option></select></label>
+                            <label class="campo-formulario"><span>Tipo de dano</span><select id="arma-personalizada-dano"><option value="cortante">Cortante</option><option value="perfurante">Perfurante</option><option value="contundente">Contundente</option><option value="ácido">Ácido</option><option value="fogo">Fogo</option><option value="frio">Frio</option><option value="elétrico">Elétrico</option><option value="veneno">Veneno</option><option value="psíquico">Psíquico</option><option value="radiante">Radiante</option><option value="necrótico">Necrótico</option><option value="trovejante">Trovejante</option><option value="força">Força</option></select></label>
+                            <label class="campo-formulario"><span>Forma de uso</span><select id="arma-personalizada-modalidade"><option value="corpo a corpo">Corpo a corpo</option><option value="distância">À distância</option></select></label>
+                            <label class="campo-formulario"><span>Categoria</span><select id="arma-personalizada-categoria"><option value="simples">Arma simples</option><option value="marcial">Arma marcial</option></select></label>
+                            <label class="opcao-check opcao-check-card"><input id="arma-personalizada-acuidade" type="checkbox"><span><strong>Acuidade</strong><small>Permite usar Força ou Destreza</small></span></label>
+                        </div>
+                    </div>
+
+                    <div id="campos-personalizado-armadura" class="bloco-campos-personalizados" hidden>
+                        <div class="grid-personalizado grid-duas-colunas">
+                            <label class="campo-formulario"><span>Classe de Armadura base</span><input id="armadura-personalizada-ca" type="number" min="1" max="30" value="10"></label>
+                            <label class="campo-formulario"><span>Como calcular</span><select id="armadura-personalizada-calculo"><option value="fixa">Usar apenas a CA informada</option><option value="destreza">Somar o modificador de Destreza</option></select></label>
+                        </div>
+                    </div>
+
+                    <div id="campos-personalizado-pocao" class="bloco-campos-personalizados" hidden>
+                        <label class="opcao-check opcao-check-card opcao-rolagem"><input id="pocao-personalizada-tem-rolagem" type="checkbox" onchange="atualizarCamposRolagemPocao()"><span><strong>Esta poção possui rolagem?</strong><small>Marque se o efeito usa dados, como 2d4 + 2</small></span></label>
+                        <div id="campos-rolagem-pocao" class="grid-personalizado" hidden>
+                            <label class="campo-formulario"><span>Quantidade de dados</span><input id="pocao-personalizada-quantidade" type="number" min="1" max="20" value="1"></label>
+                            <label class="campo-formulario"><span>Dado</span><select id="pocao-personalizada-dado"><option>d4</option><option selected>d6</option><option>d8</option><option>d10</option><option>d12</option><option>d20</option></select></label>
+                            <label class="campo-formulario"><span>Bônus opcional</span><input id="pocao-personalizada-bonus" type="number" step="1" value="0"></label>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="resumo-item-personalizado">
+                    <span id="resumo-item-icone" class="resumo-item-icone">📦</span>
+                    <div class="resumo-item-texto"><small>PRÉVIA NO INVENTÁRIO</small><strong id="resumo-item-nome">Novo item comum</strong><span id="resumo-item-detalhes">Item comum · 0 kg</span></div>
                 </div>
 
                 <div class="acoes-modal">
-                    <button class="btn-secundario" type="button" onclick="limparFormularioItemPersonalizado()">Limpar</button>
-                    <button class="btn-primario btn-inline" type="submit">Adicionar ao inventário</button>
+                    <button class="btn-secundario" type="button" onclick="limparFormularioItemPersonalizado()">Limpar campos</button>
+                    <button class="btn-primario btn-inline btn-adicionar-personalizado" type="submit"><span>＋</span> Adicionar ao inventário</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script src="banco_phb.js?v=20260723-7"></script>
-    <script src="app.js?v=20260723-7"></script>
+    <script src="app.js?v=20260723-8"></script>
 </body>
 </html>
