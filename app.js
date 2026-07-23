@@ -24,7 +24,7 @@ window.onload = function() {
     
     if (typeof bancoDnD === 'undefined') {
         console.error("ERRO CRÍTICO: O arquivo banco_phb.js não foi carregado.");
-        alert("Erro de conexão com o banco de dados.");
+        mostrarToast("Erro de conexão com o banco de dados.");
         return; 
     }
     
@@ -93,7 +93,7 @@ function iniciarPersonagem(restaurando = false) {
     const classe = document.getElementById('select-classe').value;
 
     if (!nome || raca === "" || classe === "") {
-        if (!restaurando) alert("Preencha o nome e selecione raça e classe.");
+        if (!restaurando) mostrarToast("Preencha o nome e selecione raça e classe.");
         return;
     }
     personagemAtual = { nome, nivel, raca, subraca, classe };
@@ -493,11 +493,11 @@ function mostrarEtapa(numero) {
 
 function proximaEtapa(numero) {
     if (numero === 2 && !document.getElementById('nome-personagem').value.trim()) {
-        alert('Digite o nome do personagem.');
+        mostrarToast('Digite o nome do personagem.');
         return;
     }
     if (numero === 3 && (!document.getElementById('select-raca').value || !document.getElementById('select-classe').value)) {
-        alert('Selecione a raça e a classe.');
+        mostrarToast('Selecione a raça e a classe.');
         return;
     }
     if (numero === 4) renderizarPericiasDaClasse();
@@ -573,7 +573,7 @@ function renderizarPericiasDaClasse() {
             const selecionadas = obterPericiasSelecionadas();
             if (input.checked && selecionadas.length > config.quantidade) {
                 input.checked = false;
-                alert('Você pode escolher somente ' + config.quantidade + ' perícia(s) para esta classe.');
+                mostrarToast('Você pode escolher somente ' + config.quantidade + ' perícia(s) para esta classe.');
             }
             label.classList.toggle('selecionada', input.checked);
             atualizarContadorPericias();
@@ -600,7 +600,7 @@ function validarPericiasDaClasse(restaurando = false) {
         document.getElementById('ficha-completa').style.display = 'none';
         document.getElementById('criacao-rapida').style.display = 'block';
         mostrarEtapa(4);
-        if (!restaurando) alert('Escolha exatamente ' + config.quantidade + ' perícia(s) da sua classe.');
+        if (!restaurando) mostrarToast('Escolha exatamente ' + config.quantidade + ' perícia(s) da sua classe.');
         return false;
     }
     return true;
@@ -612,4 +612,34 @@ function aplicarPericiasDaClasse() {
         const campo = document.getElementById('prof-' + nome);
         if (campo) campo.checked = escolhidas.has(nome);
     });
+}
+
+
+let temporizadorToast;
+
+function mostrarToast(mensagem, tipo = 'aviso') {
+    let toast = document.getElementById('toast-notificacao');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-notificacao';
+        toast.className = 'toast-notificacao';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        toast.innerHTML = '<span class="toast-icone" aria-hidden="true">!</span><span class="toast-mensagem"></span><button class="toast-fechar" type="button" aria-label="Fechar notificação">&times;</button>';
+        document.body.appendChild(toast);
+        toast.querySelector('.toast-fechar').addEventListener('click', fecharToast);
+    }
+
+    clearTimeout(temporizadorToast);
+    toast.className = 'toast-notificacao ' + tipo;
+    toast.querySelector('.toast-mensagem').textContent = mensagem;
+    requestAnimationFrame(() => toast.classList.add('visivel'));
+    temporizadorToast = setTimeout(fecharToast, 3500);
+}
+
+function fecharToast() {
+    const toast = document.getElementById('toast-notificacao');
+    if (!toast) return;
+    clearTimeout(temporizadorToast);
+    toast.classList.remove('visivel');
 }
