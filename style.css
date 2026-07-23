@@ -267,3 +267,39 @@ body {
   .progresso-criacao { grid-template-columns:repeat(4,1fr); gap:4px; }
   .passo-indicador { padding:8px 2px; font-size:10px; }
 }
+
+
+/* Notificações não bloqueantes */
+.toast-notificacao {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: grid;
+    grid-template-columns: 30px minmax(180px, 1fr) 28px;
+    align-items: center;
+    gap: 10px;
+    width: min(390px, calc(100vw - 40px));
+    padding: 14px 12px;
+    border-radius: 10px;
+    border-left: 5px solid #f59e0b;
+    background: #242126;
+    color: #fff;
+    box-shadow: 0 12px 30px rgba(0,0,0,.28);
+    opacity: 0;
+    transform: translateY(-18px);
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+}
+.toast-notificacao.visivel { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.toast-icone { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:#f59e0b; color:#242126; font-weight:900; }
+.toast-mensagem { font-size:14px; line-height:1.4; }
+.toast-fechar { border:0; background:transparent; color:#ddd; font-size:22px; cursor:pointer; padding:0; }
+.toast-fechar:hover { color:#fff; }
+.toast-notificacao.erro { border-left-color:#ef4444; }
+.toast-notificacao.erro .toast-icone { background:#ef4444; color:#fff; }
+.toast-notificacao.sucesso { border-left-color:#22c55e; }
+.toast-notificacao.sucesso .toast-icone { background:#22c55e; color:#fff; }
+@media (max-width:600px) {
+    .toast-notificacao { top:10px; right:10px; width:calc(100vw - 20px); box-sizing:border-box; }
+}
