@@ -451,3 +451,19 @@ body {
     .acoes-modal-traco .btn-primario,
     .acoes-modal-traco .btn-secundario { width: 100%; }
 }
+
+
+/* Traços recebidos automaticamente */
+.item-traco.automatico { border-left: 4px solid var(--cor-primaria); }
+.item-traco.automatico .btn-bloquear-traco { cursor: help; }
+.etiqueta-automatica {
+    display: inline-block;
+    margin: 10px 0 0 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #fce4ec;
+    color: var(--cor-primaria);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
