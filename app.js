@@ -31,7 +31,12 @@ window.onload = function() {
     console.log("Banco de dados conectado com sucesso!");
     carregarOpcoes();
     document.getElementById('select-raca').addEventListener('change', carregarSubracas);
-    document.getElementById('select-classe').addEventListener('change', renderizarPericiasDaClasse);
+    document.querySelectorAll('input[name="usar-subraca"]').forEach(campo => campo.addEventListener('change', alternarEscolhaSubraca));
+    document.getElementById('select-classe').addEventListener('change', () => {
+        carregarSubclasses();
+        renderizarPericiasDaClasse();
+    });
+    document.getElementById('select-antecedente').addEventListener('change', atualizarResumoAntecedente);
     document.getElementById('nivel-personagem').addEventListener('change', validarNivel);
     renderizarSalvaguardas();
     renderizarPericias();
@@ -41,6 +46,7 @@ window.onload = function() {
 function carregarOpcoes() {
     const selectRaca = document.getElementById('select-raca');
     const selectClasse = document.getElementById('select-classe');
+    const selectAntecedente = document.getElementById('select-antecedente');
 
     for (let raca in bancoDnD.racas) {
         let opcao = document.createElement('option'); 
@@ -51,6 +57,11 @@ function carregarOpcoes() {
         let opcao = document.createElement('option'); 
         opcao.value = classe; opcao.text = classe;
         selectClasse.appendChild(opcao);
+    }
+    for (let antecedente in (bancoDnD.antecedentes || {})) {
+        let opcao = document.createElement('option');
+        opcao.value = antecedente; opcao.text = antecedente;
+        selectAntecedente.appendChild(opcao);
     }
 }
 
@@ -88,22 +99,28 @@ function renderizarPericias() {
 function iniciarPersonagem(restaurando = false) {
     const nome = document.getElementById('nome-personagem').value.trim();
     const nivel = validarNivel();
-    const subraca = document.getElementById('select-subraca').value;
+    const subraca = document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim'
+        ? document.getElementById('select-subraca').value : '';
     const raca = document.getElementById('select-raca').value;
     const classe = document.getElementById('select-classe').value;
+    const subclasse = document.getElementById('select-subclasse').value;
+    const alinhamento = document.getElementById('select-alinhamento').value;
+    const antecedente = document.getElementById('select-antecedente').value;
 
-    if (!nome || raca === "" || classe === "") {
-        if (!restaurando) mostrarToast("Preencha o nome e selecione raça e classe.");
+    if (!nome || !raca || !classe || !subclasse || !alinhamento || !antecedente) {
+        if (!restaurando) mostrarToast("Conclua todas as escolhas antes de gerar a ficha.");
         return;
     }
-    personagemAtual = { nome, nivel, raca, subraca, classe };
+    personagemAtual = { nome, nivel, raca, subraca, classe, subclasse, alinhamento, antecedente };
 
     document.getElementById('criacao-rapida').style.display = 'none';
     document.getElementById('ficha-completa').style.display = 'block';
     document.getElementById('display-nome').innerText = nome;
-    document.getElementById('display-raca').innerText = raca;
-    document.getElementById('display-subraca').innerText = subraca ? " — " + subraca : "";
+    document.getElementById('display-origem').innerText = subraca || raca;
     document.getElementById('display-classe').innerText = classe;
+    document.getElementById('display-subclasse').innerText = subclasse;
+    document.getElementById('display-alinhamento').innerText = alinhamento;
+    document.getElementById('display-antecedente').innerText = antecedente;
     document.getElementById('display-nivel').innerText = nivel;
     document.getElementById('display-proficiencia').innerText = "+" + obterBonusProficiencia();
 
@@ -440,9 +457,13 @@ function salvarEstado() {
     localStorage.setItem(CHAVE_FICHA, JSON.stringify({
         nome: document.getElementById('nome-personagem')?.value || personagemAtual.nome,
         nivel: validarNivel(),
-        subraca: document.getElementById('select-subraca')?.value || personagemAtual.subraca,
+        subraca: document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim' ? (document.getElementById('select-subraca')?.value || '') : '',
+        usarSubraca: document.querySelector('input[name="usar-subraca"]:checked')?.value || '',
         raca: document.getElementById('select-raca')?.value || personagemAtual.raca,
         classe: document.getElementById('select-classe')?.value || personagemAtual.classe,
+        subclasse: document.getElementById('select-subclasse')?.value || personagemAtual.subclasse,
+        alinhamento: document.getElementById('select-alinhamento')?.value || personagemAtual.alinhamento,
+        antecedente: document.getElementById('select-antecedente')?.value || personagemAtual.antecedente,
         atributos,
         pericias,
         periciasClasse: obterPericiasSelecionadas(),
@@ -465,8 +486,17 @@ function restaurarEstado() {
     document.getElementById('nivel-personagem').value = estado.nivel || 1;
     document.getElementById('select-raca').value = estado.raca || '';
     carregarSubracas();
+    const escolhaSubraca = estado.usarSubraca || (estado.subraca ? 'sim' : 'nao');
+    const radioSubraca = document.querySelector('input[name="usar-subraca"][value="' + escolhaSubraca + '"]');
+    if (radioSubraca) radioSubraca.checked = true;
+    alternarEscolhaSubraca();
     document.getElementById('select-subraca').value = estado.subraca || '';
     document.getElementById('select-classe').value = estado.classe || '';
+    carregarSubclasses();
+    document.getElementById('select-subclasse').value = estado.subclasse || '';
+    document.getElementById('select-alinhamento').value = estado.alinhamento || '';
+    document.getElementById('select-antecedente').value = estado.antecedente || '';
+    atualizarResumoAntecedente();
     Object.entries(estado.atributos || {}).forEach(([attr, valor]) => {
         const campo = document.getElementById('attr-' + attr);
         if (campo) campo.value = valor;
@@ -496,11 +526,32 @@ function proximaEtapa(numero) {
         mostrarToast('Digite o nome do personagem.');
         return;
     }
-    if (numero === 3 && (!document.getElementById('select-raca').value || !document.getElementById('select-classe').value)) {
-        mostrarToast('Selecione a raça e a classe.');
-        return;
+    if (numero === 3) {
+        const raca = document.getElementById('select-raca').value;
+        const classe = document.getElementById('select-classe').value;
+        const subclasse = document.getElementById('select-subclasse').value;
+        const temSubracas = Object.keys(bancoDnD.racas[raca]?.subracas || {}).length > 0;
+        const decisaoSubraca = document.querySelector('input[name="usar-subraca"]:checked')?.value;
+        const subraca = document.getElementById('select-subraca').value;
+        if (!raca || !classe) {
+            mostrarToast('Selecione a raça e a classe.');
+            return;
+        }
+        if (temSubracas && !decisaoSubraca) {
+            mostrarToast('Informe se deseja escolher uma sub-raça.');
+            return;
+        }
+        if (decisaoSubraca === 'sim' && !subraca) {
+            mostrarToast('Escolha uma sub-raça para continuar.');
+            return;
+        }
+        if (!subclasse) {
+            mostrarToast('Escolha uma subclasse para continuar.');
+            return;
+        }
     }
     if (numero === 4) renderizarPericiasDaClasse();
+    if (numero === 5 && !validarPericiasDaClasse()) return;
     mostrarEtapa(numero);
     salvarEstado();
 }
@@ -508,15 +559,67 @@ function proximaEtapa(numero) {
 function carregarSubracas() {
     const racaNome = document.getElementById('select-raca').value;
     const select = document.getElementById('select-subraca');
+    const pergunta = document.getElementById('pergunta-subraca');
+    const grupo = document.getElementById('grupo-subraca');
     const subracas = bancoDnD.racas[racaNome]?.subracas || {};
-    select.innerHTML = '<option value="">-- Sem sub-raça --</option>';
-    Object.keys(subracas).forEach(nome => {
+    const nomes = Object.keys(subracas);
+    select.innerHTML = '<option value="">-- Escolha uma Sub-raça --</option>';
+    nomes.forEach(nome => {
         const opcao = document.createElement('option');
         opcao.value = nome;
         opcao.textContent = nome;
         select.appendChild(opcao);
     });
-    select.disabled = Object.keys(subracas).length === 0;
+    document.querySelectorAll('input[name="usar-subraca"]').forEach(campo => campo.checked = false);
+    pergunta.hidden = nomes.length === 0;
+    grupo.hidden = true;
+    select.value = '';
+}
+
+function alternarEscolhaSubraca() {
+    const escolha = document.querySelector('input[name="usar-subraca"]:checked')?.value;
+    const grupo = document.getElementById('grupo-subraca');
+    grupo.hidden = escolha !== 'sim';
+    if (escolha !== 'sim') document.getElementById('select-subraca').value = '';
+}
+
+function carregarSubclasses() {
+    const classe = document.getElementById('select-classe').value;
+    const select = document.getElementById('select-subclasse');
+    const subclasses = bancoDnD.classes[classe]?.subclasses || [];
+    select.innerHTML = '<option value="">-- Escolha uma Subclasse --</option>';
+    subclasses.forEach(nome => {
+        const opcao = document.createElement('option');
+        opcao.value = nome;
+        opcao.textContent = nome;
+        select.appendChild(opcao);
+    });
+    select.disabled = subclasses.length === 0;
+}
+
+function atualizarResumoAntecedente() {
+    const nome = document.getElementById('select-antecedente').value;
+    const resumo = document.getElementById('resumo-antecedente');
+    const dados = bancoDnD.antecedentes?.[nome];
+    if (!dados) {
+        resumo.hidden = true;
+        resumo.innerHTML = '';
+        return;
+    }
+    const pericias = Array.isArray(dados.pericias) ? dados.pericias.join(', ') : 'Nenhuma';
+    const ferramentas = Array.isArray(dados.ferramentas) && dados.ferramentas.length ? dados.ferramentas.join(', ') : 'Nenhuma';
+    resumo.innerHTML = '<strong>Benefícios do antecedente</strong>' +
+        '<span><b>Perícias:</b> ' + escaparHtml(pericias) + '</span>' +
+        '<span><b>Ferramentas:</b> ' + escaparHtml(ferramentas) + '</span>' +
+        '<span><b>Habilidade:</b> ' + escaparHtml(dados.habilidade || 'Não informada') + '</span>';
+    resumo.hidden = false;
+    salvarEstado();
+}
+
+function escaparHtml(valor) {
+    return String(valor).replace(/[&<>"']/g, caractere => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[caractere]);
 }
 
 function validarNivel() {
@@ -608,6 +711,9 @@ function validarPericiasDaClasse(restaurando = false) {
 
 function aplicarPericiasDaClasse() {
     const escolhidas = new Set(obterPericiasSelecionadas());
+    const antecedenteNome = document.getElementById('select-antecedente').value;
+    const periciasAntecedente = bancoDnD.antecedentes?.[antecedenteNome]?.pericias || [];
+    periciasAntecedente.forEach(nome => escolhidas.add(nome));
     Object.keys(bancoDnD.pericias).forEach(nome => {
         const campo = document.getElementById('prof-' + nome);
         if (campo) campo.checked = escolhidas.has(nome);
