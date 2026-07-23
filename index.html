@@ -9,37 +9,53 @@
 </head>
 <body>
 
-    <!-- TELA 1: CRIAÇÃO RÁPIDA -->
+    <!-- TELA 1: CRIAÇÃO GUIADA -->
     <div class="painel form-criacao" id="criacao-rapida">
-        <h1 class="titulo-principal">Forja de Personagens</h1>
-        <p class="subtitulo">Selecione sua origem e forje seu destino.</p>
-        
-        <div class="seletores-iniciais">
-            <div class="grupo-input">
-                <label for="select-raca">Raça</label>
-                <select id="select-raca" class="input-elegante">
-                    <option value="">-- Escolha uma Raça --</option>
-                </select>
-            </div>
-            <div class="grupo-input">
-                <label for="select-classe">Classe</label>
-                <select id="select-classe" class="input-elegante">
-                    <option value="">-- Escolha uma Classe --</option>
-                </select>
-            </div>
+        <h1 class="titulo-principal">Ficha de Personagem 5E</h1>
+        <p class="subtitulo">Crie seu personagem passo a passo.</p>
+        <div class="progresso-criacao">
+            <div class="passo-indicador ativo" data-passo="1"><span>1</span> Identidade</div>
+            <div class="passo-indicador" data-passo="2"><span>2</span> Origem</div>
+            <div class="passo-indicador" data-passo="3"><span>3</span> Atributos</div>
         </div>
-        
-        <h3 class="titulo-secao">Atributos Base</h3>
-        <div class="grid-atributos-base">
-            <div class="grupo-input"><label>FOR</label><input type="number" id="attr-for" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-            <div class="grupo-input"><label>DES</label><input type="number" id="attr-des" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-            <div class="grupo-input"><label>CON</label><input type="number" id="attr-con" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-            <div class="grupo-input"><label>INT</label><input type="number" id="attr-int" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-            <div class="grupo-input"><label>SAB</label><input type="number" id="attr-sab" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-            <div class="grupo-input"><label>CAR</label><input type="number" id="attr-car" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-        </div>
-        
-        <button class="btn-primario" onclick="iniciarPersonagem()">Gerar Ficha Completa</button>
+
+        <section class="etapa-criacao ativa" data-etapa="1">
+            <h3 class="titulo-secao">Quem é seu personagem?</h3>
+            <div class="grid-formulario">
+                <div class="grupo-input campo-largo">
+                    <label for="nome-personagem">Nome do personagem</label>
+                    <input id="nome-personagem" class="input-elegante" maxlength="60" placeholder="Digite o nome">
+                </div>
+                <div class="grupo-input">
+                    <label for="nivel-personagem">Nível</label>
+                    <input type="number" id="nivel-personagem" value="1" min="1" max="20" class="input-elegante centralizado">
+                </div>
+            </div>
+            <div class="acoes-etapa"><span></span><button class="btn-primario btn-inline" onclick="proximaEtapa(2)">Continuar</button></div>
+        </section>
+
+        <section class="etapa-criacao" data-etapa="2">
+            <h3 class="titulo-secao">Origem e treinamento</h3>
+            <div class="grid-formulario">
+                <div class="grupo-input"><label for="select-raca">Raça</label><select id="select-raca" class="input-elegante"><option value="">-- Escolha uma Raça --</option></select></div>
+                <div class="grupo-input"><label for="select-subraca">Sub-raça</label><select id="select-subraca" class="input-elegante" disabled><option value="">-- Não disponível --</option></select></div>
+                <div class="grupo-input"><label for="select-classe">Classe</label><select id="select-classe" class="input-elegante"><option value="">-- Escolha uma Classe --</option></select></div>
+            </div>
+            <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(1)">Voltar</button><button class="btn-primario btn-inline" onclick="proximaEtapa(3)">Continuar</button></div>
+        </section>
+
+        <section class="etapa-criacao" data-etapa="3">
+            <h3 class="titulo-secao">Atributos base</h3>
+            <div class="grid-atributos-base">
+                <div class="grupo-input"><label>FOR</label><input type="number" id="attr-for" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>DES</label><input type="number" id="attr-des" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>CON</label><input type="number" id="attr-con" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>INT</label><input type="number" id="attr-int" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>SAB</label><input type="number" id="attr-sab" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>CAR</label><input type="number" id="attr-car" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+            </div>
+            <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(2)">Voltar</button><button class="btn-primario btn-inline" onclick="iniciarPersonagem()">Gerar ficha</button></div>
+        </section>
     </div>
 
     <!-- TELA 2: A FICHA COMPLETA -->
@@ -54,11 +70,11 @@
         <!-- PÁGINA 1 -->
         <div id="pagina-1" class="aba">
             <div class="cabecalho-ficha">
-                <div class="nome-personagem">Nome do Personagem</div>
-                <div class="info-personagem">
-                    <strong>Raça:</strong> <span id="display-raca"></span> &nbsp;|&nbsp; 
-                    <strong>Classe:</strong> <span id="display-classe"></span>
+                <div>
+                    <div class="nome-personagem" id="display-nome">Nome do Personagem</div>
+                    <div class="info-personagem"><span id="display-raca"></span><span id="display-subraca"></span> • <span id="display-classe"></span> <strong>Nível <span id="display-nivel">1</span></strong></div>
                 </div>
+                <div class="acoes-cabecalho"><button class="btn-secundario" onclick="editarPersonagem()">Editar personagem</button></div>
             </div>
 
             <div class="dnd-grid-principal">
