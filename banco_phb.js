@@ -176,6 +176,73 @@ const bancoDnD = {
             subclasses: ["Caçador", "Mestre das Feras"]
         }
     },
+    antecedentes: {
+        "Acólito": {
+            pericias: ["Intuição", "Religião"],
+            ferramentas: [],
+            habilidade: "Abrigo dos Fiéis"
+        },
+        "Artisao da Guilda": {
+            pericias: ["Persuasão", "Intuição"],
+            ferramentas: ["Um tipo de ferramenta de artesão"],
+            habilidade: "Associação de Guilda"
+        },
+        "Artista": {
+            pericias: ["Acrobacia", "Atuação"],
+            ferramentas: ["Kit de disfarce", "Um tipo de instrumento musical"],
+            habilidade: "Por Conta da Casa"
+        },
+        "Charlatão": {
+            pericias: ["Enganação", "Prestidigitação"],
+            ferramentas: ["Kit de disfarce", "Kit de falsificação"],
+            habilidade: "Identidade Falsa"
+        },
+        "Criminoso": {
+            pericias: ["Furtividade", "Enganação"],
+            ferramentas: ["Jogo (um tipo)", "Ferramentas de ladrão"],
+            habilidade: "Contato Criminal"
+        },
+        "Eremita": {
+            pericias: ["Medicina", "Religião"],
+            ferramentas: ["Kit de herbalismo"],
+            habilidade: "Descoberta"
+        },
+        "Herói do Povo": {
+            pericias: ["Adestrar Animais", "Sobrevivência"],
+            ferramentas: ["Ferramentas de artesão (um tipo)", "Veículos (terrestres)"],
+            habilidade: "Hospitalidade Rústica"
+        },
+        "Nobre": {
+            pericias: ["História", "Persuasão"],
+            ferramentas: ["Jogo (um tipo)"],
+            habilidade: "Posição de Privilégio"
+        },
+        "Orfao": {
+            pericias: ["Furtividade", "Prestidigitação"],
+            ferramentas: ["Kit de disfarce", "Ferramentas de ladrão"],
+            habilidade: "Urbano"
+        },
+        "Sábio": {
+            pericias: ["Arcanismo", "História"],
+            ferramentas: [".(Dois idiomas à sua escolha)"],
+            habilidade: "Pesquisador"
+        },
+        "Marinheiro": {
+            pericias: ["Atletismo", "Percepção"],
+            ferramentas: ["Ferramentas de navegador", "Veículos (aquáticos)"],
+            habilidade: "Passagem Marítima"
+        },
+        "Soldado": {
+            pericias: ["Atletismo", "Intimidação"],
+            ferramentas: ["Jogo (um tipo)", "Veículos (terrestres)"],
+            habilidade: "Patente Militar"
+        },
+        "Forasteiro": {
+            pericias: ["Atletismo", "Sobrevivência"],
+            ferramentas: ["Instrumento musical (um tipo)"],
+            habilidade: "Andarilho"
+        }
+    },
     pericias: {
         "Acrobacia": "des", "Arcanismo": "int", "Atletismo": "for",
         "Atuação": "car", "Enganação": "car", "Furtividade": "des",
@@ -365,5 +432,77 @@ const bancoDnD = {
             {"nome": "Pacote de Explorador", "custo": "10 po", "descricao": "Inclui uma mochila, um saco de dormir, um kit de refeição, uma caixa de fogo, 10 tochas, 10 dias de rações e um cantil. O kit também tem 15 metros de corda de cânhamo amarrada ao lado dele."},
             {"nome": "Pacote de Sacerdote", "custo": "19 po", "descricao": "Inclui uma mochila, um cobertor, 10 velas, uma caixa de fogo, uma caixa de esmolas, 2 blocos de incenso, um incensário, vestes, 2 dias de rações e um cantil."}
         ]
+    },
+    antecedentosTradicionaisPHB: {
+        "Assassino": {
+            pericias: ["Acrobacia", "Furtividade"],
+            ferramentas: ["Kit de disfarce", "Ferramentas de ladrão"],
+            habilidade: "Contato Criminal"
+        },
+        "Charlatão": {
+            pericias: ["Enganação", "Prestidigitação"],
+            ferramentas: ["Kit de disfarce", "Kit de falsificação"],
+            habilidade: "Identidade Falsa"
+        },
+        "Criminoso": {
+            pericias: ["Furtividade", "Enganação"],
+            ferramentas: ["Jogo (um tipo)", "Ferramentas de ladrão"],
+            habilidade: "Contato Criminal"
+        },
+        "Eremita": {
+            pericias: ["Medicina", "Religião"],
+            ferramentas: ["Kit de herbalismo", "Kit de fabricação (um tipo)"],
+            habilidade: "Descoberta"
+        },
+        "Forasteiro": {
+            pericias: ["Atletismo", "Sobrevivência"],
+            ferramentas: ["Instrumento musical (um tipo)", "Ferramentas de artesão (um tipo)"],
+            habilidade: "Andarilho"
+        },
+        "Herói do Povo": {
+            pericias: ["Adestrar Animais", "Sobrevivência"],
+            ferramentas: ["Ferramentas de artesão (um tipo)", "Veículos (terrestres)"],
+            habilidade: "Hospitalidade Rústica"
+        },
+        "Nobre": {
+            pericias: ["História", "Persuasão"],
+            ferramentas: ["Jogo (um tipo)"],
+            habilidade: "Posição de Privilégio"
+        },
+        "Orfao": {
+            pericias: ["Furtividade", "Prestidigitação"],
+            ferramentas: ["Kit de disfarce", "Ferramentas de ladrão"],
+            habilidade: "Urbano"
+        },
+        "Sábio": {
+            pericias: ["Arcanismo", "História"],
+            ferramentas: ["(Dois idiomas à sua escolha)"],
+            habilidade: "Pesquisador"
+        },
+        "Marinheiro": {
+            pericias: ["Atletismo", "Percepção"],
+            ferramentas: ["Ferramentas de navegador", "Veículos (aquáticos)"],
+            habilidade: "Passagem Marítima"
+        },
+        "Soldado": {
+            pericias: ["Atletismo", "Intimidação"],
+            ferramentas: ["Jogo (um tipo)", "Veículos (terrestres)"],
+            habilidade: "Patente Militar"
+        },
+        "Acólito": {
+            pericias: ["Intuição", "Religião"],
+            ferramentas: ["(Dois idiomas à sua escolha)"],
+            habilidade: "Abrigo dos Fiéis"
+        },
+        "Artesão da Guilda": {
+            pericias: ["Persuasão", "Intuição"],
+            ferramentas: ["Ferramentas de artesão (um tipo)", "Idioma adicional"],
+            habilidade: "Associação de Guilda"
+        },
+        "Artista": {
+            pericias: ["Acrobacia", "Atuação"],
+            ferramentas: ["Kit de disfarce", "Instrumento musical (um tipo)"],
+            habilidade: "Por Conta da Casa"
+        }
     }
 };
