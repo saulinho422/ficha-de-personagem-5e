@@ -362,24 +362,82 @@ function adicionarAoInventario(nome, pesoStr) {
     mostrarToast(nome + ' foi adicionado ao inventário.', 'sucesso');
 }
 
+function selecionarTipoItemPersonalizado(tipo, botao = null) {
+    const campoTipo = document.getElementById('item-personalizado-tipo');
+    if (campoTipo) campoTipo.value = tipo;
+    document.querySelectorAll('.tipo-item-card').forEach(card => {
+        card.classList.toggle('selecionado', card === botao || (!botao && card.dataset.tipo === tipo));
+    });
+    atualizarCamposItemPersonalizado();
+}
+
 function atualizarCamposItemPersonalizado() {
     const tipo = document.getElementById('item-personalizado-tipo')?.value || 'comum';
-    ['arma', 'armadura', 'pocao'].forEach(nome => {
+    ['comum', 'arma', 'armadura', 'pocao'].forEach(nome => {
         const bloco = document.getElementById('campos-personalizado-' + nome);
         if (bloco) bloco.hidden = tipo !== nome;
     });
+    const ajudas = {
+        comum: 'O item comum não precisa de informações adicionais',
+        arma: 'Defina como a arma funciona nos ataques',
+        armadura: 'Defina a proteção que ela oferece ao personagem',
+        pocao: 'Defina se o efeito da poção usa uma rolagem'
+    };
+    const ajuda = document.getElementById('ajuda-tipo-personalizado');
+    if (ajuda) ajuda.textContent = ajudas[tipo];
     atualizarCamposRolagemPocao();
+    atualizarResumoItemPersonalizado();
 }
 
 function atualizarCamposRolagemPocao() {
     const campos = document.getElementById('campos-rolagem-pocao');
     const marcado = document.getElementById('pocao-personalizada-tem-rolagem')?.checked;
     if (campos) campos.hidden = !marcado;
+    atualizarResumoItemPersonalizado();
+}
+
+function atualizarResumoItemPersonalizado() {
+    const tipo = document.getElementById('item-personalizado-tipo')?.value || 'comum';
+    const nome = document.getElementById('item-personalizado-nome')?.value.trim();
+    const peso = Math.max(0, obterValorNumerico('item-personalizado-peso'));
+    const configuracoes = {
+        comum: { icone: '📦', titulo: 'Novo item comum', detalhe: 'Item comum' },
+        arma: { icone: '⚔️', titulo: 'Nova arma', detalhe: 'Arma' },
+        armadura: { icone: '🛡️', titulo: 'Nova armadura', detalhe: 'Armadura' },
+        pocao: { icone: '🧪', titulo: 'Nova poção', detalhe: 'Poção' }
+    };
+    const atual = configuracoes[tipo];
+    let detalhe = atual.detalhe;
+
+    if (tipo === 'arma') {
+        const quantidade = Math.max(1, Math.floor(obterValorNumerico('arma-personalizada-quantidade', 1)));
+        detalhe += ' · ' + quantidade + (document.getElementById('arma-personalizada-dado')?.value || 'd8');
+        detalhe += ' ' + (document.getElementById('arma-personalizada-dano')?.value || 'cortante');
+    } else if (tipo === 'armadura') {
+        const ca = Math.max(1, Math.floor(obterValorNumerico('armadura-personalizada-ca', 10)));
+        detalhe += ' · CA ' + ca;
+        if (document.getElementById('armadura-personalizada-calculo')?.value === 'destreza') detalhe += ' + Destreza';
+    } else if (tipo === 'pocao') {
+        if (document.getElementById('pocao-personalizada-tem-rolagem')?.checked) {
+            const quantidade = Math.max(1, Math.floor(obterValorNumerico('pocao-personalizada-quantidade', 1)));
+            const dado = document.getElementById('pocao-personalizada-dado')?.value || 'd6';
+            const bonus = Math.floor(obterValorNumerico('pocao-personalizada-bonus'));
+            detalhe += ' · ' + quantidade + dado + (bonus > 0 ? ' + ' + bonus : bonus < 0 ? ' - ' + Math.abs(bonus) : '');
+        } else {
+            detalhe += ' · sem rolagem';
+        }
+    }
+
+    document.getElementById('resumo-item-icone').textContent = atual.icone;
+    document.getElementById('resumo-item-nome').textContent = nome || atual.titulo;
+    document.getElementById('resumo-item-detalhes').textContent = detalhe + ' · ' + peso.toLocaleString('pt-BR') + ' kg';
 }
 
 function limparFormularioItemPersonalizado() {
     document.getElementById('form-item-personalizado')?.reset();
-    atualizarCamposItemPersonalizado();
+    const campoTipo = document.getElementById('item-personalizado-tipo');
+    if (campoTipo) campoTipo.value = 'comum';
+    selecionarTipoItemPersonalizado('comum');
 }
 
 function obterValorNumerico(id, padrao = 0) {
