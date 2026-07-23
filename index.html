@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forja de Personagens - D&D 5E</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TELA 1: CRIAÇÃO RÁPIDA -->
+    <div class="painel form-criacao" id="criacao-rapida">
+        <h1 class="titulo-principal">Forja de Personagens</h1>
+        <p class="subtitulo">Selecione sua origem e forje seu destino.</p>
+        
+        <div class="seletores-iniciais">
+            <div class="grupo-input">
+                <label for="select-raca">Raça</label>
+                <select id="select-raca" class="input-elegante">
+                    <option value="">-- Escolha uma Raça --</option>
+                </select>
+            </div>
+            <div class="grupo-input">
+                <label for="select-classe">Classe</label>
+                <select id="select-classe" class="input-elegante">
+                    <option value="">-- Escolha uma Classe --</option>
+                </select>
+            </div>
+        </div>
+        
+        <h3 class="titulo-secao">Atributos Base</h3>
+        <div class="grid-atributos-base">
+            <div class="grupo-input"><label>FOR</label><input type="number" id="attr-for" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+            <div class="grupo-input"><label>DES</label><input type="number" id="attr-des" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+            <div class="grupo-input"><label>CON</label><input type="number" id="attr-con" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+            <div class="grupo-input"><label>INT</label><input type="number" id="attr-int" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+            <div class="grupo-input"><label>SAB</label><input type="number" id="attr-sab" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+            <div class="grupo-input"><label>CAR</label><input type="number" id="attr-car" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+        </div>
+        
+        <button class="btn-primario" onclick="iniciarPersonagem()">Gerar Ficha Completa</button>
+    </div>
+
+    <!-- TELA 2: A FICHA COMPLETA -->
+    <div class="painel" id="ficha-completa" style="display: none;">
+        
+        <div class="menu-abas">
+            <button class="btn-aba ativa" onclick="mudarAba('pagina-1')">Status Principais</button>
+            <button class="btn-aba" onclick="mudarAba('pagina-2')">Histórico e Traços</button>
+            <button class="btn-aba" onclick="mudarAba('pagina-3')">Magias</button>
+        </div>
+
+        <!-- PÁGINA 1 -->
+        <div id="pagina-1" class="aba">
+            <div class="cabecalho-ficha">
+                <div class="nome-personagem">Nome do Personagem</div>
+                <div class="info-personagem">
+                    <strong>Raça:</strong> <span id="display-raca"></span> &nbsp;|&nbsp; 
+                    <strong>Classe:</strong> <span id="display-classe"></span>
+                </div>
+            </div>
+
+            <div class="dnd-grid-principal">
+                <!-- COLUNA 1 -->
+                <div class="coluna-esquerda">
+                    <div class="grid-modificadores">
+                        <div class="atributo-box"><div class="titulo-attr">FORÇA</div><div class="valor-modificador" id="mod-for">+0</div><div class="valor-base" id="final-for">10</div></div>
+                        <div class="atributo-box"><div class="titulo-attr">DESTREZA</div><div class="valor-modificador" id="mod-des">+0</div><div class="valor-base" id="final-des">10</div></div>
+                        <div class="atributo-box"><div class="titulo-attr">CONSTITUIÇÃO</div><div class="valor-modificador" id="mod-con">+0</div><div class="valor-base" id="final-con">10</div></div>
+                        <div class="atributo-box"><div class="titulo-attr">INTELIGÊNCIA</div><div class="valor-modificador" id="mod-int">+0</div><div class="valor-base" id="final-int">10</div></div>
+                        <div class="atributo-box"><div class="titulo-attr">SABEDORIA</div><div class="valor-modificador" id="mod-sab">+0</div><div class="valor-base" id="final-sab">10</div></div>
+                        <div class="atributo-box"><div class="titulo-attr">CARISMA</div><div class="valor-modificador" id="mod-car">+0</div><div class="valor-base" id="final-car">10</div></div>
+                    </div>
+
+                    <div class="caixa-destaque">
+                        <div class="valor-caixa" id="display-proficiencia">+2</div>
+                        <div>BÔNUS DE PROFICIÊNCIA</div>
+                    </div>
+
+                    <div class="lista-habilidades">
+                        <div class="titulo-lista">TESTES DE RESISTÊNCIA</div>
+                        <div id="lista-salvaguardas"></div>
+                    </div>
+
+                    <div class="lista-habilidades">
+                        <div class="titulo-lista">PERÍCIAS</div>
+                        <div id="lista-pericias"></div>
+                    </div>
+                </div>
+
+                <!-- COLUNA 2 -->
+                <div class="coluna-meio">
+                    <div class="grid-status-combate">
+                        <div class="combate-box"><div class="titulo-combate">CA</div><div class="combate-valor" id="display-ca">10</div></div>
+                        <div class="combate-box"><div class="titulo-combate">INICIATIVA</div><div class="combate-valor" id="display-iniciativa">+0</div></div>
+                        <div class="combate-box"><div class="titulo-combate">DESLOC.</div><div class="combate-valor"><span id="display-deslocamento">9</span>m</div></div>
+                    </div>
+
+                    <div class="caixa-hp">
+                        <div class="titulo-combate">PONTOS DE VIDA ATUAIS / MÁXIMOS</div>
+                        <div class="hp-valores"><span id="display-hp-atual">10</span> / <span id="display-hp-max">10</span></div>
+                    </div>
+
+                    <div class="caixa-generica">
+                        <div class="titulo-combate">ATAQUES E MAGIAS</div>
+                    </div>
+                </div>
+
+                <!-- COLUNA 3: Equipamentos, Carga e Barra Visual -->
+                <div class="coluna-direita">
+                    <div class="caixa-generica">
+                        <div class="titulo-combate">TRAÇOS E CARACTERÍSTICAS</div>
+                    </div>
+                    
+                    <div class="caixa-equipamentos">
+                        <div class="cabecalho-equipamento">
+                            <span class="titulo-combate">EQUIPAMENTO & INVENTÁRIO</span>
+                            <span class="carga-total">Carga: <span id="peso-total">0,0</span> / <span id="peso-maximo">75</span> kg</span>
+                        </div>
+                        
+                        <!-- BARRA DE PROGRESSO DE CARGA -->
+                        <div class="container-barra-carga">
+                            <div id="barra-progresso-carga" class="barra-progresso-preenchimento" style="width: 0%;"></div>
+                        </div>
+
+                        <!-- Lista de Itens -->
+                        <div id="lista-inventario" class="lista-inventario-conteudo">
+                            <em class="texto-vazio">Nenhum item adicionado.</em>
+                        </div>
+
+                        <!-- Botão (+) -->
+                        <button class="btn-add-item" onclick="abrirModalEquipamentos()" title="Adicionar Item">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pagina-2" class="aba"><h2>Página 2: História</h2></div>
+        <div id="pagina-3" class="aba"><h2>Página 3: Conjuração</h2></div>
+    </div>
+
+    <!-- MODAL DE EQUIPAMENTOS -->
+    <div id="modal-equipamentos" class="modal-overlay" style="display: none;">
+        <div class="modal-conteudo">
+            <div class="modal-cabecalho">
+                <h3>Adicionar Equipamento do PHB</h3>
+                <button class="btn-fechar" onclick="fecharModalEquipamentos()">&times;</button>
+            </div>
+            
+            <div class="modal-abas">
+                <button class="btn-cat ativa" onclick="mudarCategoriaModal('todos')">Todos</button>
+                <button class="btn-cat" onclick="mudarCategoriaModal('armas')">Armas</button>
+                <button class="btn-cat" onclick="mudarCategoriaModal('armaduras')">Armaduras</button>
+                <button class="btn-cat" onclick="mudarCategoriaModal('aventura')">Aventura</button>
+                <button class="btn-cat" onclick="mudarCategoriaModal('pacotes')">Pacotes</button>
+            </div>
+
+            <div class="modal-lista" id="modal-lista-itens"></div>
+        </div>
+    </div>
+
+    <script src="banco_phb.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
