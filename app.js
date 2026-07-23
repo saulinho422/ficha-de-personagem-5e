@@ -2,6 +2,7 @@
 
 let inventarioPersonagem = [];
 let tracosPersonagem = [];
+let tracosAutomaticosExpandidos = new Set();
 let filtroTracosAtual = 'todos';
 const CHAVE_FICHA = 'forjaPersonagens.ficha.v2';
 let personagemAtual = { raca: '', classe: '' };
@@ -132,7 +133,8 @@ function iniciarPersonagem(restaurando = false) {
     calcularSalvaguardas(classe);
     if (!validarPericiasDaClasse(restaurando)) return;
     aplicarPericiasDaClasse();
-    calcularTodasPericias(); 
+    calcularTodasPericias();
+    renderizarTracos();
     
     // Atualiza o limite máximo de peso com base na Força do personagem
     atualizarInventario(); 
@@ -799,23 +801,77 @@ function salvarTraco(evento) {
     salvarEstado();
 }
 
+function obterTracosAutomaticos() {
+    const automaticos = [];
+    const racaNome = document.getElementById('select-raca')?.value || personagemAtual.raca;
+    const subracaNome = document.getElementById('select-subraca')?.value || personagemAtual.subraca;
+    const antecedenteNome = document.getElementById('select-antecedente')?.value || personagemAtual.antecedente;
+    const raca = bancoDnD.racas?.[racaNome];
+
+    const adicionarCaracteristicas = (origem, prefixo) => {
+        if (!origem) return;
+        const descricoes = origem.descricoesCaracteristicas || {};
+        (origem.caracteristicas || []).forEach((nome, indice) => {
+            automaticos.push({
+                id: 'automatico-racial-' + prefixo + '-' + indice,
+                nome,
+                tipo: 'racial',
+                descricao: descricoes[nome] || 'Descrição não cadastrada no banco.',
+                bloqueado: true,
+                automatico: true,
+                expandido: tracosAutomaticosExpandidos.has('automatico-racial-' + prefixo + '-' + indice)
+            });
+        });
+    };
+
+    adicionarCaracteristicas(raca, normalizarIdTraco(racaNome));
+    if (subracaNome && raca?.subracas?.[subracaNome]) {
+        adicionarCaracteristicas(raca.subracas[subracaNome], normalizarIdTraco(racaNome + '-' + subracaNome));
+    }
+
+    const antecedente = bancoDnD.antecedentes?.[antecedenteNome];
+    if (antecedente?.habilidade) {
+        const id = 'automatico-antecedente-' + normalizarIdTraco(antecedenteNome);
+        automaticos.push({
+            id,
+            nome: antecedente.habilidade,
+            tipo: 'antecedente',
+            descricao: antecedente.descricaoHabilidade || 'Descrição não cadastrada no banco.',
+            bloqueado: true,
+            automatico: true,
+            expandido: tracosAutomaticosExpandidos.has(id)
+        });
+    }
+
+    return automaticos;
+}
+
+function normalizarIdTraco(valor) {
+    return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+}
+
+function todosOsTracos() {
+    return [...obterTracosAutomaticos(), ...tracosPersonagem];
+}
+
 function renderizarTracos() {
     const lista = document.getElementById('lista-tracos');
     if (!lista) return;
-    const visiveis = tracosPersonagem.filter(item => filtroTracosAtual === 'todos' || item.tipo === filtroTracosAtual);
+    const todos = todosOsTracos();
+    const visiveis = todos.filter(item => filtroTracosAtual === 'todos' || item.tipo === filtroTracosAtual);
     lista.innerHTML = '';
 
     if (!visiveis.length) {
         const vazio = document.createElement('em');
         vazio.className = 'texto-vazio';
-        vazio.textContent = tracosPersonagem.length ? 'Nenhuma habilidade encontrada neste filtro.' : 'Nenhum traço ou característica adicionado.';
+        vazio.textContent = todos.length ? 'Nenhuma habilidade encontrada neste filtro.' : 'Nenhum traço ou característica adicionado.';
         lista.appendChild(vazio);
         return;
     }
 
     visiveis.forEach(traco => {
         const item = document.createElement('article');
-        item.className = 'item-traco' + (traco.expandido ? ' expandido' : '') + (traco.bloqueado ? ' bloqueado' : '');
+        item.className = 'item-traco' + (traco.expandido ? ' expandido' : '') + (traco.bloqueado ? ' bloqueado' : '') + (traco.automatico ? ' automatico' : '');
         item.dataset.id = traco.id;
 
         const cabecalho = document.createElement('div');
@@ -840,7 +896,7 @@ function renderizarTracos() {
         const editar = document.createElement('button');
         editar.type = 'button';
         editar.className = 'btn-acao-traco btn-editar-traco';
-        editar.title = traco.bloqueado ? 'Habilidade trancada' : 'Editar habilidade';
+        editar.title = traco.automatico ? 'Habilidade automática' : (traco.bloqueado ? 'Habilidade trancada' : 'Editar habilidade');
         editar.setAttribute('aria-label', editar.title);
         editar.textContent = '✎';
         editar.disabled = traco.bloqueado;
@@ -852,9 +908,10 @@ function renderizarTracos() {
         const bloquear = document.createElement('button');
         bloquear.type = 'button';
         bloquear.className = 'btn-acao-traco btn-bloquear-traco';
-        bloquear.title = traco.bloqueado ? 'Destrancar habilidade' : 'Trancar habilidade';
+        bloquear.title = traco.automatico ? 'Habilidade automática protegida' : (traco.bloqueado ? 'Destrancar habilidade' : 'Trancar habilidade');
         bloquear.setAttribute('aria-label', bloquear.title);
         bloquear.textContent = traco.bloqueado ? '🔒' : '🔓';
+        bloquear.classList.toggle('automatico', Boolean(traco.automatico));
         bloquear.addEventListener('click', evento => {
             evento.stopPropagation();
             alternarBloqueioTraco(traco.id);
@@ -872,9 +929,17 @@ function renderizarTracos() {
         const tipo = document.createElement('span');
         tipo.className = 'etiqueta-traco tipo-' + traco.tipo;
         tipo.textContent = ROTULOS_TIPO_TRACO[traco.tipo] || traco.tipo;
+        if (traco.automatico) {
+            const origemAutomatica = document.createElement('span');
+            origemAutomatica.className = 'etiqueta-automatica';
+            origemAutomatica.textContent = 'Automática';
+            detalhes.append(tipo, origemAutomatica);
+        } else {
+            detalhes.append(tipo);
+        }
         const descricao = document.createElement('p');
         descricao.textContent = traco.descricao;
-        detalhes.append(tipo, descricao);
+        detalhes.append(descricao);
 
         item.append(cabecalho, detalhes);
         lista.appendChild(item);
@@ -882,14 +947,25 @@ function renderizarTracos() {
 }
 
 function alternarTraco(id) {
-    const traco = tracosPersonagem.find(item => item.id === id);
-    if (!traco) return;
-    traco.expandido = !traco.expandido;
+    const tracoManual = tracosPersonagem.find(item => item.id === id);
+    if (tracoManual) {
+        tracoManual.expandido = !tracoManual.expandido;
+        renderizarTracos();
+        salvarEstado();
+        return;
+    }
+    const automatico = obterTracosAutomaticos().find(item => item.id === id);
+    if (!automatico) return;
+    if (tracosAutomaticosExpandidos.has(id)) tracosAutomaticosExpandidos.delete(id);
+    else tracosAutomaticosExpandidos.add(id);
     renderizarTracos();
-    salvarEstado();
 }
 
 function alternarBloqueioTraco(id) {
+    if (id.startsWith('automatico-')) {
+        mostrarToast('Habilidades automáticas são protegidas e acompanham a origem do personagem.');
+        return;
+    }
     const traco = tracosPersonagem.find(item => item.id === id);
     if (!traco) return;
     traco.bloqueado = !traco.bloqueado;
