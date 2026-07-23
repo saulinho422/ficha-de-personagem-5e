@@ -1,6 +1,7 @@
 // app.js
 
 let inventarioPersonagem = [];
+let ataquesPersonagem = [];
 let tracosPersonagem = [];
 let tracosAutomaticosExpandidos = new Set();
 let filtroTracosAtual = 'todos';
@@ -44,6 +45,7 @@ window.onload = function() {
     renderizarSalvaguardas();
     renderizarPericias();
     renderizarTracos();
+    renderizarAtaques();
     restaurarEstado();
 };
 
@@ -135,6 +137,7 @@ function iniciarPersonagem(restaurando = false) {
     aplicarPericiasDaClasse();
     calcularTodasPericias();
     renderizarTracos();
+    renderizarAtaques();
     
     // Atualiza o limite máximo de peso com base na Força do personagem
     atualizarInventario(); 
@@ -351,8 +354,16 @@ function adicionarAoInventario(nome, pesoStr) {
 
 function removerDoInventario(index) {
     const item = inventarioPersonagem[index];
-    if (item && (item.quantidade || 1) > 1) item.quantidade -= 1;
-    else inventarioPersonagem.splice(index, 1);
+    if (item && (item.quantidade || 1) > 1) {
+        item.quantidade -= 1;
+    } else {
+        const nomeRemovido = item?.nome;
+        inventarioPersonagem.splice(index, 1);
+        if (nomeRemovido && !inventarioPersonagem.some(outro => outro.nome === nomeRemovido)) {
+            ataquesPersonagem = ataquesPersonagem.filter(ataque => ataque.nomeArma !== nomeRemovido);
+            renderizarAtaques();
+        }
+    }
     atualizarInventario();
 }
 
@@ -473,6 +484,7 @@ function salvarEstado() {
         pericias,
         periciasClasse: obterPericiasSelecionadas(),
         inventario: inventarioPersonagem,
+        ataques: ataquesPersonagem,
         tracos: tracosPersonagem,
         fichaGerada: document.getElementById('ficha-completa')?.style.display === 'block'
     }));
@@ -508,8 +520,10 @@ function restaurarEstado() {
         if (campo) campo.value = valor;
     });
     inventarioPersonagem = Array.isArray(estado.inventario) ? estado.inventario : [];
+    ataquesPersonagem = Array.isArray(estado.ataques) ? estado.ataques : [];
     tracosPersonagem = Array.isArray(estado.tracos) ? estado.tracos : [];
     renderizarTracos();
+    renderizarAtaques();
     renderizarPericiasDaClasse();
     (estado.periciasClasse || []).forEach(nome => {
         const campo = document.querySelector('#lista-pericias-criacao input[value="' + CSS.escape(nome) + '"]');
@@ -726,6 +740,193 @@ function aplicarPericiasDaClasse() {
         const campo = document.getElementById('prof-' + nome);
         if (campo) campo.checked = escolhidas.has(nome);
     });
+}
+
+
+
+function listarArmasBanco() {
+    const armas = [];
+    Object.values(bancoDnD.equipamentos?.armas || {}).forEach(lista => lista.forEach(arma => armas.push(arma)));
+    return armas;
+}
+
+function obterArmaBanco(nome) {
+    return listarArmasBanco().find(arma => arma.nome === nome);
+}
+
+function abrirModalAtaque() {
+    const modal = document.getElementById('modal-ataque');
+    const select = document.getElementById('ataque-arma');
+    const nomesInventario = [...new Set(inventarioPersonagem.map(item => item.nome))];
+    const armasDisponiveis = listarArmasBanco().filter(arma => nomesInventario.includes(arma.nome));
+
+    document.getElementById('form-ataque').reset();
+    select.innerHTML = '<option value="">-- Escolha uma Arma --</option>';
+    armasDisponiveis.forEach(arma => {
+        const opcao = document.createElement('option');
+        opcao.value = arma.nome;
+        opcao.textContent = arma.nome;
+        select.appendChild(opcao);
+    });
+
+    const semArmas = armasDisponiveis.length === 0;
+    document.getElementById('aviso-sem-armas').hidden = !semArmas;
+    document.getElementById('btn-salvar-ataque').disabled = semArmas;
+    document.getElementById('grupo-atributo-ataque').hidden = true;
+    document.getElementById('grupo-versatil-ataque').hidden = true;
+    document.getElementById('previa-ataque').hidden = true;
+    modal.style.display = 'flex';
+}
+
+function fecharModalAtaque() {
+    document.getElementById('modal-ataque').style.display = 'none';
+    document.getElementById('form-ataque').reset();
+}
+
+function atualizarOpcoesAtaque() {
+    const arma = obterArmaBanco(document.getElementById('ataque-arma').value);
+    const grupoAtributo = document.getElementById('grupo-atributo-ataque');
+    const grupoVersatil = document.getElementById('grupo-versatil-ataque');
+    const selectAtributo = document.getElementById('ataque-atributo');
+
+    if (!arma) {
+        grupoAtributo.hidden = true;
+        grupoVersatil.hidden = true;
+        document.getElementById('previa-ataque').hidden = true;
+        return;
+    }
+
+    selectAtributo.value = arma.atributoPadrao;
+    grupoAtributo.hidden = !arma.acuidade;
+    grupoVersatil.hidden = !arma.versatil;
+    if (!arma.versatil) {
+        const umaMao = document.querySelector('input[name="modo-versatil"][value="uma"]');
+        if (umaMao) umaMao.checked = true;
+    }
+    atualizarPreviaAtaque();
+}
+
+function obterModificadorAtaque(atributo) {
+    const ids = { forca: 'for', destreza: 'des' };
+    return parseInt(document.getElementById('mod-' + ids[atributo])?.innerText, 10) || 0;
+}
+
+function singularizarProficiencia(valor) {
+    const normalizado = String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const alias = { 'bastoes': 'bordao', 'bordoes': 'bordao' };
+    if (alias[normalizado]) return alias[normalizado];
+    return normalizado.split(/\s+/).map(palavra => palavra.endsWith('s') ? palavra.slice(0, -1) : palavra).join(' ');
+}
+
+function personagemProficienteNaArma(arma) {
+    const classeNome = document.getElementById('select-classe')?.value || personagemAtual.classe;
+    const proficiencias = bancoDnD.classes?.[classeNome]?.proficienciasArmasArmaduras || [];
+    if (proficiencias.includes(arma.categoria === 'simples' ? 'Armas simples' : 'Armas marciais')) return true;
+    const nomeArma = singularizarProficiencia(arma.nome);
+    return proficiencias.some(item => singularizarProficiencia(item) === nomeArma);
+}
+
+function calcularDadosAtaque(configuracao) {
+    const arma = obterArmaBanco(configuracao.nomeArma);
+    if (!arma) return null;
+    const atributo = arma.acuidade ? configuracao.atributo : arma.atributoPadrao;
+    const modificador = obterModificadorAtaque(atributo);
+    const proficiente = personagemProficienteNaArma(arma);
+    const bonusAtaque = modificador + (proficiente ? obterBonusProficiencia() : 0);
+    const duasMaos = arma.versatil && configuracao.duasMaos;
+    const dadoBase = duasMaos ? arma.danoVersatil : (String(arma.dano || '').match(/\d+d\d+/)?.[0] || null);
+    const dano = dadoBase && arma.tipoDano
+        ? dadoBase + (modificador >= 0 ? ' + ' + modificador : ' - ' + Math.abs(modificador)) + ' ' + arma.tipoDano
+        : '—';
+    return { arma, atributo, modificador, proficiente, bonusAtaque, dano, duasMaos };
+}
+
+function atualizarPreviaAtaque() {
+    const nomeArma = document.getElementById('ataque-arma').value;
+    const arma = obterArmaBanco(nomeArma);
+    const previa = document.getElementById('previa-ataque');
+    if (!arma) {
+        previa.hidden = true;
+        return;
+    }
+    const atributo = arma.acuidade ? document.getElementById('ataque-atributo').value : arma.atributoPadrao;
+    const duasMaos = arma.versatil && document.querySelector('input[name="modo-versatil"]:checked')?.value === 'duas';
+    const calculo = calcularDadosAtaque({ nomeArma, atributo, duasMaos });
+    previa.innerHTML = '<strong>Prévia</strong>' +
+        '<span><b>Atributo:</b> ' + (atributo === 'forca' ? 'Força' : 'Destreza') + '</span>' +
+        '<span><b>Proficiência:</b> ' + (calculo.proficiente ? 'Sim' : 'Não') + '</span>' +
+        '<span><b>Bônus de ataque:</b> ' + formatarBonus(calculo.bonusAtaque) + '</span>' +
+        '<span><b>Dano:</b> ' + calculo.dano + '</span>';
+    previa.hidden = false;
+}
+
+function salvarAtaque(evento) {
+    evento.preventDefault();
+    const nomeArma = document.getElementById('ataque-arma').value;
+    const arma = obterArmaBanco(nomeArma);
+    if (!arma || !inventarioPersonagem.some(item => item.nome === nomeArma)) {
+        mostrarToast('Escolha uma arma que esteja no inventário.');
+        return;
+    }
+    const atributo = arma.acuidade ? document.getElementById('ataque-atributo').value : arma.atributoPadrao;
+    const duasMaos = arma.versatil && document.querySelector('input[name="modo-versatil"]:checked')?.value === 'duas';
+    ataquesPersonagem.push({
+        id: 'ataque-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+        nomeArma,
+        atributo,
+        duasMaos
+    });
+    fecharModalAtaque();
+    renderizarAtaques();
+    salvarEstado();
+    mostrarToast('Ataque adicionado.', 'sucesso');
+}
+
+function formatarBonus(valor) {
+    return valor >= 0 ? '+' + valor : String(valor);
+}
+
+function renderizarAtaques() {
+    const lista = document.getElementById('lista-ataques');
+    if (!lista) return;
+    lista.innerHTML = '';
+    ataquesPersonagem = ataquesPersonagem.filter(ataque => obterArmaBanco(ataque.nomeArma) && inventarioPersonagem.some(item => item.nome === ataque.nomeArma));
+
+    if (!ataquesPersonagem.length) {
+        lista.innerHTML = '<em class="texto-vazio">Nenhum ataque adicionado.</em>';
+        return;
+    }
+
+    ataquesPersonagem.forEach((ataque, indice) => {
+        const calculo = calcularDadosAtaque(ataque);
+        if (!calculo) return;
+        const linha = document.createElement('div');
+        linha.className = 'item-ataque';
+        const nome = document.createElement('strong');
+        nome.textContent = ataque.nomeArma + (calculo.duasMaos ? ' (2 mãos)' : '');
+        const bonus = document.createElement('span');
+        bonus.className = 'bonus-ataque';
+        bonus.textContent = formatarBonus(calculo.bonusAtaque);
+        bonus.title = calculo.proficiente ? 'Modificador do atributo + bônus de proficiência' : 'Somente modificador do atributo';
+        const dano = document.createElement('span');
+        dano.className = 'dano-ataque';
+        dano.textContent = calculo.dano;
+        const remover = document.createElement('button');
+        remover.type = 'button';
+        remover.className = 'btn-remover-ataque';
+        remover.title = 'Remover ataque';
+        remover.setAttribute('aria-label', 'Remover ataque ' + ataque.nomeArma);
+        remover.textContent = '×';
+        remover.addEventListener('click', () => removerAtaque(indice));
+        linha.append(nome, bonus, dano, remover);
+        lista.appendChild(linha);
+    });
+}
+
+function removerAtaque(indice) {
+    ataquesPersonagem.splice(indice, 1);
+    renderizarAtaques();
+    salvarEstado();
 }
 
 
