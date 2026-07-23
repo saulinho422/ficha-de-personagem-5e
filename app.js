@@ -4,6 +4,21 @@ let inventarioPersonagem = [];
 const CHAVE_FICHA = 'forjaPersonagens.ficha.v2';
 let personagemAtual = { raca: '', classe: '' };
 
+const PERICIAS_POR_CLASSE = {
+    'Bárbaro': { quantidade: 2, opcoes: ['Lidar com Animais', 'Atletismo', 'Intimidação', 'Natureza', 'Percepção', 'Sobrevivência'] },
+    'Bardo': { quantidade: 3, todas: true },
+    'Bruxo': { quantidade: 2, opcoes: ['Arcanismo', 'Enganação', 'História', 'Intimidação', 'Investigação', 'Natureza', 'Religião'] },
+    'Clérigo': { quantidade: 2, opcoes: ['História', 'Intuição', 'Medicina', 'Persuasão', 'Religião'] },
+    'Druida': { quantidade: 2, opcoes: ['Arcanismo', 'Lidar com Animais', 'Intuição', 'Medicina', 'Natureza', 'Percepção', 'Religião', 'Sobrevivência'] },
+    'Feiticeiro': { quantidade: 2, opcoes: ['Arcanismo', 'Enganação', 'Intuição', 'Intimidação', 'Persuasão', 'Religião'] },
+    'Guerreiro': { quantidade: 2, opcoes: ['Acrobacia', 'Lidar com Animais', 'Atletismo', 'História', 'Intuição', 'Intimidação', 'Percepção', 'Sobrevivência'] },
+    'Ladino': { quantidade: 4, todas: true },
+    'Mago': { quantidade: 2, opcoes: ['Arcanismo', 'História', 'Intuição', 'Investigação', 'Medicina', 'Religião'] },
+    'Monge': { quantidade: 2, opcoes: ['Acrobacia', 'Atletismo', 'História', 'Intuição', 'Religião', 'Furtividade'] },
+    'Paladino': { quantidade: 2, opcoes: ['Atletismo', 'Intuição', 'Intimidação', 'Medicina', 'Persuasão', 'Religião'] },
+    'Patrulheiro': { quantidade: 3, opcoes: ['Lidar com Animais', 'Atletismo', 'Furtividade', 'Investigação', 'Natureza', 'Percepção', 'Sobrevivência', 'Intuição'] }
+};
+
 window.onload = function() {
     console.log("Sistema iniciado. Verificando banco de dados...");
     
@@ -16,6 +31,7 @@ window.onload = function() {
     console.log("Banco de dados conectado com sucesso!");
     carregarOpcoes();
     document.getElementById('select-raca').addEventListener('change', carregarSubracas);
+    document.getElementById('select-classe').addEventListener('change', renderizarPericiasDaClasse);
     document.getElementById('nivel-personagem').addEventListener('change', validarNivel);
     renderizarSalvaguardas();
     renderizarPericias();
@@ -94,6 +110,8 @@ function iniciarPersonagem(restaurando = false) {
     calcularAtributos(raca, subraca);
     calcularCombate(raca, classe);
     calcularSalvaguardas(classe);
+    if (!validarPericiasDaClasse(restaurando)) return;
+    aplicarPericiasDaClasse();
     calcularTodasPericias(); 
     
     // Atualiza o limite máximo de peso com base na Força do personagem
@@ -427,6 +445,7 @@ function salvarEstado() {
         classe: document.getElementById('select-classe')?.value || personagemAtual.classe,
         atributos,
         pericias,
+        periciasClasse: obterPericiasSelecionadas(),
         inventario: inventarioPersonagem,
         fichaGerada: document.getElementById('ficha-completa')?.style.display === 'block'
     }));
@@ -453,6 +472,12 @@ function restaurarEstado() {
         if (campo) campo.value = valor;
     });
     inventarioPersonagem = Array.isArray(estado.inventario) ? estado.inventario : [];
+    renderizarPericiasDaClasse();
+    (estado.periciasClasse || []).forEach(nome => {
+        const campo = document.querySelector('#lista-pericias-criacao input[value="' + CSS.escape(nome) + '"]');
+        if (campo) campo.checked = true;
+    });
+    atualizarContadorPericias();
     Object.entries(estado.pericias || {}).forEach(([nome, marcado]) => {
         const campo = document.getElementById('prof-' + nome);
         if (campo) campo.checked = Boolean(marcado);
@@ -475,6 +500,7 @@ function proximaEtapa(numero) {
         alert('Selecione a raça e a classe.');
         return;
     }
+    if (numero === 4) renderizarPericiasDaClasse();
     mostrarEtapa(numero);
     salvarEstado();
 }
@@ -508,4 +534,82 @@ function editarPersonagem() {
     document.getElementById('ficha-completa').style.display = 'none';
     document.getElementById('criacao-rapida').style.display = 'block';
     mostrarEtapa(1);
+}
+
+
+function configuracaoPericiasClasse() {
+    const classe = document.getElementById('select-classe').value;
+    const config = PERICIAS_POR_CLASSE[classe] || { quantidade: 0, opcoes: [] };
+    return {
+        quantidade: config.quantidade,
+        opcoes: config.todas ? Object.keys(bancoDnD.pericias) : config.opcoes.filter(nome => nome in bancoDnD.pericias)
+    };
+}
+
+function renderizarPericiasDaClasse() {
+    const container = document.getElementById('lista-pericias-criacao');
+    if (!container) return;
+    const classe = document.getElementById('select-classe').value;
+    const config = configuracaoPericiasClasse();
+    const anteriores = new Set(obterPericiasSelecionadas());
+    container.innerHTML = '';
+    document.getElementById('instrucao-pericias').textContent = classe
+        ? 'Escolha ' + config.quantidade + ' perícia(s) disponíveis para ' + classe + '.'
+        : 'Selecione uma classe na etapa anterior.';
+    document.getElementById('limite-pericias').textContent = config.quantidade;
+
+    config.opcoes.forEach(nome => {
+        const label = document.createElement('label');
+        label.className = 'opcao-pericia';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = nome;
+        input.checked = anteriores.has(nome);
+        const texto = document.createElement('span');
+        texto.textContent = nome;
+        label.append(input, texto);
+        label.classList.toggle('selecionada', input.checked);
+        input.addEventListener('change', () => {
+            const selecionadas = obterPericiasSelecionadas();
+            if (input.checked && selecionadas.length > config.quantidade) {
+                input.checked = false;
+                alert('Você pode escolher somente ' + config.quantidade + ' perícia(s) para esta classe.');
+            }
+            label.classList.toggle('selecionada', input.checked);
+            atualizarContadorPericias();
+            salvarEstado();
+        });
+        container.appendChild(label);
+    });
+    atualizarContadorPericias();
+}
+
+function obterPericiasSelecionadas() {
+    return Array.from(document.querySelectorAll('#lista-pericias-criacao input:checked')).map(input => input.value);
+}
+
+function atualizarContadorPericias() {
+    const contador = document.getElementById('contador-pericias');
+    if (contador) contador.textContent = obterPericiasSelecionadas().length;
+}
+
+function validarPericiasDaClasse(restaurando = false) {
+    const config = configuracaoPericiasClasse();
+    const quantidade = obterPericiasSelecionadas().length;
+    if (quantidade !== config.quantidade) {
+        document.getElementById('ficha-completa').style.display = 'none';
+        document.getElementById('criacao-rapida').style.display = 'block';
+        mostrarEtapa(4);
+        if (!restaurando) alert('Escolha exatamente ' + config.quantidade + ' perícia(s) da sua classe.');
+        return false;
+    }
+    return true;
+}
+
+function aplicarPericiasDaClasse() {
+    const escolhidas = new Set(obterPericiasSelecionadas());
+    Object.keys(bancoDnD.pericias).forEach(nome => {
+        const campo = document.getElementById('prof-' + nome);
+        if (campo) campo.checked = escolhidas.has(nome);
+    });
 }
