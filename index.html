@@ -17,6 +17,7 @@
             <div class="passo-indicador ativo" data-passo="1"><span>1</span> Identidade</div>
             <div class="passo-indicador" data-passo="2"><span>2</span> Origem</div>
             <div class="passo-indicador" data-passo="3"><span>3</span> Atributos</div>
+            <div class="passo-indicador" data-passo="4"><span>4</span> Perícias</div>
         </div>
 
         <section class="etapa-criacao ativa" data-etapa="1">
@@ -54,7 +55,15 @@
                 <div class="grupo-input"><label>SAB</label><input type="number" id="attr-sab" value="10" min="1" max="20" class="input-elegante centralizado"></div>
                 <div class="grupo-input"><label>CAR</label><input type="number" id="attr-car" value="10" min="1" max="20" class="input-elegante centralizado"></div>
             </div>
-            <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(2)">Voltar</button><button class="btn-primario btn-inline" onclick="iniciarPersonagem()">Gerar ficha</button></div>
+            <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(2)">Voltar</button><button class="btn-primario btn-inline" onclick="proximaEtapa(4)">Continuar</button></div>
+        </section>
+
+        <section class="etapa-criacao" data-etapa="4">
+            <h3 class="titulo-secao">Perícias da classe</h3>
+            <p id="instrucao-pericias" class="subtitulo-pericias"></p>
+            <div id="lista-pericias-criacao" class="grid-pericias-criacao"></div>
+            <div class="contador-escolhas">Selecionadas: <strong id="contador-pericias">0</strong> / <strong id="limite-pericias">0</strong></div>
+            <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(3)">Voltar</button><button class="btn-primario btn-inline" onclick="iniciarPersonagem()">Gerar ficha</button></div>
         </section>
     </div>
 
