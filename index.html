@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260723-5">
+    <link rel="stylesheet" href="style.css?v=20260723-6">
 </head>
 <body>
 
@@ -158,8 +158,17 @@
                         <div class="hp-valores"><span id="display-hp-atual">10</span> / <span id="display-hp-max">10</span></div>
                     </div>
 
-                    <div class="caixa-generica">
-                        <div class="titulo-combate">ATAQUES E MAGIAS</div>
+                    <div class="caixa-generica caixa-ataques">
+                        <div class="cabecalho-ataques">
+                            <span class="titulo-combate">ATAQUES</span>
+                        </div>
+                        <div class="cabecalho-lista-ataques">
+                            <span>ARMA</span><span>ATAQUE</span><span>DANO</span><span></span>
+                        </div>
+                        <div id="lista-ataques" class="lista-ataques">
+                            <em class="texto-vazio">Nenhum ataque adicionado.</em>
+                        </div>
+                        <button class="btn-add-item btn-add-ataque" onclick="abrirModalAtaque()" title="Adicionar ataque" aria-label="Adicionar ataque">+</button>
                     </div>
                 </div>
 
@@ -210,6 +219,44 @@
 
         <div id="pagina-2" class="aba"><h2>Página 2: História</h2></div>
         <div id="pagina-3" class="aba"><h2>Página 3: Conjuração</h2></div>
+    </div>
+
+    <!-- MODAL DE ATAQUES -->
+    <div id="modal-ataque" class="modal-overlay" style="display: none;">
+        <div class="modal-conteudo modal-ataque-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-ataque">
+            <div class="modal-cabecalho">
+                <h3 id="titulo-modal-ataque">Adicionar ataque</h3>
+                <button class="btn-fechar" type="button" onclick="fecharModalAtaque()" aria-label="Fechar">&times;</button>
+            </div>
+            <form id="form-ataque" class="form-ataque" onsubmit="salvarAtaque(event)">
+                <div class="grupo-input">
+                    <label for="ataque-arma">Arma do inventário</label>
+                    <select id="ataque-arma" class="input-elegante" required onchange="atualizarOpcoesAtaque()">
+                        <option value="">-- Escolha uma Arma --</option>
+                    </select>
+                </div>
+                <div id="grupo-atributo-ataque" class="grupo-input" hidden>
+                    <label for="ataque-atributo">Atributo utilizado</label>
+                    <select id="ataque-atributo" class="input-elegante" onchange="atualizarPreviaAtaque()">
+                        <option value="forca">Força</option>
+                        <option value="destreza">Destreza</option>
+                    </select>
+                </div>
+                <div id="grupo-versatil-ataque" class="grupo-input" hidden>
+                    <span class="rotulo-grupo">Modo de uso</span>
+                    <div class="opcoes-inline">
+                        <label><input type="radio" name="modo-versatil" value="uma" checked onchange="atualizarPreviaAtaque()"> Uma mão</label>
+                        <label><input type="radio" name="modo-versatil" value="duas" onchange="atualizarPreviaAtaque()"> Duas mãos</label>
+                    </div>
+                </div>
+                <div id="previa-ataque" class="previa-ataque" hidden></div>
+                <div id="aviso-sem-armas" class="aviso-sem-armas" hidden>Adicione uma arma ao inventário antes de criar um ataque.</div>
+                <div class="acoes-modal-traco">
+                    <button class="btn-secundario" type="button" onclick="fecharModalAtaque()">Cancelar</button>
+                    <button id="btn-salvar-ataque" class="btn-primario btn-inline" type="submit">Adicionar</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- MODAL DE TRAÇOS E CARACTERÍSTICAS -->
@@ -267,7 +314,7 @@
         </div>
     </div>
 
-    <script src="banco_phb.js?v=20260723-4"></script>
-    <script src="app.js?v=20260723-4"></script>
+    <script src="banco_phb.js?v=20260723-6"></script>
+    <script src="app.js?v=20260723-6"></script>
 </body>
 </html>
