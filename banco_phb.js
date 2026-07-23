@@ -7,14 +7,27 @@ const bancoDnD = {
             bonusAtributos: { constituicao: 2 },
             deslocamento: 7.5,
             caracteristicas: ["Visão no Escuro", "Resiliência Anã", "Treinamento Anão em Combate", "Proficiência com Ferramentas", "Especialização em Rochas"],
+            descricoesCaracteristicas: {
+                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+                "Resiliência Anã": "Concede vantagem em testes de resistência contra veneno e resistência a dano de veneno.",
+                "Treinamento Anão em Combate": "Concede proficiência com machados de batalha, machadinhas, martelos leves e martelos de guerra.",
+                "Proficiência com Ferramentas": "Concede proficiência, à escolha, com ferramentas de ferreiro, suprimentos de cervejeiro ou ferramentas de pedreiro.",
+                "Especialização em Rochas": "Em testes de Inteligência (História) relacionados a trabalhos em pedra, considera o personagem proficiente e aplica o dobro do bônus de proficiência."
+            },
             subracas: {
                 "Anão da Colina": { 
                     bonusAtributos: { sabedoria: 1 },
-                    caracteristicas: ["Tenacidade Anã"]
+                    caracteristicas: ["Tenacidade Anã"],
+                    descricoesCaracteristicas: {
+                        "Tenacidade Anã": "Aumenta o máximo de pontos de vida em 1 e concede mais 1 ponto de vida sempre que o personagem sobe de nível."
+                    }
                 },
                 "Anão da Montanha": { 
                     bonusAtributos: { forca: 2 },
-                    caracteristicas: ["Treinamento Anão com Armaduras"]
+                    caracteristicas: ["Treinamento Anão com Armaduras"],
+                    descricoesCaracteristicas: {
+                        "Treinamento Anão com Armaduras": "Concede proficiência com armaduras leves e médias."
+                    }
                 }
             }
         },
@@ -23,19 +36,41 @@ const bancoDnD = {
             bonusAtributos: { destreza: 2 },
             deslocamento: 9,
             caracteristicas: ["Visão no Escuro", "Sentidos Aguçados", "Ancestral Feérico", "Transe"],
+            descricoesCaracteristicas: {
+                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+                "Sentidos Aguçados": "Concede proficiência na perícia Percepção.",
+                "Ancestral Feérico": "Concede vantagem em testes de resistência contra ser enfeitiçado e impede que magias coloquem o personagem para dormir.",
+                "Transe": "Permite substituir o sono por 4 horas de meditação semiconsciente, recebendo o benefício equivalente ao descanso de 8 horas de um humano."
+            },
             subracas: {
                 "Alto Elfo": { 
                     bonusAtributos: { inteligencia: 1 },
-                    caracteristicas: ["Treinamento Élfico com Armas", "Truque", "Idioma Adicional"]
+                    caracteristicas: ["Treinamento Élfico com Armas", "Truque", "Idioma Adicional"],
+                    descricoesCaracteristicas: {
+                        "Treinamento Élfico com Armas": "Concede proficiência com espadas longas, espadas curtas, arcos longos e arcos curtos.",
+                        "Truque": "Permite aprender um truque da lista de magias do mago, usando Inteligência como atributo de conjuração.",
+                        "Idioma Adicional": "Permite falar, ler e escrever um idioma adicional à escolha."
+                    }
                 },
                 "Elfo da Floresta": { 
                     bonusAtributos: { sabedoria: 1 },
                     deslocamento: 10.5,
-                    caracteristicas: ["Treinamento Élfico com Armas", "Pés Ligeiros", "Máscara da Natureza"]
+                    caracteristicas: ["Treinamento Élfico com Armas", "Pés Ligeiros", "Máscara da Natureza"],
+                    descricoesCaracteristicas: {
+                        "Treinamento Élfico com Armas": "Concede proficiência com espadas longas, espadas curtas, arcos longos e arcos curtos.",
+                        "Pés Ligeiros": "Aumenta o deslocamento base de caminhada para 10,5 metros.",
+                        "Máscara da Natureza": "Permite tentar se esconder quando estiver levemente obscurecido por folhagem, chuva forte, neve, névoa ou outro fenômeno natural."
+                    }
                 },
                 "Drow (Elfo Negro)": {
                     bonusAtributos: { carisma: 1 },
-                    caracteristicas: ["Visão no Escuro Superior", "Sensibilidade à Luz Solar", "Magia Drow", "Treinamento Drow com Armas"]
+                    caracteristicas: ["Visão no Escuro Superior", "Sensibilidade à Luz Solar", "Magia Drow", "Treinamento Drow com Armas"],
+                    descricoesCaracteristicas: {
+                        "Visão no Escuro Superior": "Amplia o alcance da visão no escuro para 36 metros.",
+                        "Sensibilidade à Luz Solar": "Impõe desvantagem em jogadas de ataque e em testes de Sabedoria (Percepção) baseados na visão quando o personagem, o alvo ou o que está sendo observado estiver sob luz solar direta.",
+                        "Magia Drow": "Concede o truque Globos de Luz; no 3º nível, Fogo das Fadas uma vez por descanso longo; e, no 5º nível, Escuridão uma vez por descanso longo. Carisma é o atributo de conjuração.",
+                        "Treinamento Drow com Armas": "Concede proficiência com rapieiras, espadas curtas e bestas de mão."
+                    }
                 }
             }
         },
@@ -44,14 +79,25 @@ const bancoDnD = {
             bonusAtributos: { destreza: 2 },
             deslocamento: 7.5,
             caracteristicas: ["Sortudo", "Bravura", "Agilidade Halfling"],
+            descricoesCaracteristicas: {
+                "Sortudo": "Quando obtém 1 natural em uma jogada de ataque, teste de habilidade ou teste de resistência, pode rolar novamente e deve usar o novo resultado.",
+                "Bravura": "Concede vantagem em testes de resistência contra ficar amedrontado.",
+                "Agilidade Halfling": "Permite atravessar o espaço ocupado por uma criatura de tamanho maior que o personagem."
+            },
             subracas: {
                 "Pés-Leves": { 
                     bonusAtributos: { carisma: 1 },
-                    caracteristicas: ["Furtividade Natural"]
+                    caracteristicas: ["Furtividade Natural"],
+                    descricoesCaracteristicas: {
+                        "Furtividade Natural": "Permite tentar se esconder usando como cobertura uma criatura que seja pelo menos um tamanho maior."
+                    }
                 },
                 "Robusto": { 
                     bonusAtributos: { constituicao: 1 },
-                    caracteristicas: ["Resiliência dos Robustos"]
+                    caracteristicas: ["Resiliência dos Robustos"],
+                    descricoesCaracteristicas: {
+                        "Resiliência dos Robustos": "Concede vantagem em testes de resistência contra veneno e resistência a dano de veneno."
+                    }
                 }
             }
         },
@@ -59,27 +105,47 @@ const bancoDnD = {
             descricao: "Os humanos são os mais adaptáveis, flexíveis e ambiciosos entre todas as raças comuns.",
             bonusAtributos: { forca: 1, destreza: 1, constituicao: 1, inteligencia: 1, sabedoria: 1, carisma: 1 },
             deslocamento: 9,
-            caracteristicas: ["Idiomas Extras"]
+            caracteristicas: ["Idiomas Extras"],
+            descricoesCaracteristicas: {
+                "Idiomas Extras": "Permite falar, ler e escrever Comum e mais um idioma adicional à escolha."
+            }
         },
         "Draconato": {
             descricao: "Descendentes de dragões que andam orgulhosamente pelo mundo.",
             bonusAtributos: { forca: 2, carisma: 1 },
             deslocamento: 9,
-            caracteristicas: ["Ancestral Dracônico", "Arma de Sopro", "Resistência a Dano"]
+            caracteristicas: ["Ancestral Dracônico", "Arma de Sopro", "Resistência a Dano"],
+            descricoesCaracteristicas: {
+                "Ancestral Dracônico": "Define o tipo de dano e o formato da arma de sopro de acordo com a ancestralidade dracônica escolhida.",
+                "Arma de Sopro": "Permite usar uma ação para exalar energia em cone ou linha. As criaturas na área fazem um teste de resistência baseado em Constituição; o dano começa em 2d6, aumenta com o nível e é reduzido à metade em caso de sucesso.",
+                "Resistência a Dano": "Concede resistência ao tipo de dano associado à ancestralidade dracônica."
+            }
         },
         "Gnomo": {
             descricao: "Gnomos regozijam a vida, apreciando cada momento de invento, exploração e brincadeira.",
             bonusAtributos: { inteligencia: 2 },
             deslocamento: 7.5,
             caracteristicas: ["Visão no Escuro", "Esperteza Gnômica"],
+            descricoesCaracteristicas: {
+                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+                "Esperteza Gnômica": "Concede vantagem em testes de resistência de Inteligência, Sabedoria e Carisma contra magia."
+            },
             subracas: {
                 "Gnomo da Floresta": {
                     bonusAtributos: { destreza: 1 },
-                    caracteristicas: ["Ilusionista Nato", "Falar com Bestas Pequenas"]
+                    caracteristicas: ["Ilusionista Nato", "Falar com Bestas Pequenas"],
+                    descricoesCaracteristicas: {
+                        "Ilusionista Nato": "Concede o truque Ilusão Menor, usando Inteligência como atributo de conjuração.",
+                        "Falar com Bestas Pequenas": "Permite comunicar ideias simples a Bestas Pequenas ou menores por meio de sons e gestos."
+                    }
                 },
                 "Gnomo das Rochas": {
                     bonusAtributos: { constituicao: 1 },
-                    caracteristicas: ["Conhecimento de Artífice", "Engenhoqueiro"]
+                    caracteristicas: ["Conhecimento de Artífice", "Engenhoqueiro"],
+                    descricoesCaracteristicas: {
+                        "Conhecimento de Artífice": "Aplica o dobro do bônus de proficiência em testes de Inteligência (História) relacionados a itens mágicos, objetos alquímicos ou mecanismos tecnológicos.",
+                        "Engenhoqueiro": "Concede proficiência com ferramentas de engenhoqueiro e permite gastar 1 hora e 10 po para criar um mecanismo Miúdo temporário, como brinquedo, isqueiro ou caixa de música."
+                    }
                 }
             }
         },
@@ -87,19 +153,35 @@ const bancoDnD = {
             descricao: "Vagando entre dois mundos mas não pertencendo inteiramente a nenhum.",
             bonusAtributos: { carisma: 2 }, 
             deslocamento: 9,
-            caracteristicas: ["Visão no Escuro", "Ancestral Feérico", "Versatilidade em Perícia"]
+            caracteristicas: ["Visão no Escuro", "Ancestral Feérico", "Versatilidade em Perícia"],
+            descricoesCaracteristicas: {
+                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+                "Ancestral Feérico": "Concede vantagem em testes de resistência contra ser enfeitiçado e impede que magias coloquem o personagem para dormir.",
+                "Versatilidade em Perícia": "Concede proficiência em duas perícias à escolha."
+            }
         },
         "Meio-Orc": {
             descricao: "Marcados por sua herança orc, ostentam cicatrizes de batalha com orgulho.",
             bonusAtributos: { forca: 2, constituicao: 1 },
             deslocamento: 9,
-            caracteristicas: ["Visão no Escuro", "Ameaçador", "Resistência Implacável", "Ataques Selvagens"]
+            caracteristicas: ["Visão no Escuro", "Ameaçador", "Resistência Implacável", "Ataques Selvagens"],
+            descricoesCaracteristicas: {
+                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+                "Ameaçador": "Concede proficiência na perícia Intimidação.",
+                "Resistência Implacável": "Uma vez por descanso longo, quando seria reduzido a 0 pontos de vida sem morrer instantaneamente, o personagem fica com 1 ponto de vida.",
+                "Ataques Selvagens": "Ao obter um acerto crítico com uma arma corpo a corpo, adiciona um dado de dano da arma ao dano extra do crítico."
+            }
         },
         "Tiefling": {
             descricao: "Carregam a essência de Asmodeus infundida em sua linhagem.",
             bonusAtributos: { carisma: 2, inteligencia: 1 },
             deslocamento: 9,
-            caracteristicas: ["Visão no Escuro", "Resistência Infernal", "Legado Infernal"]
+            caracteristicas: ["Visão no Escuro", "Resistência Infernal", "Legado Infernal"],
+            descricoesCaracteristicas: {
+                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+                "Resistência Infernal": "Concede resistência a dano de fogo.",
+                "Legado Infernal": "Concede o truque Taumaturgia; no 3º nível, Repreensão Infernal como magia de 2º nível uma vez por descanso longo; e, no 5º nível, Escuridão uma vez por descanso longo. Carisma é o atributo de conjuração."
+            }
         }
     },
     classes: {
@@ -180,67 +262,80 @@ const bancoDnD = {
         "Acólito": {
             pericias: ["Intuição", "Religião"],
             ferramentas: [],
-            habilidade: "Abrigo dos Fiéis"
+            habilidade: "Abrigo dos Fiéis",
+            descricaoHabilidade: "Concede respeito entre os fiéis, acesso a cerimônias, cura e caridade em templos da mesma fé, além de suporte modesto para você e possível auxílio de um templo aliado."
         },
         "Artisao da Guilda": {
             pericias: ["Persuasão", "Intuição"],
             ferramentas: ["Um tipo de ferramenta de artesão"],
-            habilidade: "Associação de Guilda"
+            habilidade: "Associação de Guilda",
+            descricaoHabilidade: "A guilda pode fornecer hospedagem, alimentação, contatos profissionais e apoio político, desde que você mantenha suas contribuições em dia."
         },
         "Artista": {
             pericias: ["Acrobacia", "Atuação"],
             ferramentas: ["Kit de disfarce", "Um tipo de instrumento musical"],
-            habilidade: "Por Conta da Casa"
+            habilidade: "Por Conta da Casa",
+            descricaoHabilidade: "Você encontra locais para se apresentar e recebe hospedagem e comida em troca de apresentações, tornando-se conhecido e bem recebido localmente."
         },
         "Charlatão": {
             pericias: ["Enganação", "Prestidigitação"],
             ferramentas: ["Kit de disfarce", "Kit de falsificação"],
-            habilidade: "Identidade Falsa"
+            habilidade: "Identidade Falsa",
+            descricaoHabilidade: "Você mantém uma identidade alternativa com documentos e disfarces, e pode falsificar documentos cujo modelo ou caligrafia já tenha visto."
         },
         "Criminoso": {
             pericias: ["Furtividade", "Enganação"],
             ferramentas: ["Jogo (um tipo)", "Ferramentas de ladrão"],
-            habilidade: "Contato Criminal"
+            habilidade: "Contato Criminal",
+            descricaoHabilidade: "Você possui um contato confiável no submundo e conhece intermediários capazes de transmitir mensagens mesmo a grandes distâncias."
         },
         "Eremita": {
             pericias: ["Medicina", "Religião"],
             ferramentas: ["Kit de herbalismo"],
-            habilidade: "Descoberta"
+            habilidade: "Descoberta",
+            descricaoHabilidade: "Seu isolamento revelou uma informação, verdade ou relíquia única e importante; os detalhes e efeitos são definidos com o Mestre."
         },
         "Herói do Povo": {
             pericias: ["Adestrar Animais", "Sobrevivência"],
             ferramentas: ["Ferramentas de artesão (um tipo)", "Veículos (terrestres)"],
-            habilidade: "Hospitalidade Rústica"
+            habilidade: "Hospitalidade Rústica",
+            descricaoHabilidade: "Camponeses e pessoas comuns oferecem abrigo, descanso e esconderijo, desde que ajudá-lo não coloque suas vidas em risco."
         },
         "Nobre": {
             pericias: ["História", "Persuasão"],
             ferramentas: ["Jogo (um tipo)"],
-            habilidade: "Posição de Privilégio"
+            habilidade: "Posição de Privilégio",
+            descricaoHabilidade: "Sua origem nobre facilita o acesso à alta sociedade, acomodações e audiências com nobres locais."
         },
         "Orfao": {
             pericias: ["Furtividade", "Prestidigitação"],
             ferramentas: ["Kit de disfarce", "Ferramentas de ladrão"],
-            habilidade: "Urbano"
+            habilidade: "Urbano",
+            descricaoHabilidade: "Fora de combate, você guia o grupo por atalhos urbanos, viajando entre dois pontos da cidade duas vezes mais rápido."
         },
         "Sábio": {
             pericias: ["Arcanismo", "História"],
             ferramentas: [".(Dois idiomas à sua escolha)"],
-            habilidade: "Pesquisador"
+            habilidade: "Pesquisador",
+            descricaoHabilidade: "Quando não sabe uma informação, você geralmente sabe onde ou com quem procurá-la, salvo quando o conhecimento é inacessível ou inexistente."
         },
         "Marinheiro": {
             pericias: ["Atletismo", "Percepção"],
             ferramentas: ["Ferramentas de navegador", "Veículos (aquáticos)"],
-            habilidade: "Passagem Marítima"
+            habilidade: "Passagem Marítima",
+            descricaoHabilidade: "Você consegue passagem gratuita para o grupo em navios aliados, embora a rota e o prazo dependam do Mestre; em troca, o grupo ajuda a tripulação."
         },
         "Soldado": {
             pericias: ["Atletismo", "Intimidação"],
             ferramentas: ["Jogo (um tipo)", "Veículos (terrestres)"],
-            habilidade: "Patente Militar"
+            habilidade: "Patente Militar",
+            descricaoHabilidade: "Sua patente concede respeito entre soldados, influência sobre subordinados, empréstimo temporário de equipamento simples ou cavalos e acesso a instalações militares aliadas."
         },
         "Forasteiro": {
             pericias: ["Atletismo", "Sobrevivência"],
             ferramentas: ["Instrumento musical (um tipo)"],
-            habilidade: "Andarilho"
+            habilidade: "Andarilho",
+            descricaoHabilidade: "Você memoriza mapas e geografia e encontra comida e água para si e até cinco outras pessoas por dia, se o ambiente oferecer recursos."
         }
     },
     pericias: {
@@ -371,7 +466,7 @@ const bancoDnD = {
             {"item": "Grimório", "custo": "50 po", "peso": "1,5 kg"},
             {"item": "Jarra", "custo": "4 pc", "peso": "2 kg"},
             {"item": "Kit de escalada", "custo": "25 po", "peso": "6 kg"},
-            {"item": "Kit de primeiros-socorros", "custo": "5 po", "peso": "1,5 kg"},
+            {"item": "Kit de primeiros-socorros", "custo": "5 po", "peso": "5 po", "peso": "1,5 kg"},
             {"item": "Lâmpada", "custo": "5 pp", "peso": "0,5 kg"},
             {"item": "Lanterna coberta", "custo": "5 po", "peso": "1 kg"},
             {"item": "Lanterna furta-fogo", "custo": "10 po", "peso": "1 kg"},
@@ -402,7 +497,7 @@ const bancoDnD = {
             {"item": "Porta virotes", "custo": "1 po", "peso": "0,5 kg"},
             {"item": "Pregos de ferro (10)", "custo": "1 po", "peso": "2,5 kg"},
             {"item": "Rações de viagem (1 dia)", "custo": "5 pp", "peso": "1 kg"},
-            {"item": "Robes", "custo": "1 po", "peso": "2 kg"},
+            {"item": "Robes", "custo": "5 pp", "peso": "2,5 kg"},
             {"item": "Roldana e polia", "custo": "1 po", "peso": "2,5 kg"},
             {"item": "Roupas comuns", "custo": "5 pp", "peso": "1,5 kg"},
             {"item": "Roupas de viajante", "custo": "2 po", "peso": "2 kg"},
@@ -437,72 +532,86 @@ const bancoDnD = {
         "Assassino": {
             pericias: ["Acrobacia", "Furtividade"],
             ferramentas: ["Kit de disfarce", "Ferramentas de ladrão"],
-            habilidade: "Contato Criminal"
+            habilidade: "Contato Criminal",
+            descricaoHabilidade: "Você possui um contato confiável no submundo e conhece intermediários capazes de transmitir mensagens mesmo a grandes distâncias."
         },
         "Charlatão": {
             pericias: ["Enganação", "Prestidigitação"],
             ferramentas: ["Kit de disfarce", "Kit de falsificação"],
-            habilidade: "Identidade Falsa"
+            habilidade: "Identidade Falsa",
+            descricaoHabilidade: "Você mantém uma identidade alternativa com documentos e disfarces, e pode falsificar documentos cujo modelo ou caligrafia já tenha visto."
         },
         "Criminoso": {
             pericias: ["Furtividade", "Enganação"],
             ferramentas: ["Jogo (um tipo)", "Ferramentas de ladrão"],
-            habilidade: "Contato Criminal"
+            habilidade: "Contato Criminal",
+            descricaoHabilidade: "Você possui um contato confiável no submundo e conhece intermediários capazes de transmitir mensagens mesmo a grandes distâncias."
         },
         "Eremita": {
             pericias: ["Medicina", "Religião"],
             ferramentas: ["Kit de herbalismo", "Kit de fabricação (um tipo)"],
-            habilidade: "Descoberta"
+            habilidade: "Descoberta",
+            descricaoHabilidade: "Seu isolamento revelou uma informação, verdade ou relíquia única e importante; os detalhes e efeitos são definidos com o Mestre."
         },
         "Forasteiro": {
             pericias: ["Atletismo", "Sobrevivência"],
             ferramentas: ["Instrumento musical (um tipo)", "Ferramentas de artesão (um tipo)"],
-            habilidade: "Andarilho"
+            habilidade: "Andarilho",
+            descricaoHabilidade: "Você memoriza mapas e geografia e encontra comida e água para si e até cinco outras pessoas por dia, se o ambiente oferecer recursos."
         },
         "Herói do Povo": {
             pericias: ["Adestrar Animais", "Sobrevivência"],
             ferramentas: ["Ferramentas de artesão (um tipo)", "Veículos (terrestres)"],
-            habilidade: "Hospitalidade Rústica"
+            habilidade: "Hospitalidade Rústica",
+            descricaoHabilidade: "Camponeses e pessoas comuns oferecem abrigo, descanso e esconderijo, desde que ajudá-lo não coloque suas vidas em risco."
         },
         "Nobre": {
             pericias: ["História", "Persuasão"],
             ferramentas: ["Jogo (um tipo)"],
-            habilidade: "Posição de Privilégio"
+            habilidade: "Posição de Privilégio",
+            descricaoHabilidade: "Sua origem nobre facilita o acesso à alta sociedade, acomodações e audiências com nobres locais."
         },
         "Orfao": {
             pericias: ["Furtividade", "Prestidigitação"],
             ferramentas: ["Kit de disfarce", "Ferramentas de ladrão"],
-            habilidade: "Urbano"
+            habilidade: "Urbano",
+            descricaoHabilidade: "Fora de combate, você guia o grupo por atalhos urbanos, viajando entre dois pontos da cidade duas vezes mais rápido."
         },
         "Sábio": {
             pericias: ["Arcanismo", "História"],
             ferramentas: ["(Dois idiomas à sua escolha)"],
-            habilidade: "Pesquisador"
+            habilidade: "Pesquisador",
+            descricaoHabilidade: "Quando não sabe uma informação, você geralmente sabe onde ou com quem procurá-la, salvo quando o conhecimento é inacessível ou inexistente."
         },
         "Marinheiro": {
             pericias: ["Atletismo", "Percepção"],
             ferramentas: ["Ferramentas de navegador", "Veículos (aquáticos)"],
-            habilidade: "Passagem Marítima"
+            habilidade: "Passagem Marítima",
+            descricaoHabilidade: "Você consegue passagem gratuita para o grupo em navios aliados, embora a rota e o prazo dependam do Mestre; em troca, o grupo ajuda a tripulação."
         },
         "Soldado": {
             pericias: ["Atletismo", "Intimidação"],
             ferramentas: ["Jogo (um tipo)", "Veículos (terrestres)"],
-            habilidade: "Patente Militar"
+            habilidade: "Patente Militar",
+            descricaoHabilidade: "Sua patente concede respeito entre soldados, influência sobre subordinados, empréstimo temporário de equipamento simples ou cavalos e acesso a instalações militares aliadas."
         },
         "Acólito": {
             pericias: ["Intuição", "Religião"],
             ferramentas: ["(Dois idiomas à sua escolha)"],
-            habilidade: "Abrigo dos Fiéis"
+            habilidade: "Abrigo dos Fiéis",
+            descricaoHabilidade: "Concede respeito entre os fiéis, acesso a cerimônias, cura e caridade em templos da mesma fé, além de suporte modesto para você e possível auxílio de um templo aliado."
         },
         "Artesão da Guilda": {
             pericias: ["Persuasão", "Intuição"],
             ferramentas: ["Ferramentas de artesão (um tipo)", "Idioma adicional"],
-            habilidade: "Associação de Guilda"
+            habilidade: "Associação de Guilda",
+            descricaoHabilidade: "A guilda pode fornecer hospedagem, alimentação, contatos profissionais e apoio político, desde que você mantenha suas contribuições em dia."
         },
         "Artista": {
             pericias: ["Acrobacia", "Atuação"],
             ferramentas: ["Kit de disfarce", "Instrumento musical (um tipo)"],
-            habilidade: "Por Conta da Casa"
+            habilidade: "Por Conta da Casa",
+            descricaoHabilidade: "Você encontra locais para se apresentar e recebe hospedagem e comida em troca de apresentações, tornando-se conhecido e bem recebido localmente."
         }
     }
 };
