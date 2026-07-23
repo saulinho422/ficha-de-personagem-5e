@@ -1,6 +1,8 @@
 // app.js
 
 let inventarioPersonagem = [];
+let tracosPersonagem = [];
+let filtroTracosAtual = 'todos';
 const CHAVE_FICHA = 'forjaPersonagens.ficha.v2';
 let personagemAtual = { raca: '', classe: '' };
 
@@ -40,6 +42,7 @@ window.onload = function() {
     document.getElementById('nivel-personagem').addEventListener('change', validarNivel);
     renderizarSalvaguardas();
     renderizarPericias();
+    renderizarTracos();
     restaurarEstado();
 };
 
@@ -468,6 +471,7 @@ function salvarEstado() {
         pericias,
         periciasClasse: obterPericiasSelecionadas(),
         inventario: inventarioPersonagem,
+        tracos: tracosPersonagem,
         fichaGerada: document.getElementById('ficha-completa')?.style.display === 'block'
     }));
 }
@@ -502,6 +506,8 @@ function restaurarEstado() {
         if (campo) campo.value = valor;
     });
     inventarioPersonagem = Array.isArray(estado.inventario) ? estado.inventario : [];
+    tracosPersonagem = Array.isArray(estado.tracos) ? estado.tracos : [];
+    renderizarTracos();
     renderizarPericiasDaClasse();
     (estado.periciasClasse || []).forEach(nome => {
         const campo = document.querySelector('#lista-pericias-criacao input[value="' + CSS.escape(nome) + '"]');
@@ -718,6 +724,190 @@ function aplicarPericiasDaClasse() {
         const campo = document.getElementById('prof-' + nome);
         if (campo) campo.checked = escolhidas.has(nome);
     });
+}
+
+
+const ROTULOS_TIPO_TRACO = {
+    racial: 'Racial',
+    antecedente: 'Antecedente',
+    classe: 'Classe',
+    talento: 'Talento'
+};
+
+function abrirModalTraco(id = '') {
+    const modal = document.getElementById('modal-traco');
+    const titulo = document.getElementById('titulo-modal-traco');
+    const campoId = document.getElementById('traco-id');
+    const traco = id ? tracosPersonagem.find(item => item.id === id) : null;
+
+    if (traco?.bloqueado) {
+        mostrarToast('Destranque esta habilidade antes de editá-la.');
+        return;
+    }
+
+    document.getElementById('form-traco').reset();
+    campoId.value = traco?.id || '';
+    document.getElementById('traco-nome').value = traco?.nome || '';
+    document.getElementById('traco-tipo').value = traco?.tipo || '';
+    document.getElementById('traco-descricao').value = traco?.descricao || '';
+    titulo.textContent = traco ? 'Editar traço ou característica' : 'Adicionar traço ou característica';
+    modal.style.display = 'flex';
+    document.getElementById('traco-nome').focus();
+}
+
+function fecharModalTraco() {
+    document.getElementById('modal-traco').style.display = 'none';
+    document.getElementById('form-traco').reset();
+    document.getElementById('traco-id').value = '';
+}
+
+function salvarTraco(evento) {
+    evento.preventDefault();
+    const id = document.getElementById('traco-id').value;
+    const nome = document.getElementById('traco-nome').value.trim();
+    const tipo = document.getElementById('traco-tipo').value;
+    const descricao = document.getElementById('traco-descricao').value.trim();
+
+    if (!nome || !tipo || !descricao) {
+        mostrarToast('Preencha nome, tipo e descrição.');
+        return;
+    }
+
+    if (id) {
+        const traco = tracosPersonagem.find(item => item.id === id);
+        if (!traco || traco.bloqueado) {
+            mostrarToast('Esta habilidade está trancada e não pode ser editada.');
+            fecharModalTraco();
+            return;
+        }
+        Object.assign(traco, { nome, tipo, descricao });
+        mostrarToast('Habilidade atualizada.', 'sucesso');
+    } else {
+        tracosPersonagem.push({
+            id: 'traco-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+            nome,
+            tipo,
+            descricao,
+            bloqueado: false,
+            expandido: false
+        });
+        mostrarToast('Habilidade adicionada.', 'sucesso');
+    }
+
+    fecharModalTraco();
+    renderizarTracos();
+    salvarEstado();
+}
+
+function renderizarTracos() {
+    const lista = document.getElementById('lista-tracos');
+    if (!lista) return;
+    const visiveis = tracosPersonagem.filter(item => filtroTracosAtual === 'todos' || item.tipo === filtroTracosAtual);
+    lista.innerHTML = '';
+
+    if (!visiveis.length) {
+        const vazio = document.createElement('em');
+        vazio.className = 'texto-vazio';
+        vazio.textContent = tracosPersonagem.length ? 'Nenhuma habilidade encontrada neste filtro.' : 'Nenhum traço ou característica adicionado.';
+        lista.appendChild(vazio);
+        return;
+    }
+
+    visiveis.forEach(traco => {
+        const item = document.createElement('article');
+        item.className = 'item-traco' + (traco.expandido ? ' expandido' : '') + (traco.bloqueado ? ' bloqueado' : '');
+        item.dataset.id = traco.id;
+
+        const cabecalho = document.createElement('div');
+        cabecalho.className = 'item-traco-cabecalho';
+        cabecalho.setAttribute('role', 'button');
+        cabecalho.setAttribute('tabindex', '0');
+        cabecalho.setAttribute('aria-expanded', String(Boolean(traco.expandido)));
+        cabecalho.addEventListener('click', () => alternarTraco(traco.id));
+        cabecalho.addEventListener('keydown', evento => {
+            if (evento.key === 'Enter' || evento.key === ' ') {
+                evento.preventDefault();
+                alternarTraco(traco.id);
+            }
+        });
+
+        const nome = document.createElement('strong');
+        nome.textContent = traco.nome;
+
+        const acoes = document.createElement('div');
+        acoes.className = 'acoes-traco';
+
+        const editar = document.createElement('button');
+        editar.type = 'button';
+        editar.className = 'btn-acao-traco btn-editar-traco';
+        editar.title = traco.bloqueado ? 'Habilidade trancada' : 'Editar habilidade';
+        editar.setAttribute('aria-label', editar.title);
+        editar.textContent = '✎';
+        editar.disabled = traco.bloqueado;
+        editar.addEventListener('click', evento => {
+            evento.stopPropagation();
+            abrirModalTraco(traco.id);
+        });
+
+        const bloquear = document.createElement('button');
+        bloquear.type = 'button';
+        bloquear.className = 'btn-acao-traco btn-bloquear-traco';
+        bloquear.title = traco.bloqueado ? 'Destrancar habilidade' : 'Trancar habilidade';
+        bloquear.setAttribute('aria-label', bloquear.title);
+        bloquear.textContent = traco.bloqueado ? '🔒' : '🔓';
+        bloquear.addEventListener('click', evento => {
+            evento.stopPropagation();
+            alternarBloqueioTraco(traco.id);
+        });
+
+        const seta = document.createElement('span');
+        seta.className = 'seta-traco';
+        seta.textContent = '⌄';
+
+        acoes.append(editar, bloquear);
+        cabecalho.append(nome, acoes, seta);
+
+        const detalhes = document.createElement('div');
+        detalhes.className = 'detalhes-traco';
+        const tipo = document.createElement('span');
+        tipo.className = 'etiqueta-traco tipo-' + traco.tipo;
+        tipo.textContent = ROTULOS_TIPO_TRACO[traco.tipo] || traco.tipo;
+        const descricao = document.createElement('p');
+        descricao.textContent = traco.descricao;
+        detalhes.append(tipo, descricao);
+
+        item.append(cabecalho, detalhes);
+        lista.appendChild(item);
+    });
+}
+
+function alternarTraco(id) {
+    const traco = tracosPersonagem.find(item => item.id === id);
+    if (!traco) return;
+    traco.expandido = !traco.expandido;
+    renderizarTracos();
+    salvarEstado();
+}
+
+function alternarBloqueioTraco(id) {
+    const traco = tracosPersonagem.find(item => item.id === id);
+    if (!traco) return;
+    traco.bloqueado = !traco.bloqueado;
+    renderizarTracos();
+    salvarEstado();
+    mostrarToast(traco.bloqueado ? 'Habilidade trancada.' : 'Habilidade destrancada.', 'sucesso');
+}
+
+function alternarMenuFiltroTracos() {
+    const menu = document.getElementById('menu-filtro-tracos');
+    menu.hidden = !menu.hidden;
+}
+
+function filtrarTracos(tipo, botao) {
+    filtroTracosAtual = tipo;
+    document.querySelectorAll('#menu-filtro-tracos button').forEach(item => item.classList.toggle('ativo', item === botao));
+    document.getElementById('menu-filtro-tracos').hidden = true;
+    renderizarTracos();
 }
 
 
