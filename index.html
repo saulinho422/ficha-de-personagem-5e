@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260723-8">
+    <link rel="stylesheet" href="style.css?v=20260723-9">
 </head>
 <body>
 
@@ -142,6 +142,26 @@
                     <div class="lista-habilidades">
                         <div class="titulo-lista">PERÍCIAS</div>
                         <div id="lista-pericias"></div>
+                    </div>
+
+                    <div class="caixa-percepcao-passiva" title="10 + modificador de Sabedoria">
+                        <div id="display-percepcao-passiva" class="valor-percepcao-passiva">10</div>
+                        <div class="texto-percepcao-passiva">
+                            <strong>SABEDORIA PASSIVA (PERCEPÇÃO)</strong>
+                            <small id="calculo-percepcao-passiva">10 + 0 de Sabedoria</small>
+                        </div>
+                    </div>
+
+                    <div class="caixa-proficiencias-automaticas">
+                        <div class="cabecalho-proficiencias-automaticas">
+                            <div>
+                                <strong>IDIOMAS E OUTRAS PROFICIÊNCIAS</strong>
+                                <small>Preenchidas automaticamente pela origem do personagem</small>
+                            </div>
+                        </div>
+                        <div id="lista-proficiencias-automaticas" class="lista-proficiencias-automaticas">
+                            <em class="texto-vazio">As informações aparecerão após a criação do personagem.</em>
+                        </div>
                     </div>
                 </div>
 
@@ -404,7 +424,7 @@
         </div>
     </div>
 
-    <script src="banco_phb.js?v=20260723-7"></script>
-    <script src="app.js?v=20260723-8"></script>
+    <script src="banco_phb.js?v=20260723-9"></script>
+    <script src="app.js?v=20260723-9"></script>
 </body>
 </html>
