@@ -18,6 +18,7 @@
             <div class="passo-indicador" data-passo="2"><span>2</span> Origem</div>
             <div class="passo-indicador" data-passo="3"><span>3</span> Atributos</div>
             <div class="passo-indicador" data-passo="4"><span>4</span> Perícias</div>
+            <div class="passo-indicador" data-passo="5"><span>5</span> História</div>
         </div>
 
         <section class="etapa-criacao ativa" data-etapa="1">
@@ -39,8 +40,16 @@
             <h3 class="titulo-secao">Origem e treinamento</h3>
             <div class="grid-formulario">
                 <div class="grupo-input"><label for="select-raca">Raça</label><select id="select-raca" class="input-elegante"><option value="">-- Escolha uma Raça --</option></select></div>
-                <div class="grupo-input"><label for="select-subraca">Sub-raça</label><select id="select-subraca" class="input-elegante" disabled><option value="">-- Não disponível --</option></select></div>
+                <div class="grupo-input campo-largo" id="pergunta-subraca" hidden>
+                    <span class="rotulo-grupo">Deseja escolher uma sub-raça?</span>
+                    <div class="opcoes-inline">
+                        <label><input type="radio" name="usar-subraca" value="sim"> Sim</label>
+                        <label><input type="radio" name="usar-subraca" value="nao"> Não</label>
+                    </div>
+                </div>
+                <div class="grupo-input campo-largo" id="grupo-subraca" hidden><label for="select-subraca">Escolha a sub-raça</label><select id="select-subraca" class="input-elegante"><option value="">-- Escolha uma Sub-raça --</option></select></div>
                 <div class="grupo-input"><label for="select-classe">Classe</label><select id="select-classe" class="input-elegante"><option value="">-- Escolha uma Classe --</option></select></div>
+                <div class="grupo-input"><label for="select-subclasse">Subclasse</label><select id="select-subclasse" class="input-elegante" disabled><option value="">-- Escolha primeiro a Classe --</option></select></div>
             </div>
             <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(1)">Voltar</button><button class="btn-primario btn-inline" onclick="proximaEtapa(3)">Continuar</button></div>
         </section>
@@ -63,7 +72,28 @@
             <p id="instrucao-pericias" class="subtitulo-pericias"></p>
             <div id="lista-pericias-criacao" class="grid-pericias-criacao"></div>
             <div class="contador-escolhas">Selecionadas: <strong id="contador-pericias">0</strong> / <strong id="limite-pericias">0</strong></div>
-            <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(3)">Voltar</button><button class="btn-primario btn-inline" onclick="iniciarPersonagem()">Gerar ficha</button></div>
+            <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(3)">Voltar</button><button class="btn-primario btn-inline" onclick="proximaEtapa(5)">Continuar</button></div>
+        </section>
+
+        <section class="etapa-criacao" data-etapa="5">
+            <h3 class="titulo-secao">Alinhamento e antecedente</h3>
+            <div class="grid-formulario">
+                <div class="grupo-input">
+                    <label for="select-alinhamento">Alinhamento</label>
+                    <select id="select-alinhamento" class="input-elegante">
+                        <option value="">-- Escolha um Alinhamento --</option>
+                        <option>Leal e Bom</option><option>Neutro e Bom</option><option>Caótico e Bom</option>
+                        <option>Leal e Neutro</option><option>Neutro</option><option>Caótico e Neutro</option>
+                        <option>Leal e Mau</option><option>Neutro e Mau</option><option>Caótico e Mau</option>
+                    </select>
+                </div>
+                <div class="grupo-input">
+                    <label for="select-antecedente">Antecedente</label>
+                    <select id="select-antecedente" class="input-elegante"><option value="">-- Escolha um Antecedente --</option></select>
+                </div>
+                <div class="resumo-antecedente campo-largo" id="resumo-antecedente" hidden></div>
+            </div>
+            <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(4)">Voltar</button><button class="btn-primario btn-inline" onclick="iniciarPersonagem()">Gerar ficha</button></div>
         </section>
     </div>
 
@@ -81,7 +111,8 @@
             <div class="cabecalho-ficha">
                 <div>
                     <div class="nome-personagem" id="display-nome">Nome do Personagem</div>
-                    <div class="info-personagem"><span id="display-raca"></span><span id="display-subraca"></span> • <span id="display-classe"></span> <strong>Nível <span id="display-nivel">1</span></strong></div>
+                    <div class="info-personagem"><span id="display-origem"></span> • <span id="display-classe"></span> — <span id="display-subclasse"></span> • <strong>Nível <span id="display-nivel">1</span></strong></div>
+                    <div class="info-personagem info-secundaria"><span id="display-alinhamento"></span> • <span id="display-antecedente"></span></div>
                 </div>
                 <div class="acoes-cabecalho"><button class="btn-secundario" onclick="editarPersonagem()">Editar personagem</button></div>
             </div>
