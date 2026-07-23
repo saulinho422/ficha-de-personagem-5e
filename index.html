@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260723-6">
+    <link rel="stylesheet" href="style.css?v=20260723-7">
 </head>
 <body>
 
@@ -296,25 +296,84 @@
 
     <!-- MODAL DE EQUIPAMENTOS -->
     <div id="modal-equipamentos" class="modal-overlay" style="display: none;">
-        <div class="modal-conteudo">
+        <div class="modal-conteudo modal-equipamentos-conteudo">
             <div class="modal-cabecalho">
-                <h3>Adicionar Equipamento do PHB</h3>
-                <button class="btn-fechar" onclick="fecharModalEquipamentos()">&times;</button>
+                <h3>Adicionar Equipamento</h3>
+                <button class="btn-fechar" type="button" onclick="fecharModalEquipamentos()">&times;</button>
             </div>
             
             <div class="modal-abas">
-                <button class="btn-cat ativa" onclick="mudarCategoriaModal('todos')">Todos</button>
-                <button class="btn-cat" onclick="mudarCategoriaModal('armas')">Armas</button>
-                <button class="btn-cat" onclick="mudarCategoriaModal('armaduras')">Armaduras</button>
-                <button class="btn-cat" onclick="mudarCategoriaModal('aventura')">Aventura</button>
-                <button class="btn-cat" onclick="mudarCategoriaModal('pacotes')">Pacotes</button>
+                <button class="btn-cat ativa" type="button" onclick="mudarCategoriaModal('todos', this)">Todos</button>
+                <button class="btn-cat" type="button" onclick="mudarCategoriaModal('armas', this)">Armas</button>
+                <button class="btn-cat" type="button" onclick="mudarCategoriaModal('armaduras', this)">Armaduras</button>
+                <button class="btn-cat" type="button" onclick="mudarCategoriaModal('aventura', this)">Aventura</button>
+                <button class="btn-cat" type="button" onclick="mudarCategoriaModal('pacotes', this)">Pacotes</button>
+                <button class="btn-cat" type="button" onclick="mudarCategoriaModal('personalizados', this)">Personalizados</button>
             </div>
 
             <div class="modal-lista" id="modal-lista-itens"></div>
+
+            <form id="form-item-personalizado" class="form-item-personalizado" onsubmit="salvarItemPersonalizado(event)" hidden>
+                <p class="texto-apoio">Crie itens próprios da campanha, como mapas, relíquias, armas, armaduras ou poções.</p>
+                <div class="grid-personalizado">
+                    <label class="campo-formulario campo-largo">
+                        <span>Nome do item</span>
+                        <input id="item-personalizado-nome" type="text" maxlength="80" required placeholder="Ex.: Mapa rasgado">
+                    </label>
+                    <label class="campo-formulario">
+                        <span>Peso (kg)</span>
+                        <input id="item-personalizado-peso" type="number" min="0" step="0.01" required value="0">
+                    </label>
+                    <label class="campo-formulario">
+                        <span>Tipo</span>
+                        <select id="item-personalizado-tipo" required onchange="atualizarCamposItemPersonalizado()">
+                            <option value="comum">Item comum</option>
+                            <option value="arma">Arma</option>
+                            <option value="armadura">Armadura</option>
+                            <option value="pocao">Poção</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div id="campos-personalizado-arma" class="bloco-campos-personalizados" hidden>
+                    <h4>Dados da arma</h4>
+                    <div class="grid-personalizado">
+                        <label class="campo-formulario"><span>Quantidade de dados</span><input id="arma-personalizada-quantidade" type="number" min="1" max="20" value="1"></label>
+                        <label class="campo-formulario"><span>Dado</span><select id="arma-personalizada-dado"><option>d4</option><option>d6</option><option selected>d8</option><option>d10</option><option>d12</option><option>d20</option></select></label>
+                        <label class="campo-formulario"><span>Tipo de dano</span><select id="arma-personalizada-dano"><option value="cortante">Cortante</option><option value="perfurante">Perfurante</option><option value="contundente">Contundente</option><option value="ácido">Ácido</option><option value="fogo">Fogo</option><option value="frio">Frio</option><option value="elétrico">Elétrico</option><option value="veneno">Veneno</option><option value="psíquico">Psíquico</option><option value="radiante">Radiante</option><option value="necrótico">Necrótico</option><option value="trovejante">Trovejante</option><option value="força">Força</option></select></label>
+                        <label class="campo-formulario"><span>Uso</span><select id="arma-personalizada-modalidade"><option value="corpo a corpo">Corpo a corpo</option><option value="distância">À distância</option></select></label>
+                        <label class="campo-formulario"><span>Categoria</span><select id="arma-personalizada-categoria"><option value="simples">Simples</option><option value="marcial">Marcial</option></select></label>
+                        <label class="opcao-check"><input id="arma-personalizada-acuidade" type="checkbox"> Acuidade (Força ou Destreza)</label>
+                    </div>
+                </div>
+
+                <div id="campos-personalizado-armadura" class="bloco-campos-personalizados" hidden>
+                    <h4>Dados da armadura</h4>
+                    <div class="grid-personalizado">
+                        <label class="campo-formulario"><span>CA base</span><input id="armadura-personalizada-ca" type="number" min="1" max="30" value="10"></label>
+                        <label class="campo-formulario"><span>Cálculo da CA</span><select id="armadura-personalizada-calculo"><option value="fixa">CA bruta (fixa)</option><option value="destreza">CA + Destreza</option></select></label>
+                    </div>
+                </div>
+
+                <div id="campos-personalizado-pocao" class="bloco-campos-personalizados" hidden>
+                    <h4>Dados da poção</h4>
+                    <label class="opcao-check"><input id="pocao-personalizada-tem-rolagem" type="checkbox" onchange="atualizarCamposRolagemPocao()"> Possui rolagem</label>
+                    <div id="campos-rolagem-pocao" class="grid-personalizado" hidden>
+                        <label class="campo-formulario"><span>Quantidade de dados</span><input id="pocao-personalizada-quantidade" type="number" min="1" max="20" value="1"></label>
+                        <label class="campo-formulario"><span>Dado</span><select id="pocao-personalizada-dado"><option>d4</option><option selected>d6</option><option>d8</option><option>d10</option><option>d12</option><option>d20</option></select></label>
+                        <label class="campo-formulario"><span>Bônus</span><input id="pocao-personalizada-bonus" type="number" step="1" value="0"></label>
+                    </div>
+                </div>
+
+                <div class="acoes-modal">
+                    <button class="btn-secundario" type="button" onclick="limparFormularioItemPersonalizado()">Limpar</button>
+                    <button class="btn-primario btn-inline" type="submit">Adicionar ao inventário</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <script src="banco_phb.js?v=20260723-6"></script>
-    <script src="app.js?v=20260723-6"></script>
+    <script src="banco_phb.js?v=20260723-7"></script>
+    <script src="app.js?v=20260723-7"></script>
 </body>
 </html>
