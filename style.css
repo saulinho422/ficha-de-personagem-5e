@@ -314,3 +314,140 @@ body {
 .resumo-antecedente strong { color:var(--cor-primaria); }
 .info-secundaria { margin-top:4px; opacity:.82; font-size:.92em; }
 [hidden] { display:none !important; }
+
+
+/* Traços e características */
+.caixa-tracos {
+    position: relative;
+    min-height: 250px;
+    padding: 15px 15px 52px;
+    text-align: left;
+    border: 2px solid var(--cor-secundaria);
+    color: var(--cor-texto);
+    background: #fafafa;
+}
+.cabecalho-tracos {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 9px;
+    margin-bottom: 8px;
+    border-bottom: 2px solid #ddd;
+}
+.filtro-tracos { position: relative; }
+.btn-filtro-tracos {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    background: #fff;
+    color: #555;
+    font-size: 21px;
+    cursor: pointer;
+}
+.btn-filtro-tracos:hover { color: var(--cor-primaria); border-color: var(--cor-primaria); }
+.menu-filtro-tracos {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    z-index: 30;
+    width: 155px;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(0,0,0,.18);
+}
+.menu-filtro-tracos button {
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #444;
+    text-align: left;
+    cursor: pointer;
+}
+.menu-filtro-tracos button:hover,
+.menu-filtro-tracos button.ativo { background: #f8eaea; color: var(--cor-primaria); font-weight: 700; }
+.lista-tracos {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    max-height: 310px;
+    overflow-y: auto;
+}
+.item-traco {
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    transition: border-color .2s, box-shadow .2s;
+}
+.item-traco:hover { border-color: #bbb; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+.item-traco.bloqueado { border-left: 4px solid #777; }
+.item-traco-cabecalho {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 18px;
+    align-items: center;
+    gap: 7px;
+    min-height: 42px;
+    padding: 7px 9px 7px 12px;
+    cursor: pointer;
+}
+.item-traco-cabecalho strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #333; }
+.acoes-traco { display: flex; gap: 3px; opacity: 0; transition: opacity .2s; }
+.item-traco:hover .acoes-traco,
+.item-traco:focus-within .acoes-traco { opacity: 1; }
+.btn-acao-traco {
+    width: 29px;
+    height: 29px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #555;
+    cursor: pointer;
+    font-size: 16px;
+}
+.btn-acao-traco:hover { background: #f1f1f1; color: var(--cor-primaria); }
+.btn-acao-traco:disabled { color: #bbb; cursor: not-allowed; }
+.seta-traco { color: #777; font-size: 18px; transition: transform .2s; }
+.item-traco.expandido .seta-traco { transform: rotate(180deg); }
+.detalhes-traco { display: none; padding: 0 12px 12px; border-top: 1px solid #eee; }
+.item-traco.expandido .detalhes-traco { display: block; }
+.detalhes-traco p { margin: 9px 0 0; color: #444; line-height: 1.5; white-space: pre-wrap; }
+.etiqueta-traco {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #eee;
+    color: #444;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.tipo-racial { background:#e8f5e9; color:#2e7d32; }
+.tipo-antecedente { background:#fff3e0; color:#a45100; }
+.tipo-classe { background:#e3f2fd; color:#1565c0; }
+.tipo-talento { background:#f3e5f5; color:#7b1fa2; }
+.btn-add-traco { bottom: 10px; right: 10px; }
+.modal-traco-conteudo { max-width: 560px; }
+.form-traco { display: grid; gap: 16px; padding-top: 18px; overflow-y: auto; }
+.textarea-traco { min-height: 135px; resize: vertical; cursor: text; }
+.acoes-modal-traco { display: flex; justify-content: flex-end; gap: 10px; padding-top: 4px; }
+.acoes-modal-traco .btn-primario,
+.acoes-modal-traco .btn-secundario { width: auto; min-width: 110px; margin: 0; padding: 11px 18px; }
+
+@media (max-width: 600px) {
+    .acoes-traco { opacity: 1; }
+    .modal-traco-conteudo { width: calc(100% - 24px); padding: 18px; }
+    .acoes-modal-traco { flex-direction: column-reverse; }
+    .acoes-modal-traco .btn-primario,
+    .acoes-modal-traco .btn-secundario { width: 100%; }
+}
