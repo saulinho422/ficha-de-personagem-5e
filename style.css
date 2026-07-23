@@ -524,3 +524,82 @@ body {
     .caixa-tracos { min-height: 220px; }
     .detalhes-traco { padding: 12px 12px 18px; }
 }
+
+
+/* Ataques com armas do inventário */
+.caixa-ataques {
+    position: relative;
+    min-height: 210px;
+    padding: 15px 15px 52px;
+    border: 2px solid var(--cor-secundaria);
+    border-radius: 10px;
+    background: #fafafa;
+    color: var(--cor-texto);
+    text-align: left;
+}
+.cabecalho-ataques { padding-bottom: 8px; margin-bottom: 8px; border-bottom: 2px solid #ddd; }
+.cabecalho-lista-ataques,
+.item-ataque {
+    display: grid;
+    grid-template-columns: minmax(90px, 1.1fr) 58px minmax(105px, 1.4fr) 28px;
+    align-items: center;
+    gap: 7px;
+}
+.cabecalho-lista-ataques {
+    padding: 3px 7px 6px;
+    color: #777;
+    font-size: 10px;
+    font-weight: 800;
+}
+.lista-ataques { display: flex; flex-direction: column; gap: 6px; }
+.item-ataque {
+    padding: 9px 7px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 12px;
+}
+.item-ataque strong { overflow-wrap: anywhere; line-height: 1.25; }
+.bonus-ataque { font-size: 16px; font-weight: 900; color: var(--cor-primaria); text-align: center; }
+.dano-ataque { overflow-wrap: anywhere; line-height: 1.3; }
+.btn-remover-ataque {
+    width: 27px;
+    height: 27px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #c62828;
+    cursor: pointer;
+    font-size: 19px;
+}
+.btn-remover-ataque:hover { background:#ffebee; }
+.btn-add-ataque { bottom: 10px; right: 10px; }
+.modal-ataque-conteudo { max-width: 560px; }
+.form-ataque { display:grid; gap:16px; padding-top:18px; }
+.previa-ataque {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px 14px;
+    padding:13px 15px;
+    border:1px solid #ddd;
+    border-left:4px solid var(--cor-primaria);
+    border-radius:8px;
+    background:#fff8f8;
+    color:#444;
+}
+.previa-ataque strong { grid-column:1/-1; color:var(--cor-primaria); }
+.aviso-sem-armas {
+    padding:13px;
+    border-radius:8px;
+    background:#fff3cd;
+    color:#6b5200;
+    line-height:1.4;
+}
+#btn-salvar-ataque:disabled { opacity:.55; cursor:not-allowed; }
+
+@media (max-width:600px) {
+    .cabecalho-lista-ataques,
+    .item-ataque { grid-template-columns:minmax(78px,1fr) 50px minmax(92px,1.2fr) 26px; gap:5px; }
+    .previa-ataque { grid-template-columns:1fr; }
+    .previa-ataque strong { grid-column:auto; }
+}
