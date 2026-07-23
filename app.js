@@ -257,13 +257,22 @@ function fecharModalEquipamentos() {
 }
 
 function mudarCategoriaModal(categoria, botao = null) {
-    const botoes = document.querySelectorAll('.modal-abas .btn-cat');
+    const botoes = document.querySelectorAll('#modal-equipamentos .modal-abas .btn-cat');
     botoes.forEach(b => b.classList.remove('ativa'));
     const correto = botao || Array.from(botoes).find(b =>
         (b.getAttribute('onclick') || '').includes("'" + categoria + "'")
     );
     if (correto) correto.classList.add('ativa');
 
+    const catalogo = document.getElementById('modal-lista-itens');
+    const formulario = document.getElementById('form-item-personalizado');
+    const personalizado = categoria === 'personalizados';
+    catalogo.hidden = personalizado;
+    formulario.hidden = !personalizado;
+    if (personalizado) {
+        atualizarCamposItemPersonalizado();
+        return;
+    }
     carregarItensCatalogo(categoria);
 }
 
@@ -343,13 +352,119 @@ function adicionarAoInventario(nome, pesoStr) {
         pesoNum = parseFloat(limpo) || 0;
     }
 
-    const existente = inventarioPersonagem.find(item => item.nome === nome);
+    const existente = inventarioPersonagem.find(item => item.nome === nome && !item.personalizado);
     if (existente) {
         existente.quantidade = (existente.quantidade || 1) + 1;
     } else {
         inventarioPersonagem.push({ nome: nome, peso: pesoNum, pesoOriginal: pesoStr, quantidade: 1 });
     }
     atualizarInventario();
+    mostrarToast(nome + ' foi adicionado ao inventário.', 'sucesso');
+}
+
+function atualizarCamposItemPersonalizado() {
+    const tipo = document.getElementById('item-personalizado-tipo')?.value || 'comum';
+    ['arma', 'armadura', 'pocao'].forEach(nome => {
+        const bloco = document.getElementById('campos-personalizado-' + nome);
+        if (bloco) bloco.hidden = tipo !== nome;
+    });
+    atualizarCamposRolagemPocao();
+}
+
+function atualizarCamposRolagemPocao() {
+    const campos = document.getElementById('campos-rolagem-pocao');
+    const marcado = document.getElementById('pocao-personalizada-tem-rolagem')?.checked;
+    if (campos) campos.hidden = !marcado;
+}
+
+function limparFormularioItemPersonalizado() {
+    document.getElementById('form-item-personalizado')?.reset();
+    atualizarCamposItemPersonalizado();
+}
+
+function obterValorNumerico(id, padrao = 0) {
+    const valor = Number(document.getElementById(id)?.value);
+    return Number.isFinite(valor) ? valor : padrao;
+}
+
+function salvarItemPersonalizado(evento) {
+    evento.preventDefault();
+    const nome = document.getElementById('item-personalizado-nome').value.trim();
+    const tipo = document.getElementById('item-personalizado-tipo').value;
+    const peso = Math.max(0, obterValorNumerico('item-personalizado-peso'));
+    if (!nome) {
+        mostrarToast('Informe o nome do item personalizado.', 'aviso');
+        return;
+    }
+    const nomeEmUso = inventarioPersonagem.some(item => item.nome.toLocaleLowerCase('pt-BR') === nome.toLocaleLowerCase('pt-BR')) ||
+        listarArmasBanco(false).some(item => item.nome.toLocaleLowerCase('pt-BR') === nome.toLocaleLowerCase('pt-BR')) ||
+        localizarArmaduraBanco(nome);
+    if (nomeEmUso) {
+        mostrarToast('Já existe um item com esse nome no inventário ou no catálogo.', 'aviso');
+        return;
+    }
+
+    const item = {
+        nome,
+        peso,
+        pesoOriginal: peso.toFixed(2).replace('.', ',') + ' kg',
+        quantidade: 1,
+        personalizado: true,
+        tipoPersonalizado: tipo,
+        dadosPersonalizados: {}
+    };
+
+    if (tipo === 'arma') {
+        const quantidade = Math.max(1, Math.floor(obterValorNumerico('arma-personalizada-quantidade', 1)));
+        const dado = document.getElementById('arma-personalizada-dado').value;
+        const modalidade = document.getElementById('arma-personalizada-modalidade').value;
+        item.dadosPersonalizados = {
+            dano: quantidade + dado,
+            tipoDano: document.getElementById('arma-personalizada-dano').value,
+            modalidade,
+            categoria: document.getElementById('arma-personalizada-categoria').value,
+            atributoPadrao: modalidade === 'distância' ? 'destreza' : 'forca',
+            acuidade: document.getElementById('arma-personalizada-acuidade').checked,
+            versatil: false,
+            danoVersatil: null
+        };
+    }
+
+    if (tipo === 'armadura') {
+        item.dadosPersonalizados = {
+            ca: Math.max(1, Math.floor(obterValorNumerico('armadura-personalizada-ca', 10))),
+            calculoCA: document.getElementById('armadura-personalizada-calculo').value
+        };
+    }
+
+    if (tipo === 'pocao') {
+        const temRolagem = document.getElementById('pocao-personalizada-tem-rolagem').checked;
+        item.dadosPersonalizados = { temRolagem };
+        if (temRolagem) {
+            item.dadosPersonalizados.rolagem =
+                Math.max(1, Math.floor(obterValorNumerico('pocao-personalizada-quantidade', 1))) +
+                document.getElementById('pocao-personalizada-dado').value;
+            item.dadosPersonalizados.bonus = Math.floor(obterValorNumerico('pocao-personalizada-bonus'));
+        }
+    }
+
+    inventarioPersonagem.push(item);
+    atualizarInventario();
+    limparFormularioItemPersonalizado();
+    mostrarToast(nome + ' foi adicionado ao inventário.', 'sucesso');
+}
+
+function descreverItemPersonalizado(item) {
+    if (!item?.personalizado) return '';
+    const dados = item.dadosPersonalizados || {};
+    if (item.tipoPersonalizado === 'arma') return 'Arma · ' + dados.dano + ' ' + dados.tipoDano;
+    if (item.tipoPersonalizado === 'armadura') return 'Armadura · CA ' + dados.ca + (dados.calculoCA === 'destreza' ? ' + Destreza' : '');
+    if (item.tipoPersonalizado === 'pocao') {
+        if (!dados.temRolagem) return 'Poção · sem rolagem';
+        const bonus = Number(dados.bonus) || 0;
+        return 'Poção · ' + dados.rolagem + (bonus > 0 ? ' + ' + bonus : bonus < 0 ? ' - ' + Math.abs(bonus) : '');
+    }
+    return 'Item comum';
 }
 
 function removerDoInventario(index) {
@@ -396,9 +511,13 @@ function atualizarInventario() {
         item.quantidade = item.quantidade || 1;
         pesoTotal += item.peso * item.quantidade;
         let div = document.createElement('div');
-        div.className = 'item-inventario';
+        div.className = 'item-inventario' + (item.personalizado ? ' item-personalizado' : '');
+        const detalhes = descreverItemPersonalizado(item);
         div.innerHTML = `
-            <span>${item.quantidade}× ${item.nome} (${item.pesoOriginal})</span>
+            <span class="item-inventario-texto">
+                <b>${item.quantidade}× ${escaparHtml(item.nome)}</b>
+                <small>${escaparHtml(item.pesoOriginal || (item.peso + ' kg'))}${detalhes ? ' · ' + escaparHtml(detalhes) : ''}</small>
+            </span>
             <button class="btn-remover" onclick="removerDoInventario(${index})" title="Remover">&times;</button>
         `;
         container.appendChild(div);
@@ -427,12 +546,27 @@ function atualizarInventario() {
     salvarEstado();
 }
 
-function localizarArmadura(nome) {
+function localizarArmaduraBanco(nome) {
     for (const subtipo in bancoDnD.equipamentos.armaduras) {
-        const item = bancoDnD.equipamentos.armaduras[subtipo].find(a => a.nome === nome);
+        const item = bancoDnD.equipamentos.armaduras[subtipo].find(a => a.nome.toLocaleLowerCase('pt-BR') === String(nome).toLocaleLowerCase('pt-BR'));
         if (item) return { ...item, subtipo };
     }
     return null;
+}
+
+function localizarArmadura(nome) {
+    const itemPersonalizado = inventarioPersonagem.find(item =>
+        item.personalizado && item.tipoPersonalizado === 'armadura' && item.nome === nome
+    );
+    if (itemPersonalizado) {
+        const dados = itemPersonalizado.dadosPersonalizados || {};
+        return {
+            nome: itemPersonalizado.nome,
+            ca: dados.ca,
+            subtipo: dados.calculoCA === 'destreza' ? 'personalizada-destreza' : 'personalizada-fixa'
+        };
+    }
+    return localizarArmaduraBanco(nome);
 }
 
 function atualizarClasseArmadura() {
@@ -453,7 +587,7 @@ function atualizarClasseArmadura() {
         const base = parseInt(armadura.ca, 10);
         if (!Number.isFinite(base)) return;
         let caArmadura = base;
-        if (armadura.subtipo === 'leve') caArmadura += modDes;
+        if (armadura.subtipo === 'leve' || armadura.subtipo === 'personalizada-destreza') caArmadura += modDes;
         if (armadura.subtipo === 'media') caArmadura += Math.min(2, modDes);
         ca = Math.max(ca, caArmadura);
     });
@@ -744,9 +878,14 @@ function aplicarPericiasDaClasse() {
 
 
 
-function listarArmasBanco() {
+function listarArmasBanco(incluirPersonalizadas = true) {
     const armas = [];
     Object.values(bancoDnD.equipamentos?.armas || {}).forEach(lista => lista.forEach(arma => armas.push(arma)));
+    if (incluirPersonalizadas) {
+        inventarioPersonagem
+            .filter(item => item.personalizado && item.tipoPersonalizado === 'arma')
+            .forEach(item => armas.push({ nome: item.nome, ...(item.dadosPersonalizados || {}), personalizada: true }));
+    }
     return armas;
 }
 
