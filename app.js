@@ -82,7 +82,8 @@ function carregarOpcoes() {
     }
     for (let antecedente in (bancoDnD.antecedentes || {})) {
         let opcao = document.createElement('option');
-        opcao.value = antecedente; opcao.text = antecedente;
+        opcao.value = antecedente;
+        opcao.text = formatarNomeAntecedente(antecedente);
         selectAntecedente.appendChild(opcao);
     }
 }
@@ -142,7 +143,7 @@ function iniciarPersonagem(restaurando = false) {
     document.getElementById('display-classe').innerText = classe;
     document.getElementById('display-subclasse').innerText = subclasse;
     document.getElementById('display-alinhamento').innerText = alinhamento;
-    document.getElementById('display-antecedente').innerText = antecedente;
+    document.getElementById('display-antecedente').innerText = formatarNomeAntecedente(antecedente);
     document.getElementById('display-nivel').innerText = nivel;
     document.getElementById('display-proficiencia').innerText = "+" + obterBonusProficiencia();
 
@@ -1010,7 +1011,10 @@ function restaurarEstado() {
     document.getElementById('select-subclasse').value = estado.subclasse || '';
     document.getElementById('select-alinhamento').value = estado.alinhamento || '';
     const nomesAntecedentesMigrados = { 'Artisao da Guilda': 'Artesão da Guilda', 'Orfao': 'Órfão' };
-    estado.antecedente = nomesAntecedentesMigrados[estado.antecedente] || estado.antecedente || '';
+    const nomeOriginalAntecedente = estado.antecedente || '';
+    const nomeCorrigidoAntecedente = nomesAntecedentesMigrados[nomeOriginalAntecedente] || nomeOriginalAntecedente;
+    estado.antecedente = bancoDnD.antecedentes?.[nomeCorrigidoAntecedente]
+        ? nomeCorrigidoAntecedente : nomeOriginalAntecedente;
     document.getElementById('select-antecedente').value = estado.antecedente;
     atualizarResumoAntecedente();
     Object.entries(estado.atributos || {}).forEach(([attr, valor]) => {
@@ -1135,6 +1139,10 @@ function atualizarResumoAntecedente() {
         '<span><b>Habilidade:</b> ' + escaparHtml(dados.habilidade || 'Não informada') + '</span>';
     resumo.hidden = false;
     salvarEstado();
+}
+
+function formatarNomeAntecedente(nome) {
+    return ({ 'Artisao da Guilda': 'Artesão da Guilda', 'Orfao': 'Órfão' })[nome] || nome;
 }
 
 function escaparHtml(valor) {
