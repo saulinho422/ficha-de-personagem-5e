@@ -15,6 +15,8 @@ window.onload = function() {
     
     console.log("Banco de dados conectado com sucesso!");
     carregarOpcoes();
+    document.getElementById('select-raca').addEventListener('change', carregarSubracas);
+    document.getElementById('nivel-personagem').addEventListener('change', validarNivel);
     renderizarSalvaguardas();
     renderizarPericias();
     restaurarEstado();
@@ -68,21 +70,28 @@ function renderizarPericias() {
 }
 
 function iniciarPersonagem(restaurando = false) {
+    const nome = document.getElementById('nome-personagem').value.trim();
+    const nivel = validarNivel();
+    const subraca = document.getElementById('select-subraca').value;
     const raca = document.getElementById('select-raca').value;
     const classe = document.getElementById('select-classe').value;
 
-    if (raca === "" || classe === "") {
-        if (!restaurando) alert("Por favor, selecione Raça e Classe!");
+    if (!nome || raca === "" || classe === "") {
+        if (!restaurando) alert("Preencha o nome e selecione raça e classe.");
         return;
     }
-    personagemAtual = { raca, classe };
+    personagemAtual = { nome, nivel, raca, subraca, classe };
 
     document.getElementById('criacao-rapida').style.display = 'none';
     document.getElementById('ficha-completa').style.display = 'block';
+    document.getElementById('display-nome').innerText = nome;
     document.getElementById('display-raca').innerText = raca;
+    document.getElementById('display-subraca').innerText = subraca ? " — " + subraca : "";
     document.getElementById('display-classe').innerText = classe;
+    document.getElementById('display-nivel').innerText = nivel;
+    document.getElementById('display-proficiencia').innerText = "+" + obterBonusProficiencia();
 
-    calcularAtributos(raca);
+    calcularAtributos(raca, subraca);
     calcularCombate(raca, classe);
     calcularSalvaguardas(classe);
     calcularTodasPericias(); 
@@ -98,9 +107,11 @@ function calcularModificador(valorAtributo) {
     return Math.floor((valorAtributo - 10) / 2);
 }
 
-function calcularAtributos(racaEscolhida) {
+function calcularAtributos(racaEscolhida, subracaEscolhida = '') {
     const raca = bancoDnD.racas[racaEscolhida];
-    const bonusRaca = raca && raca.bonusAtributos ? raca.bonusAtributos : {};
+    const bonusRaca = { ...(raca && raca.bonusAtributos ? raca.bonusAtributos : {}) };
+    const dadosSubraca = raca && raca.subracas && raca.subracas[subracaEscolhida];
+    Object.entries(dadosSubraca?.bonusAtributos || {}).forEach(([attr, bonus]) => bonusRaca[attr] = (bonusRaca[attr] || 0) + bonus);
     const atributosIds = ['for', 'des', 'con', 'int', 'sab', 'car'];
     
     atributosIds.forEach(function(attr) {
@@ -130,15 +141,18 @@ function calcularCombate(racaEscolhida, classeEscolhida) {
     document.getElementById('display-deslocamento').innerText = raca && raca.deslocamento ? raca.deslocamento : 9;
 
     const classe = bancoDnD.classes[classeEscolhida];
-    const dadoVidaClasse = classe && classe.dadoVida ? classe.dadoVida : 8; 
-    document.getElementById('display-hp-max').innerText = dadoVidaClasse + modCon;
-    document.getElementById('display-hp-atual').innerText = dadoVidaClasse + modCon;
+    const dadoVidaClasse = classe && classe.dadoVida ? classe.dadoVida : 8;
+    const nivel = validarNivel();
+    const ganhoMedio = Math.floor(dadoVidaClasse / 2) + 1;
+    const hpMax = Math.max(1, dadoVidaClasse + modCon + (nivel - 1) * Math.max(1, ganhoMedio + modCon));
+    document.getElementById('display-hp-max').innerText = hpMax;
+    document.getElementById('display-hp-atual').innerText = hpMax;
 }
 
 function calcularSalvaguardas(classeEscolhida) {
     const classe = bancoDnD.classes[classeEscolhida];
     const proficienciasDaClasse = classe && classe.proficienciasSalvaguarda ? classe.proficienciasSalvaguarda : []; 
-    const bonusProficiencia = 2; 
+    const bonusProficiencia = obterBonusProficiencia(); 
     const atributosIds = ['for', 'des', 'con', 'int', 'sab', 'car'];
 
     atributosIds.forEach(function(sigla) {
@@ -154,7 +168,7 @@ function calcularSalvaguardas(classeEscolhida) {
 }
 
 function calcularTodasPericias() {
-    const bonusProficiencia = 2; 
+    const bonusProficiencia = obterBonusProficiencia(); 
     for (let nomePericia in bancoDnD.pericias) {
         let atributoBase = bancoDnD.pericias[nomePericia];
         let modificadorAtributo = parseInt(document.getElementById('mod-' + atributoBase).innerText);
@@ -406,6 +420,9 @@ function salvarEstado() {
         pericias[nome] = Boolean(document.getElementById('prof-' + nome)?.checked);
     });
     localStorage.setItem(CHAVE_FICHA, JSON.stringify({
+        nome: document.getElementById('nome-personagem')?.value || personagemAtual.nome,
+        nivel: validarNivel(),
+        subraca: document.getElementById('select-subraca')?.value || personagemAtual.subraca,
         raca: document.getElementById('select-raca')?.value || personagemAtual.raca,
         classe: document.getElementById('select-classe')?.value || personagemAtual.classe,
         atributos,
@@ -425,7 +442,11 @@ function restaurarEstado() {
         return;
     }
     if (!estado) return;
+    document.getElementById('nome-personagem').value = estado.nome || '';
+    document.getElementById('nivel-personagem').value = estado.nivel || 1;
     document.getElementById('select-raca').value = estado.raca || '';
+    carregarSubracas();
+    document.getElementById('select-subraca').value = estado.subraca || '';
     document.getElementById('select-classe').value = estado.classe || '';
     Object.entries(estado.atributos || {}).forEach(([attr, valor]) => {
         const campo = document.getElementById('attr-' + attr);
@@ -437,4 +458,54 @@ function restaurarEstado() {
         if (campo) campo.checked = Boolean(marcado);
     });
     if (estado.fichaGerada && estado.raca && estado.classe) iniciarPersonagem(true);
+}
+
+
+function mostrarEtapa(numero) {
+    document.querySelectorAll('.etapa-criacao').forEach(etapa => etapa.classList.toggle('ativa', Number(etapa.dataset.etapa) === numero));
+    document.querySelectorAll('.passo-indicador').forEach(passo => passo.classList.toggle('ativo', Number(passo.dataset.passo) <= numero));
+}
+
+function proximaEtapa(numero) {
+    if (numero === 2 && !document.getElementById('nome-personagem').value.trim()) {
+        alert('Digite o nome do personagem.');
+        return;
+    }
+    if (numero === 3 && (!document.getElementById('select-raca').value || !document.getElementById('select-classe').value)) {
+        alert('Selecione a raça e a classe.');
+        return;
+    }
+    mostrarEtapa(numero);
+    salvarEstado();
+}
+
+function carregarSubracas() {
+    const racaNome = document.getElementById('select-raca').value;
+    const select = document.getElementById('select-subraca');
+    const subracas = bancoDnD.racas[racaNome]?.subracas || {};
+    select.innerHTML = '<option value="">-- Sem sub-raça --</option>';
+    Object.keys(subracas).forEach(nome => {
+        const opcao = document.createElement('option');
+        opcao.value = nome;
+        opcao.textContent = nome;
+        select.appendChild(opcao);
+    });
+    select.disabled = Object.keys(subracas).length === 0;
+}
+
+function validarNivel() {
+    const campo = document.getElementById('nivel-personagem');
+    const nivel = Math.min(20, Math.max(1, parseInt(campo?.value, 10) || 1));
+    if (campo) campo.value = nivel;
+    return nivel;
+}
+
+function obterBonusProficiencia() {
+    return 2 + Math.floor((validarNivel() - 1) / 4);
+}
+
+function editarPersonagem() {
+    document.getElementById('ficha-completa').style.display = 'none';
+    document.getElementById('criacao-rapida').style.display = 'block';
+    mostrarEtapa(1);
 }
