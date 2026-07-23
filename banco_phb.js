@@ -1,343 +1,865 @@
 // banco_phb.js
 
 const bancoDnD = {
-    racas: {
-        "Anão": {
-            descricao: "Anões são audazes, resistentes e conhecidos como hábeis guerreiros e mineradores. Têm longa memória e longo rancor.",
-            bonusAtributos: { constituicao: 2 },
-            deslocamento: 7.5,
-            caracteristicas: ["Visão no Escuro", "Resiliência Anã", "Treinamento Anão em Combate", "Proficiência com Ferramentas", "Especialização em Rochas"],
-            descricoesCaracteristicas: {
-                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
-                "Resiliência Anã": "Concede vantagem em testes de resistência contra veneno e resistência a dano de veneno.",
-                "Treinamento Anão em Combate": "Concede proficiência com machados de batalha, machadinhas, martelos leves e martelos de guerra.",
-                "Proficiência com Ferramentas": "Concede proficiência, à escolha, com ferramentas de ferreiro, suprimentos de cervejeiro ou ferramentas de pedreiro.",
-                "Especialização em Rochas": "Em testes de Inteligência (História) relacionados a trabalhos em pedra, considera o personagem proficiente e aplica o dobro do bônus de proficiência."
-            },
-            subracas: {
-                "Anão da Colina": { 
-                    bonusAtributos: { sabedoria: 1 },
-                    caracteristicas: ["Tenacidade Anã"],
-                    descricoesCaracteristicas: {
-                        "Tenacidade Anã": "Aumenta o máximo de pontos de vida em 1 e concede mais 1 ponto de vida sempre que o personagem sobe de nível."
-                    }
-                },
-                "Anão da Montanha": { 
-                    bonusAtributos: { forca: 2 },
-                    caracteristicas: ["Treinamento Anão com Armaduras"],
-                    descricoesCaracteristicas: {
-                        "Treinamento Anão com Armaduras": "Concede proficiência com armaduras leves e médias."
-                    }
+racas: {
+    "Anão": {
+        descricao: "Anões são audazes, resistentes e conhecidos como hábeis guerreiros e mineradores. Têm longa memória e longo rancor.",
+        bonusAtributos: { constituicao: 2 },
+        deslocamento: 7.5,
+        caracteristicas: ["Visão no Escuro", "Resiliência Anã", "Treinamento Anão em Combate", "Proficiência com Ferramentas", "Especialização em Rochas"],
+
+        idiomas: ["Comum", "Anão"],
+        idiomasEscolha: 0,
+        proficienciasArmas: ["Machado de Batalha", "Machadinha", "Martelo Leve", "Martelo de Guerra"],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [
+            "Ferramentas de ferreiro",
+            "Suprimentos de cervejeiro",
+            "Ferramentas de pedreiro"
+        ],
+        ferramentasEscolha: 1,
+
+        descricoesCaracteristicas: {
+            "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+            "Resiliência Anã": "Concede vantagem em testes de resistência contra veneno e resistência a dano de veneno.",
+            "Treinamento Anão em Combate": "Concede proficiência com machados de batalha, machadinhas, martelos leves e martelos de guerra.",
+            "Proficiência com Ferramentas": "Concede proficiência, à escolha, com ferramentas de ferreiro, suprimentos de cervejeiro ou ferramentas de pedreiro.",
+            "Especialização em Rochas": "Em testes de Inteligência (História) relacionados a trabalhos em pedra, considera o personagem proficiente e aplica o dobro do bônus de proficiência."
+        },
+
+        subracas: {
+            "Anão da Colina": {
+                bonusAtributos: { sabedoria: 1 },
+                caracteristicas: ["Tenacidade Anã"],
+
+                idiomas: [],
+                idiomasEscolha: 0,
+                proficienciasArmas: [],
+                proficienciasArmaduras: [],
+                proficienciasFerramentas: [],
+                ferramentasEscolha: 0,
+
+                descricoesCaracteristicas: {
+                    "Tenacidade Anã": "Aumenta o máximo de pontos de vida em 1 e concede mais 1 ponto de vida sempre que o personagem sobe de nível."
                 }
-            }
-        },
-        "Elfo": {
-            descricao: "Elfos são um povo mágico de graça sobrenatural, vivendo no mundo sem pertencer inteiramente a ele.",
-            bonusAtributos: { destreza: 2 },
-            deslocamento: 9,
-            caracteristicas: ["Visão no Escuro", "Sentidos Aguçados", "Ancestral Feérico", "Transe"],
-            descricoesCaracteristicas: {
-                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
-                "Sentidos Aguçados": "Concede proficiência na perícia Percepção.",
-                "Ancestral Feérico": "Concede vantagem em testes de resistência contra ser enfeitiçado e impede que magias coloquem o personagem para dormir.",
-                "Transe": "Permite substituir o sono por 4 horas de meditação semiconsciente, recebendo o benefício equivalente ao descanso de 8 horas de um humano."
             },
-            subracas: {
-                "Alto Elfo": { 
-                    bonusAtributos: { inteligencia: 1 },
-                    caracteristicas: ["Treinamento Élfico com Armas", "Truque", "Idioma Adicional"],
-                    descricoesCaracteristicas: {
-                        "Treinamento Élfico com Armas": "Concede proficiência com espadas longas, espadas curtas, arcos longos e arcos curtos.",
-                        "Truque": "Permite aprender um truque da lista de magias do mago, usando Inteligência como atributo de conjuração.",
-                        "Idioma Adicional": "Permite falar, ler e escrever um idioma adicional à escolha."
-                    }
-                },
-                "Elfo da Floresta": { 
-                    bonusAtributos: { sabedoria: 1 },
-                    deslocamento: 10.5,
-                    caracteristicas: ["Treinamento Élfico com Armas", "Pés Ligeiros", "Máscara da Natureza"],
-                    descricoesCaracteristicas: {
-                        "Treinamento Élfico com Armas": "Concede proficiência com espadas longas, espadas curtas, arcos longos e arcos curtos.",
-                        "Pés Ligeiros": "Aumenta o deslocamento base de caminhada para 10,5 metros.",
-                        "Máscara da Natureza": "Permite tentar se esconder quando estiver levemente obscurecido por folhagem, chuva forte, neve, névoa ou outro fenômeno natural."
-                    }
-                },
-                "Drow (Elfo Negro)": {
-                    bonusAtributos: { carisma: 1 },
-                    caracteristicas: ["Visão no Escuro Superior", "Sensibilidade à Luz Solar", "Magia Drow", "Treinamento Drow com Armas"],
-                    descricoesCaracteristicas: {
-                        "Visão no Escuro Superior": "Amplia o alcance da visão no escuro para 36 metros.",
-                        "Sensibilidade à Luz Solar": "Impõe desvantagem em jogadas de ataque e em testes de Sabedoria (Percepção) baseados na visão quando o personagem, o alvo ou o que está sendo observado estiver sob luz solar direta.",
-                        "Magia Drow": "Concede o truque Globos de Luz; no 3º nível, Fogo das Fadas uma vez por descanso longo; e, no 5º nível, Escuridão uma vez por descanso longo. Carisma é o atributo de conjuração.",
-                        "Treinamento Drow com Armas": "Concede proficiência com rapieiras, espadas curtas e bestas de mão."
-                    }
+
+            "Anão da Montanha": {
+                bonusAtributos: { forca: 2 },
+                caracteristicas: ["Treinamento Anão com Armaduras"],
+
+                idiomas: [],
+                idiomasEscolha: 0,
+                proficienciasArmas: [],
+                proficienciasArmaduras: ["Armaduras leves", "Armaduras médias"],
+                proficienciasFerramentas: [],
+                ferramentasEscolha: 0,
+
+                descricoesCaracteristicas: {
+                    "Treinamento Anão com Armaduras": "Concede proficiência com armaduras leves e médias."
                 }
-            }
-        },
-        "Halfling": {
-            descricao: "Os halflings sobrevivem em um mundo cheio de criaturas maiores evitando serem notados.",
-            bonusAtributos: { destreza: 2 },
-            deslocamento: 7.5,
-            caracteristicas: ["Sortudo", "Bravura", "Agilidade Halfling"],
-            descricoesCaracteristicas: {
-                "Sortudo": "Quando obtém 1 natural em uma jogada de ataque, teste de habilidade ou teste de resistência, pode rolar novamente e deve usar o novo resultado.",
-                "Bravura": "Concede vantagem em testes de resistência contra ficar amedrontado.",
-                "Agilidade Halfling": "Permite atravessar o espaço ocupado por uma criatura de tamanho maior que o personagem."
-            },
-            subracas: {
-                "Pés-Leves": { 
-                    bonusAtributos: { carisma: 1 },
-                    caracteristicas: ["Furtividade Natural"],
-                    descricoesCaracteristicas: {
-                        "Furtividade Natural": "Permite tentar se esconder usando como cobertura uma criatura que seja pelo menos um tamanho maior."
-                    }
-                },
-                "Robusto": { 
-                    bonusAtributos: { constituicao: 1 },
-                    caracteristicas: ["Resiliência dos Robustos"],
-                    descricoesCaracteristicas: {
-                        "Resiliência dos Robustos": "Concede vantagem em testes de resistência contra veneno e resistência a dano de veneno."
-                    }
-                }
-            }
-        },
-        "Humano": {
-            descricao: "Os humanos são os mais adaptáveis, flexíveis e ambiciosos entre todas as raças comuns.",
-            bonusAtributos: { forca: 1, destreza: 1, constituicao: 1, inteligencia: 1, sabedoria: 1, carisma: 1 },
-            deslocamento: 9,
-            caracteristicas: ["Idiomas Extras"],
-            descricoesCaracteristicas: {
-                "Idiomas Extras": "Permite falar, ler e escrever Comum e mais um idioma adicional à escolha."
-            }
-        },
-        "Draconato": {
-            descricao: "Descendentes de dragões que andam orgulhosamente pelo mundo.",
-            bonusAtributos: { forca: 2, carisma: 1 },
-            deslocamento: 9,
-            caracteristicas: ["Ancestral Dracônico", "Arma de Sopro", "Resistência a Dano"],
-            descricoesCaracteristicas: {
-                "Ancestral Dracônico": "Define o tipo de dano e o formato da arma de sopro de acordo com a ancestralidade dracônica escolhida.",
-                "Arma de Sopro": "Permite usar uma ação para exalar energia em cone ou linha. As criaturas na área fazem um teste de resistência baseado em Constituição; o dano começa em 2d6, aumenta com o nível e é reduzido à metade em caso de sucesso.",
-                "Resistência a Dano": "Concede resistência ao tipo de dano associado à ancestralidade dracônica."
-            }
-        },
-        "Gnomo": {
-            descricao: "Gnomos regozijam a vida, apreciando cada momento de invento, exploração e brincadeira.",
-            bonusAtributos: { inteligencia: 2 },
-            deslocamento: 7.5,
-            caracteristicas: ["Visão no Escuro", "Esperteza Gnômica"],
-            descricoesCaracteristicas: {
-                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
-                "Esperteza Gnômica": "Concede vantagem em testes de resistência de Inteligência, Sabedoria e Carisma contra magia."
-            },
-            subracas: {
-                "Gnomo da Floresta": {
-                    bonusAtributos: { destreza: 1 },
-                    caracteristicas: ["Ilusionista Nato", "Falar com Bestas Pequenas"],
-                    descricoesCaracteristicas: {
-                        "Ilusionista Nato": "Concede o truque Ilusão Menor, usando Inteligência como atributo de conjuração.",
-                        "Falar com Bestas Pequenas": "Permite comunicar ideias simples a Bestas Pequenas ou menores por meio de sons e gestos."
-                    }
-                },
-                "Gnomo das Rochas": {
-                    bonusAtributos: { constituicao: 1 },
-                    caracteristicas: ["Conhecimento de Artífice", "Engenhoqueiro"],
-                    descricoesCaracteristicas: {
-                        "Conhecimento de Artífice": "Aplica o dobro do bônus de proficiência em testes de Inteligência (História) relacionados a itens mágicos, objetos alquímicos ou mecanismos tecnológicos.",
-                        "Engenhoqueiro": "Concede proficiência com ferramentas de engenhoqueiro e permite gastar 1 hora e 10 po para criar um mecanismo Miúdo temporário, como brinquedo, isqueiro ou caixa de música."
-                    }
-                }
-            }
-        },
-        "Meio-Elfo": {
-            descricao: "Vagando entre dois mundos mas não pertencendo inteiramente a nenhum.",
-            bonusAtributos: { carisma: 2 }, 
-            deslocamento: 9,
-            caracteristicas: ["Visão no Escuro", "Ancestral Feérico", "Versatilidade em Perícia"],
-            descricoesCaracteristicas: {
-                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
-                "Ancestral Feérico": "Concede vantagem em testes de resistência contra ser enfeitiçado e impede que magias coloquem o personagem para dormir.",
-                "Versatilidade em Perícia": "Concede proficiência em duas perícias à escolha."
-            }
-        },
-        "Meio-Orc": {
-            descricao: "Marcados por sua herança orc, ostentam cicatrizes de batalha com orgulho.",
-            bonusAtributos: { forca: 2, constituicao: 1 },
-            deslocamento: 9,
-            caracteristicas: ["Visão no Escuro", "Ameaçador", "Resistência Implacável", "Ataques Selvagens"],
-            descricoesCaracteristicas: {
-                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
-                "Ameaçador": "Concede proficiência na perícia Intimidação.",
-                "Resistência Implacável": "Uma vez por descanso longo, quando seria reduzido a 0 pontos de vida sem morrer instantaneamente, o personagem fica com 1 ponto de vida.",
-                "Ataques Selvagens": "Ao obter um acerto crítico com uma arma corpo a corpo, adiciona um dado de dano da arma ao dano extra do crítico."
-            }
-        },
-        "Tiefling": {
-            descricao: "Carregam a essência de Asmodeus infundida em sua linhagem.",
-            bonusAtributos: { carisma: 2, inteligencia: 1 },
-            deslocamento: 9,
-            caracteristicas: ["Visão no Escuro", "Resistência Infernal", "Legado Infernal"],
-            descricoesCaracteristicas: {
-                "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
-                "Resistência Infernal": "Concede resistência a dano de fogo.",
-                "Legado Infernal": "Concede o truque Taumaturgia; no 3º nível, Repreensão Infernal como magia de 2º nível uma vez por descanso longo; e, no 5º nível, Escuridão uma vez por descanso longo. Carisma é o atributo de conjuração."
             }
         }
     },
-    classes: {
-        "Bárbaro": { 
-            dadoVida: 12,
-            proficienciasSalvaguarda: ["forca", "constituicao"],
-            proficienciasArmasArmaduras: ["Armaduras leves", "Armaduras médias", "Escudos", "Armas simples", "Armas marciais"],
-            subclasses: ["Caminho do Furioso", "Caminho do Guerreiro Totêmico"]
+
+    "Elfo": {
+        descricao: "Elfos são um povo mágico de graça sobrenatural, vivendo no mundo sem pertencer inteiramente a ele.",
+        bonusAtributos: { destreza: 2 },
+        deslocamento: 9,
+        caracteristicas: ["Visão no Escuro", "Sentidos Aguçados", "Ancestral Feérico", "Transe"],
+
+        idiomas: ["Comum", "Élfico"],
+        idiomasEscolha: 0,
+        proficienciasArmas: [],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        descricoesCaracteristicas: {
+            "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+            "Sentidos Aguçados": "Concede proficiência na perícia Percepção.",
+            "Ancestral Feérico": "Concede vantagem em testes de resistência contra ser enfeitiçado e impede que magias coloquem o personagem para dormir.",
+            "Transe": "Permite substituir o sono por 4 horas de meditação semiconsciente, recebendo o benefício equivalente ao descanso de 8 horas de um humano."
         },
-        "Bardo": { 
-            dadoVida: 8,
-            proficienciasSalvaguarda: ["destreza", "carisma"],
-            proficienciasArmasArmaduras: ["Armaduras leves", "Armas simples", "Bestas de mão", "Espadas longas", "Rapieiras", "Espadas curtas"],
-            subclasses: ["Colégio do Conhecimento", "Colégio da Bravura"]
-        },
-        "Bruxo": { 
-            dadoVida: 8,
-            proficienciasSalvaguarda: ["sabedoria", "carisma"],
-            proficienciasArmasArmaduras: ["Armaduras leves", "Armas simples"],
-            subclasses: ["A Arquifada", "O Corruptor", "O Grande Antigo"]
-        },
-        "Clérigo": { 
-            dadoVida: 8,
-            proficienciasSalvaguarda: ["sabedoria", "carisma"],
-            proficienciasArmasArmaduras: ["Armaduras leves", "Armaduras médias", "Escudos", "Armas simples"],
-            subclasses: ["Domínio do Conhecimento", "Domínio da Enganação", "Domínio da Guerra", "Domínio da Luz", "Domínio da Natureza", "Domínio da Tempestade", "Domínio da Vida"]
-        },
-        "Druida": { 
-            dadoVida: 8,
-            proficienciasSalvaguarda: ["inteligencia", "sabedoria"],
-            proficienciasArmasArmaduras: ["Armaduras leves (não metálicas)", "Armaduras médias (não metálicas)", "Escudos (não metálicos)", "Clavas", "Adagas", "Dardos", "Azagaias", "Maças", "Bordões", "Cimitarras", "Foices", "Fundas", "Lanças"],
-            subclasses: ["Círculo da Terra", "Círculo da Lua"]
-        },
-        "Feiticeiro": { 
-            dadoVida: 6,
-            proficienciasSalvaguarda: ["constituicao", "carisma"],
-            proficienciasArmasArmaduras: ["Adagas", "Dardos", "Fundas", "Bordões", "Bestas leves"],
-            subclasses: ["Linhagem Dracônica", "Magia Selvagem"]
-        },
-        "Guerreiro": { 
-            dadoVida: 10,
-            proficienciasSalvaguarda: ["forca", "constituicao"],
-            proficienciasArmasArmaduras: ["Todas as armaduras", "Escudos", "Armas simples", "Armas marciais"],
-            subclasses: ["Campeão", "Cavaleiro Arcano", "Mestre de Batalha"]
-        },
-        "Ladino": { 
-            dadoVida: 8,
-            proficienciasSalvaguarda: ["destreza", "inteligencia"],
-            proficienciasArmasArmaduras: ["Armaduras leves", "Armas simples", "Bestas de mão", "Espadas longas", "Rapieiras", "Espadas curtas"],
-            subclasses: ["Assassino", "Ladrão", "Trapaceiro Arcano"]
-        },
-        "Mago": { 
-            dadoVida: 6,
-            proficienciasSalvaguarda: ["inteligencia", "sabedoria"],
-            proficienciasArmasArmaduras: ["Adagas", "Dardos", "Fundas", "Bastões", "Bestas leves"],
-            subclasses: ["Escola de Abjuração", "Escola de Adivinhação", "Escola de Conjuração", "Escola de Encantamento", "Escola de Evocação", "Escola de Ilusão", "Escola de Necromancia", "Escola de Transmutação"]
-        },
-        "Monge": { 
-            dadoVida: 8,
-            proficienciasSalvaguarda: ["forca", "destreza"],
-            proficienciasArmasArmaduras: ["Armas simples", "Espadas curtas"],
-            subclasses: ["Caminho da Mão Aberta", "Caminho da Sombra", "Caminho dos Quatro Elementos"]
-        },
-        "Paladino": { 
-            dadoVida: 10,
-            proficienciasSalvaguarda: ["sabedoria", "carisma"],
-            proficienciasArmasArmaduras: ["Todas as armaduras", "Escudos", "Armas simples", "Armas marciais"],
-            subclasses: ["Juramento de Devoção", "Juramento dos Anciões", "Juramento de Vingança"]
-        },
-        "Patrulheiro": { 
-            dadoVida: 10,
-            proficienciasSalvaguarda: ["forca", "destreza"],
-            proficienciasArmasArmaduras: ["Armaduras leves", "Armaduras médias", "Escudos", "Armas simples", "Armas marciais"],
-            subclasses: ["Caçador", "Mestre das Feras"]
+
+        subracas: {
+            "Alto Elfo": {
+                bonusAtributos: { inteligencia: 1 },
+                caracteristicas: ["Treinamento Élfico com Armas", "Truque", "Idioma Adicional"],
+
+                idiomas: [],
+                idiomasEscolha: 1,
+                proficienciasArmas: ["Espada Longa", "Espada Curta", "Arco Longo", "Arco Curto"],
+                proficienciasArmaduras: [],
+                proficienciasFerramentas: [],
+                ferramentasEscolha: 0,
+
+                descricoesCaracteristicas: {
+                    "Treinamento Élfico com Armas": "Concede proficiência com espadas longas, espadas curtas, arcos longos e arcos curtos.",
+                    "Truque": "Permite aprender um truque da lista de magias do mago, usando Inteligência como atributo de conjuração.",
+                    "Idioma Adicional": "Permite falar, ler e escrever um idioma adicional à escolha."
+                }
+            },
+
+            "Elfo da Floresta": {
+                bonusAtributos: { sabedoria: 1 },
+                deslocamento: 10.5,
+                caracteristicas: ["Treinamento Élfico com Armas", "Pés Ligeiros", "Máscara da Natureza"],
+
+                idiomas: [],
+                idiomasEscolha: 0,
+                proficienciasArmas: ["Espada Longa", "Espada Curta", "Arco Longo", "Arco Curto"],
+                proficienciasArmaduras: [],
+                proficienciasFerramentas: [],
+                ferramentasEscolha: 0,
+
+                descricoesCaracteristicas: {
+                    "Treinamento Élfico com Armas": "Concede proficiência com espadas longas, espadas curtas, arcos longos e arcos curtos.",
+                    "Pés Ligeiros": "Aumenta o deslocamento base de caminhada para 10,5 metros.",
+                    "Máscara da Natureza": "Permite tentar se esconder quando estiver levemente obscurecido por folhagem, chuva forte, neve, névoa ou outro fenômeno natural."
+                }
+            },
+
+            "Drow (Elfo Negro)": {
+                bonusAtributos: { carisma: 1 },
+                caracteristicas: ["Visão no Escuro Superior", "Sensibilidade à Luz Solar", "Magia Drow", "Treinamento Drow com Armas"],
+
+                idiomas: [],
+                idiomasEscolha: 0,
+                proficienciasArmas: ["Rapieira", "Espada Curta", "Besta de Mão"],
+                proficienciasArmaduras: [],
+                proficienciasFerramentas: [],
+                ferramentasEscolha: 0,
+
+                descricoesCaracteristicas: {
+                    "Visão no Escuro Superior": "Amplia o alcance da visão no escuro para 36 metros.",
+                    "Sensibilidade à Luz Solar": "Impõe desvantagem em jogadas de ataque e em testes de Sabedoria (Percepção) baseados na visão quando o personagem, o alvo ou o que está sendo observado estiver sob luz solar direta.",
+                    "Magia Drow": "Concede o truque Globos de Luz; no 3º nível, Fogo das Fadas uma vez por descanso longo; e, no 5º nível, Escuridão uma vez por descanso longo. Carisma é o atributo de conjuração.",
+                    "Treinamento Drow com Armas": "Concede proficiência com rapieiras, espadas curtas e bestas de mão."
+                }
+            }
         }
     },
-    antecedentes: {
-        "Acólito": {
-            pericias: ["Intuição", "Religião"],
-            ferramentas: [],
-            habilidade: "Abrigo dos Fiéis",
-            descricaoHabilidade: "Concede respeito entre os fiéis, acesso a cerimônias, cura e caridade em templos da mesma fé, além de suporte modesto para você e possível auxílio de um templo aliado."
+
+    "Halfling": {
+        descricao: "Os halflings sobrevivem em um mundo cheio de criaturas maiores evitando serem notados.",
+        bonusAtributos: { destreza: 2 },
+        deslocamento: 7.5,
+        caracteristicas: ["Sortudo", "Bravura", "Agilidade Halfling"],
+
+        idiomas: ["Comum", "Halfling"],
+        idiomasEscolha: 0,
+        proficienciasArmas: [],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        descricoesCaracteristicas: {
+            "Sortudo": "Quando obtém 1 natural em uma jogada de ataque, teste de habilidade ou teste de resistência, pode rolar novamente e deve usar o novo resultado.",
+            "Bravura": "Concede vantagem em testes de resistência contra ficar amedrontado.",
+            "Agilidade Halfling": "Permite atravessar o espaço ocupado por uma criatura de tamanho maior que o personagem."
         },
-        "Artisao da Guilda": {
-            pericias: ["Persuasão", "Intuição"],
-            ferramentas: ["Um tipo de ferramenta de artesão"],
-            habilidade: "Associação de Guilda",
-            descricaoHabilidade: "A guilda pode fornecer hospedagem, alimentação, contatos profissionais e apoio político, desde que você mantenha suas contribuições em dia."
-        },
-        "Artista": {
-            pericias: ["Acrobacia", "Atuação"],
-            ferramentas: ["Kit de disfarce", "Um tipo de instrumento musical"],
-            habilidade: "Por Conta da Casa",
-            descricaoHabilidade: "Você encontra locais para se apresentar e recebe hospedagem e comida em troca de apresentações, tornando-se conhecido e bem recebido localmente."
-        },
-        "Charlatão": {
-            pericias: ["Enganação", "Prestidigitação"],
-            ferramentas: ["Kit de disfarce", "Kit de falsificação"],
-            habilidade: "Identidade Falsa",
-            descricaoHabilidade: "Você mantém uma identidade alternativa com documentos e disfarces, e pode falsificar documentos cujo modelo ou caligrafia já tenha visto."
-        },
-        "Criminoso": {
-            pericias: ["Furtividade", "Enganação"],
-            ferramentas: ["Jogo (um tipo)", "Ferramentas de ladrão"],
-            habilidade: "Contato Criminal",
-            descricaoHabilidade: "Você possui um contato confiável no submundo e conhece intermediários capazes de transmitir mensagens mesmo a grandes distâncias."
-        },
-        "Eremita": {
-            pericias: ["Medicina", "Religião"],
-            ferramentas: ["Kit de herbalismo"],
-            habilidade: "Descoberta",
-            descricaoHabilidade: "Seu isolamento revelou uma informação, verdade ou relíquia única e importante; os detalhes e efeitos são definidos com o Mestre."
-        },
-        "Herói do Povo": {
-            pericias: ["Adestrar Animais", "Sobrevivência"],
-            ferramentas: ["Ferramentas de artesão (um tipo)", "Veículos (terrestres)"],
-            habilidade: "Hospitalidade Rústica",
-            descricaoHabilidade: "Camponeses e pessoas comuns oferecem abrigo, descanso e esconderijo, desde que ajudá-lo não coloque suas vidas em risco."
-        },
-        "Nobre": {
-            pericias: ["História", "Persuasão"],
-            ferramentas: ["Jogo (um tipo)"],
-            habilidade: "Posição de Privilégio",
-            descricaoHabilidade: "Sua origem nobre facilita o acesso à alta sociedade, acomodações e audiências com nobres locais."
-        },
-        "Orfao": {
-            pericias: ["Furtividade", "Prestidigitação"],
-            ferramentas: ["Kit de disfarce", "Ferramentas de ladrão"],
-            habilidade: "Urbano",
-            descricaoHabilidade: "Fora de combate, você guia o grupo por atalhos urbanos, viajando entre dois pontos da cidade duas vezes mais rápido."
-        },
-        "Sábio": {
-            pericias: ["Arcanismo", "História"],
-            ferramentas: [".(Dois idiomas à sua escolha)"],
-            habilidade: "Pesquisador",
-            descricaoHabilidade: "Quando não sabe uma informação, você geralmente sabe onde ou com quem procurá-la, salvo quando o conhecimento é inacessível ou inexistente."
-        },
-        "Marinheiro": {
-            pericias: ["Atletismo", "Percepção"],
-            ferramentas: ["Ferramentas de navegador", "Veículos (aquáticos)"],
-            habilidade: "Passagem Marítima",
-            descricaoHabilidade: "Você consegue passagem gratuita para o grupo em navios aliados, embora a rota e o prazo dependam do Mestre; em troca, o grupo ajuda a tripulação."
-        },
-        "Soldado": {
-            pericias: ["Atletismo", "Intimidação"],
-            ferramentas: ["Jogo (um tipo)", "Veículos (terrestres)"],
-            habilidade: "Patente Militar",
-            descricaoHabilidade: "Sua patente concede respeito entre soldados, influência sobre subordinados, empréstimo temporário de equipamento simples ou cavalos e acesso a instalações militares aliadas."
-        },
-        "Forasteiro": {
-            pericias: ["Atletismo", "Sobrevivência"],
-            ferramentas: ["Instrumento musical (um tipo)"],
-            habilidade: "Andarilho",
-            descricaoHabilidade: "Você memoriza mapas e geografia e encontra comida e água para si e até cinco outras pessoas por dia, se o ambiente oferecer recursos."
+
+        subracas: {
+            "Pés-Leves": {
+                bonusAtributos: { carisma: 1 },
+                caracteristicas: ["Furtividade Natural"],
+
+                idiomas: [],
+                idiomasEscolha: 0,
+                proficienciasArmas: [],
+                proficienciasArmaduras: [],
+                proficienciasFerramentas: [],
+                ferramentasEscolha: 0,
+
+                descricoesCaracteristicas: {
+                    "Furtividade Natural": "Permite tentar se esconder usando como cobertura uma criatura que seja pelo menos um tamanho maior."
+                }
+            },
+
+            "Robusto": {
+                bonusAtributos: { constituicao: 1 },
+                caracteristicas: ["Resiliência dos Robustos"],
+
+                idiomas: [],
+                idiomasEscolha: 0,
+                proficienciasArmas: [],
+                proficienciasArmaduras: [],
+                proficienciasFerramentas: [],
+                ferramentasEscolha: 0,
+
+                descricoesCaracteristicas: {
+                    "Resiliência dos Robustos": "Concede vantagem em testes de resistência contra veneno e resistência a dano de veneno."
+                }
+            }
         }
     },
+
+    "Humano": {
+        descricao: "Os humanos são os mais adaptáveis, flexíveis e ambiciosos entre todas as raças comuns.",
+        bonusAtributos: {
+            forca: 1,
+            destreza: 1,
+            constituicao: 1,
+            inteligencia: 1,
+            sabedoria: 1,
+            carisma: 1
+        },
+        deslocamento: 9,
+        caracteristicas: ["Idiomas Extras"],
+
+        idiomas: ["Comum"],
+        idiomasEscolha: 1,
+        proficienciasArmas: [],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        descricoesCaracteristicas: {
+            "Idiomas Extras": "Permite falar, ler e escrever Comum e mais um idioma adicional à escolha."
+        }
+    },
+
+    "Draconato": {
+        descricao: "Descendentes de dragões que andam orgulhosamente pelo mundo.",
+        bonusAtributos: { forca: 2, carisma: 1 },
+        deslocamento: 9,
+        caracteristicas: ["Ancestral Dracônico", "Arma de Sopro", "Resistência a Dano"],
+
+        idiomas: ["Comum", "Dracônico"],
+        idiomasEscolha: 0,
+        proficienciasArmas: [],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        descricoesCaracteristicas: {
+            "Ancestral Dracônico": "Define o tipo de dano e o formato da arma de sopro de acordo com a ancestralidade dracônica escolhida.",
+            "Arma de Sopro": "Permite usar uma ação para exalar energia em cone ou linha. As criaturas na área fazem um teste de resistência baseado em Constituição; o dano começa em 2d6, aumenta com o nível e é reduzido à metade em caso de sucesso.",
+            "Resistência a Dano": "Concede resistência ao tipo de dano associado à ancestralidade dracônica."
+        }
+    },
+
+    "Gnomo": {
+        descricao: "Gnomos regozijam a vida, apreciando cada momento de invento, exploração e brincadeira.",
+        bonusAtributos: { inteligencia: 2 },
+        deslocamento: 7.5,
+        caracteristicas: ["Visão no Escuro", "Esperteza Gnômica"],
+
+        idiomas: ["Comum", "Gnômico"],
+        idiomasEscolha: 0,
+        proficienciasArmas: [],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        descricoesCaracteristicas: {
+            "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+            "Esperteza Gnômica": "Concede vantagem em testes de resistência de Inteligência, Sabedoria e Carisma contra magia."
+        },
+
+        subracas: {
+            "Gnomo da Floresta": {
+                bonusAtributos: { destreza: 1 },
+                caracteristicas: ["Ilusionista Nato", "Falar com Bestas Pequenas"],
+
+                idiomas: [],
+                idiomasEscolha: 0,
+                proficienciasArmas: [],
+                proficienciasArmaduras: [],
+                proficienciasFerramentas: [],
+                ferramentasEscolha: 0,
+
+                descricoesCaracteristicas: {
+                    "Ilusionista Nato": "Concede o truque Ilusão Menor, usando Inteligência como atributo de conjuração.",
+                    "Falar com Bestas Pequenas": "Permite comunicar ideias simples a Bestas Pequenas ou menores por meio de sons e gestos."
+                }
+            },
+
+            "Gnomo das Rochas": {
+                bonusAtributos: { constituicao: 1 },
+                caracteristicas: ["Conhecimento de Artífice", "Engenhoqueiro"],
+
+                idiomas: [],
+                idiomasEscolha: 0,
+                proficienciasArmas: [],
+                proficienciasArmaduras: [],
+                proficienciasFerramentas: ["Ferramentas de engenhoqueiro"],
+                ferramentasEscolha: 0,
+
+                descricoesCaracteristicas: {
+                    "Conhecimento de Artífice": "Aplica o dobro do bônus de proficiência em testes de Inteligência (História) relacionados a itens mágicos, objetos alquímicos ou mecanismos tecnológicos.",
+                    "Engenhoqueiro": "Concede proficiência com ferramentas de engenhoqueiro e permite gastar 1 hora e 10 po para criar um mecanismo Miúdo temporário, como brinquedo, isqueiro ou caixa de música."
+                }
+            }
+        }
+    },
+
+    "Meio-Elfo": {
+        descricao: "Vagando entre dois mundos mas não pertencendo inteiramente a nenhum.",
+        bonusAtributos: { carisma: 2 },
+        deslocamento: 9,
+        caracteristicas: ["Visão no Escuro", "Ancestral Feérico", "Versatilidade em Perícia"],
+
+        idiomas: ["Comum", "Élfico"],
+        idiomasEscolha: 1,
+        proficienciasArmas: [],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        descricoesCaracteristicas: {
+            "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+            "Ancestral Feérico": "Concede vantagem em testes de resistência contra ser enfeitiçado e impede que magias coloquem o personagem para dormir.",
+            "Versatilidade em Perícia": "Concede proficiência em duas perícias à escolha."
+        }
+    },
+
+    "Meio-Orc": {
+        descricao: "Marcados por sua herança orc, ostentam cicatrizes de batalha com orgulho.",
+        bonusAtributos: { forca: 2, constituicao: 1 },
+        deslocamento: 9,
+        caracteristicas: ["Visão no Escuro", "Ameaçador", "Resistência Implacável", "Ataques Selvagens"],
+
+        idiomas: ["Comum", "Orc"],
+        idiomasEscolha: 0,
+        proficienciasArmas: [],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        descricoesCaracteristicas: {
+            "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+            "Ameaçador": "Concede proficiência na perícia Intimidação.",
+            "Resistência Implacável": "Uma vez por descanso longo, quando seria reduzido a 0 pontos de vida sem morrer instantaneamente, o personagem fica com 1 ponto de vida.",
+            "Ataques Selvagens": "Ao obter um acerto crítico com uma arma corpo a corpo, adiciona um dado de dano da arma ao dano extra do crítico."
+        }
+    },
+
+    "Tiefling": {
+        descricao: "Carregam a essência de Asmodeus infundida em sua linhagem.",
+        bonusAtributos: { carisma: 2, inteligencia: 1 },
+        deslocamento: 9,
+        caracteristicas: ["Visão no Escuro", "Resistência Infernal", "Legado Infernal"],
+
+        idiomas: ["Comum", "Infernal"],
+        idiomasEscolha: 0,
+        proficienciasArmas: [],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        descricoesCaracteristicas: {
+            "Visão no Escuro": "Enxerga na penumbra a até 18 metros como se fosse luz plena e, no escuro, como se fosse penumbra, apenas em tons de cinza.",
+            "Resistência Infernal": "Concede resistência a dano de fogo.",
+            "Legado Infernal": "Concede o truque Taumaturgia; no 3º nível, Repreensão Infernal como magia de 2º nível uma vez por descanso longo; e, no 5º nível, Escuridão uma vez por descanso longo. Carisma é o atributo de conjuração."
+        }
+    }
+},
+
+classes: {
+    "Bárbaro": {
+        dadoVida: 12,
+        proficienciasSalvaguarda: ["forca", "constituicao"],
+        proficienciasArmasArmaduras: [
+            "Armaduras leves",
+            "Armaduras médias",
+            "Escudos",
+            "Armas simples",
+            "Armas marciais"
+        ],
+
+        proficienciasArmas: ["Armas simples", "Armas marciais"],
+        proficienciasArmaduras: ["Armaduras leves", "Armaduras médias", "Escudos"],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        subclasses: ["Caminho do Furioso", "Caminho do Guerreiro Totêmico"]
+    },
+
+    "Bardo": {
+        dadoVida: 8,
+        proficienciasSalvaguarda: ["destreza", "carisma"],
+        proficienciasArmasArmaduras: [
+            "Armaduras leves",
+            "Armas simples",
+            "Bestas de mão",
+            "Espadas longas",
+            "Rapieiras",
+            "Espadas curtas"
+        ],
+
+        proficienciasArmas: [
+            "Armas simples",
+            "Besta de Mão",
+            "Espada Longa",
+            "Rapieira",
+            "Espada Curta"
+        ],
+        proficienciasArmaduras: ["Armaduras leves"],
+        proficienciasFerramentas: ["Instrumento musical (qualquer tipo)"],
+        ferramentasEscolha: 3,
+
+        subclasses: ["Colégio do Conhecimento", "Colégio da Bravura"]
+    },
+
+    "Bruxo": {
+        dadoVida: 8,
+        proficienciasSalvaguarda: ["sabedoria", "carisma"],
+        proficienciasArmasArmaduras: ["Armaduras leves", "Armas simples"],
+
+        proficienciasArmas: ["Armas simples"],
+        proficienciasArmaduras: ["Armaduras leves"],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        subclasses: ["A Arquifada", "O Corruptor", "O Grande Antigo"]
+    },
+
+    "Clérigo": {
+        dadoVida: 8,
+        proficienciasSalvaguarda: ["sabedoria", "carisma"],
+        proficienciasArmasArmaduras: [
+            "Armaduras leves",
+            "Armaduras médias",
+            "Escudos",
+            "Armas simples"
+        ],
+
+        proficienciasArmas: ["Armas simples"],
+        proficienciasArmaduras: ["Armaduras leves", "Armaduras médias", "Escudos"],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        subclasses: [
+            "Domínio do Conhecimento",
+            "Domínio da Enganação",
+            "Domínio da Guerra",
+            "Domínio da Luz",
+            "Domínio da Natureza",
+            "Domínio da Tempestade",
+            "Domínio da Vida"
+        ]
+    },
+
+    "Druida": {
+        dadoVida: 8,
+        proficienciasSalvaguarda: ["inteligencia", "sabedoria"],
+        proficienciasArmasArmaduras: [
+            "Armaduras leves (não metálicas)",
+            "Armaduras médias (não metálicas)",
+            "Escudos (não metálicos)",
+            "Clavas",
+            "Adagas",
+            "Dardos",
+            "Azagaias",
+            "Maças",
+            "Bordões",
+            "Cimitarras",
+            "Foices",
+            "Fundas",
+            "Lanças"
+        ],
+
+        proficienciasArmas: [
+            "Porrete",
+            "Adaga",
+            "Dardo",
+            "Azagaia",
+            "Maça",
+            "Bordão",
+            "Cimitarra",
+            "Foice Curta",
+            "Funda",
+            "Lança"
+        ],
+        proficienciasArmaduras: [
+            "Armaduras leves (não metálicas)",
+            "Armaduras médias (não metálicas)",
+            "Escudos (não metálicos)"
+        ],
+        proficienciasFerramentas: ["Kit de herbalismo"],
+        ferramentasEscolha: 0,
+
+        subclasses: ["Círculo da Terra", "Círculo da Lua"]
+    },
+
+    "Feiticeiro": {
+        dadoVida: 6,
+        proficienciasSalvaguarda: ["constituicao", "carisma"],
+        proficienciasArmasArmaduras: [
+            "Adagas",
+            "Dardos",
+            "Fundas",
+            "Bordões",
+            "Bestas leves"
+        ],
+
+        proficienciasArmas: ["Adaga", "Dardo", "Funda", "Bordão", "Besta Leve"],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        subclasses: ["Linhagem Dracônica", "Magia Selvagem"]
+    },
+
+    "Guerreiro": {
+        dadoVida: 10,
+        proficienciasSalvaguarda: ["forca", "constituicao"],
+        proficienciasArmasArmaduras: [
+            "Todas as armaduras",
+            "Escudos",
+            "Armas simples",
+            "Armas marciais"
+        ],
+
+        proficienciasArmas: ["Armas simples", "Armas marciais"],
+        proficienciasArmaduras: ["Todas as armaduras", "Escudos"],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        subclasses: ["Campeão", "Cavaleiro Arcano", "Mestre de Batalha"]
+    },
+
+    "Ladino": {
+        dadoVida: 8,
+        proficienciasSalvaguarda: ["destreza", "inteligencia"],
+        proficienciasArmasArmaduras: [
+            "Armaduras leves",
+            "Armas simples",
+            "Bestas de mão",
+            "Espadas longas",
+            "Rapieiras",
+            "Espadas curtas"
+        ],
+
+        proficienciasArmas: [
+            "Armas simples",
+            "Besta de Mão",
+            "Espada Longa",
+            "Rapieira",
+            "Espada Curta"
+        ],
+        proficienciasArmaduras: ["Armaduras leves"],
+        proficienciasFerramentas: ["Ferramentas de ladrão"],
+        ferramentasEscolha: 0,
+
+        subclasses: ["Assassino", "Ladrão", "Trapaceiro Arcano"]
+    },
+
+    "Mago": {
+        dadoVida: 6,
+        proficienciasSalvaguarda: ["inteligencia", "sabedoria"],
+        proficienciasArmasArmaduras: [
+            "Adagas",
+            "Dardos",
+            "Fundas",
+            "Bastões",
+            "Bestas leves"
+        ],
+
+        proficienciasArmas: ["Adaga", "Dardo", "Funda", "Bordão", "Besta Leve"],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        subclasses: [
+            "Escola de Abjuração",
+            "Escola de Adivinhação",
+            "Escola de Conjuração",
+            "Escola de Encantamento",
+            "Escola de Evocação",
+            "Escola de Ilusão",
+            "Escola de Necromancia",
+            "Escola de Transmutação"
+        ]
+    },
+
+    "Monge": {
+        dadoVida: 8,
+        proficienciasSalvaguarda: ["forca", "destreza"],
+        proficienciasArmasArmaduras: ["Armas simples", "Espadas curtas"],
+
+        proficienciasArmas: ["Armas simples", "Espada Curta"],
+        proficienciasArmaduras: [],
+        proficienciasFerramentas: [
+            "Ferramentas de artesão (qualquer tipo)",
+            "Instrumento musical (qualquer tipo)"
+        ],
+        ferramentasEscolha: 1,
+
+        subclasses: [
+            "Caminho da Mão Aberta",
+            "Caminho da Sombra",
+            "Caminho dos Quatro Elementos"
+        ]
+    },
+
+    "Paladino": {
+        dadoVida: 10,
+        proficienciasSalvaguarda: ["sabedoria", "carisma"],
+        proficienciasArmasArmaduras: [
+            "Todas as armaduras",
+            "Escudos",
+            "Armas simples",
+            "Armas marciais"
+        ],
+
+        proficienciasArmas: ["Armas simples", "Armas marciais"],
+        proficienciasArmaduras: ["Todas as armaduras", "Escudos"],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        subclasses: [
+            "Juramento de Devoção",
+            "Juramento dos Anciões",
+            "Juramento de Vingança"
+        ]
+    },
+
+    "Patrulheiro": {
+        dadoVida: 10,
+        proficienciasSalvaguarda: ["forca", "destreza"],
+        proficienciasArmasArmaduras: [
+            "Armaduras leves",
+            "Armaduras médias",
+            "Escudos",
+            "Armas simples",
+            "Armas marciais"
+        ],
+
+        proficienciasArmas: ["Armas simples", "Armas marciais"],
+        proficienciasArmaduras: ["Armaduras leves", "Armaduras médias", "Escudos"],
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+
+        subclasses: ["Caçador", "Mestre das Feras"]
+    }
+},
+
+antecedentes: {
+    "Acólito": {
+        pericias: ["Intuição", "Religião"],
+        ferramentas: [],
+
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+        idiomas: [],
+        idiomasEscolha: 2,
+
+        habilidade: "Abrigo dos Fiéis",
+        descricaoHabilidade: "Concede respeito entre os fiéis, acesso a cerimônias, cura e caridade em templos da mesma fé, além de suporte modesto para você e possível auxílio de um templo aliado."
+    },
+
+    "Artisao da Guilda": {
+        pericias: ["Persuasão", "Intuição"],
+        ferramentas: ["Um tipo de ferramenta de artesão"],
+
+        proficienciasFerramentas: ["Ferramentas de artesão (qualquer tipo)"],
+        ferramentasEscolha: 1,
+        idiomas: [],
+        idiomasEscolha: 1,
+
+        habilidade: "Associação de Guilda",
+        descricaoHabilidade: "A guilda pode fornecer hospedagem, alimentação, contatos profissionais e apoio político, desde que você mantenha suas contribuições em dia."
+    },
+
+    "Artista": {
+        pericias: ["Acrobacia", "Atuação"],
+        ferramentas: ["Kit de disfarce", "Um tipo de instrumento musical"],
+
+        proficienciasFerramentas: [
+            "Kit de disfarce",
+            "Instrumento musical (qualquer tipo)"
+        ],
+        ferramentasEscolha: 1,
+        idiomas: [],
+        idiomasEscolha: 0,
+
+        habilidade: "Por Conta da Casa",
+        descricaoHabilidade: "Você encontra locais para se apresentar e recebe hospedagem e comida em troca de apresentações, tornando-se conhecido e bem recebido localmente."
+    },
+
+    "Assassino": {
+        pericias: ["Acrobacia", "Furtividade"],
+        ferramentas: ["Kit de disfarce", "Ferramentas de ladrão"],
+
+        proficienciasFerramentas: [
+            "Kit de disfarce",
+            "Ferramentas de ladrão"
+        ],
+        ferramentasEscolha: 0,
+        idiomas: [],
+        idiomasEscolha: 0,
+
+        habilidade: "Contato Criminal",
+        descricaoHabilidade: "Você possui um contato confiável no submundo e conhece intermediários capazes de transmitir mensagens mesmo a grandes distâncias."
+    },
+
+    "Charlatão": {
+        pericias: ["Enganação", "Prestidigitação"],
+        ferramentas: ["Kit de disfarce", "Kit de falsificação"],
+
+        proficienciasFerramentas: [
+            "Kit de disfarce",
+            "Kit de falsificação"
+        ],
+        ferramentasEscolha: 0,
+        idiomas: [],
+        idiomasEscolha: 0,
+
+        habilidade: "Identidade Falsa",
+        descricaoHabilidade: "Você mantém uma identidade alternativa com documentos e disfarces, e pode falsificar documentos cujo modelo ou caligrafia já tenha visto."
+    },
+
+    "Criminoso": {
+        pericias: ["Furtividade", "Enganação"],
+        ferramentas: ["Jogo (um tipo)", "Ferramentas de ladrão"],
+
+        proficienciasFerramentas: [
+            "Ferramentas de ladrão",
+            "Jogo (qualquer tipo)"
+        ],
+        ferramentasEscolha: 1,
+        idiomas: [],
+        idiomasEscolha: 0,
+
+        habilidade: "Contato Criminal",
+        descricaoHabilidade: "Você possui um contato confiável no submundo e conhece intermediários capazes de transmitir mensagens mesmo a grandes distâncias."
+    },
+
+    "Eremita": {
+        pericias: ["Medicina", "Religião"],
+        ferramentas: ["Kit de herbalismo"],
+
+        proficienciasFerramentas: ["Kit de herbalismo"],
+        ferramentasEscolha: 0,
+        idiomas: [],
+        idiomasEscolha: 1,
+
+        habilidade: "Descoberta",
+        descricaoHabilidade: "Seu isolamento revelou uma informação, verdade ou relíquia única e importante; os detalhes e efeitos são definidos com o Mestre."
+    },
+
+    "Forasteiro": {
+        pericias: ["Atletismo", "Sobrevivência"],
+        ferramentas: ["Instrumento musical (um tipo)"],
+
+        proficienciasFerramentas: [
+            "Instrumento musical (qualquer tipo)"
+        ],
+        ferramentasEscolha: 1,
+        idiomas: [],
+        idiomasEscolha: 1,
+
+        habilidade: "Andarilho",
+        descricaoHabilidade: "Você memoriza mapas e geografia e encontra comida e água para si e até cinco outras pessoas por dia, se o ambiente oferecer recursos."
+    },
+
+    "Herói do Povo": {
+        pericias: ["Adestrar Animais", "Sobrevivência"],
+        ferramentas: [
+            "Ferramentas de artesão (um tipo)",
+            "Veículos (terrestres)"
+        ],
+
+        proficienciasFerramentas: [
+            "Veículos (terrestres)",
+            "Ferramentas de artesão (qualquer tipo)"
+        ],
+        ferramentasEscolha: 1,
+        idiomas: [],
+        idiomasEscolha: 0,
+
+        habilidade: "Hospitalidade Rústica",
+        descricaoHabilidade: "Camponeses e pessoas comuns oferecem abrigo, descanso e esconderijo, desde que ajudá-lo não coloque suas vidas em risco."
+    },
+
+    "Marinheiro": {
+        pericias: ["Atletismo", "Percepção"],
+        ferramentas: [
+            "Ferramentas de navegador",
+            "Veículos (aquáticos)"
+        ],
+
+        proficienciasFerramentas: [
+            "Ferramentas de navegador",
+            "Veículos (aquáticos)"
+        ],
+        ferramentasEscolha: 0,
+        idiomas: [],
+        idiomasEscolha: 0,
+
+        habilidade: "Passagem Marítima",
+        descricaoHabilidade: "Você consegue passagem gratuita para o grupo em navios aliados, embora a rota e o prazo dependam do Mestre; em troca, o grupo ajuda a tripulação."
+    },
+
+    "Nobre": {
+        pericias: ["História", "Persuasão"],
+        ferramentas: ["Jogo (um tipo)"],
+
+        proficienciasFerramentas: [
+            "Jogo (qualquer tipo)"
+        ],
+        ferramentasEscolha: 1,
+        idiomas: [],
+        idiomasEscolha: 1,
+
+        habilidade: "Posição de Privilégio",
+        descricaoHabilidade: "Sua origem nobre facilita o acesso à alta sociedade, acomodações e audiências com nobres locais."
+    },
+
+    "Orfao": {
+        pericias: ["Furtividade", "Prestidigitação"],
+        ferramentas: [
+            "Kit de disfarce",
+            "Ferramentas de ladrão"
+        ],
+
+        proficienciasFerramentas: [
+            "Kit de disfarce",
+            "Ferramentas de ladrão"
+        ],
+        ferramentasEscolha: 0,
+        idiomas: [],
+        idiomasEscolha: 0,
+
+        habilidade: "Urbano",
+        descricaoHabilidade: "Fora de combate, você guia o grupo por atalhos urbanos, viajando entre dois pontos da cidade duas vezes mais rápido."
+    },
+
+    "Sábio": {
+        pericias: ["Arcanismo", "História"],
+        ferramentas: [],
+
+        proficienciasFerramentas: [],
+        ferramentasEscolha: 0,
+        idiomas: [],
+        idiomasEscolha: 2,
+
+        habilidade: "Pesquisador",
+        descricaoHabilidade: "Quando não sabe uma informação, você geralmente sabe onde ou com quem procurá-la, salvo quando o conhecimento é inacessível ou inexistente."
+    },
+
+    "Soldado": {
+        pericias: ["Atletismo", "Intimidação"],
+        ferramentas: [
+            "Jogo (um tipo)",
+            "Veículos (terrestres)"
+        ],
+
+        proficienciasFerramentas: [
+            "Veículos (terrestres)",
+            "Jogo (qualquer tipo)"
+        ],
+        ferramentasEscolha: 1,
+        idiomas: [],
+        idiomasEscolha: 0,
+
+        habilidade: "Patente Militar",
+        descricaoHabilidade: "Sua patente concede respeito entre soldados, influência sobre subordinados, empréstimo temporário de equipamento simples ou cavalos e acesso a instalações militares aliadas."
+    }
+},
     pericias: {
         "Acrobacia": "des", "Arcanismo": "int", "Atletismo": "for",
         "Atuação": "car", "Enganação": "car", "Furtividade": "des",
