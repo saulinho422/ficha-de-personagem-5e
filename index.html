@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260723-9">
+    <link rel="stylesheet" href="style.css?v=20260723-10">
 </head>
 <body>
 
@@ -156,8 +156,14 @@
                         <div class="cabecalho-proficiencias-automaticas">
                             <div>
                                 <strong>IDIOMAS E OUTRAS PROFICIÊNCIAS</strong>
-                                <small>Preenchidas automaticamente pela origem do personagem</small>
+                                <small>Automáticas, escolhidas e adicionadas manualmente</small>
                             </div>
+                            <button class="btn-add-proficiencia" type="button" onclick="abrirModalProficiencia('manual')" title="Adicionar idioma ou proficiência" aria-label="Adicionar idioma ou proficiência">+</button>
+                        </div>
+                        <div class="legenda-proficiencias" aria-label="Legenda">
+                            <span class="legenda-automatica">Automática</span>
+                            <span class="legenda-escolhida">Escolhida</span>
+                            <span class="legenda-manual">Manual</span>
                         </div>
                         <div id="lista-proficiencias-automaticas" class="lista-proficiencias-automaticas">
                             <em class="texto-vazio">As informações aparecerão após a criação do personagem.</em>
@@ -314,6 +320,45 @@
         </div>
     </div>
 
+    <!-- MODAL DE IDIOMAS E PROFICIÊNCIAS -->
+    <div id="modal-proficiencia" class="modal-overlay" style="display: none;">
+        <div class="modal-conteudo modal-proficiencia-conteudo">
+            <div class="modal-cabecalho">
+                <div>
+                    <h3 id="titulo-modal-proficiencia">Adicionar proficiência</h3>
+                    <p id="subtitulo-modal-proficiencia">Inclua uma informação personalizada na ficha.</p>
+                </div>
+                <button class="btn-fechar" type="button" onclick="fecharModalProficiencia()">&times;</button>
+            </div>
+            <form id="form-proficiencia" class="form-proficiencia" onsubmit="salvarProficiencia(event)">
+                <input id="proficiencia-id-edicao" type="hidden">
+                <input id="proficiencia-origem" type="hidden" value="manual">
+                <label class="campo-formulario">
+                    <span>Categoria</span>
+                    <select id="proficiencia-tipo" required onchange="atualizarSugestoesProficiencia()">
+                        <option value="idioma">Idioma</option>
+                        <option value="arma">Arma</option>
+                        <option value="armadura">Armadura ou escudo</option>
+                        <option value="ferramenta">Ferramenta, instrumento, jogo ou veículo</option>
+                    </select>
+                </label>
+                <label class="campo-formulario">
+                    <span id="rotulo-valor-proficiencia">Idioma</span>
+                    <input id="proficiencia-valor" type="text" list="sugestoes-proficiencia" maxlength="80" required autocomplete="off" placeholder="Digite ou escolha uma opção">
+                    <datalist id="sugestoes-proficiencia"></datalist>
+                </label>
+                <div class="dica-proficiencia">
+                    <span aria-hidden="true">i</span>
+                    <p>Você pode selecionar uma sugestão ou escrever uma opção personalizada.</p>
+                </div>
+                <div class="acoes-modal">
+                    <button class="btn-secundario" type="button" onclick="fecharModalProficiencia()">Cancelar</button>
+                    <button id="btn-salvar-proficiencia" class="btn-primario btn-inline" type="submit">Adicionar à ficha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL DE EQUIPAMENTOS -->
     <div id="modal-equipamentos" class="modal-overlay" style="display: none;">
         <div class="modal-conteudo modal-equipamentos-conteudo">
@@ -424,7 +469,7 @@
         </div>
     </div>
 
-    <script src="banco_phb.js?v=20260723-9"></script>
-    <script src="app.js?v=20260723-9"></script>
+    <script src="banco_phb.js?v=20260723-10"></script>
+    <script src="app.js?v=20260723-10"></script>
 </body>
 </html>
