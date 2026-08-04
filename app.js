@@ -81,6 +81,7 @@ function selecionarCardTalento(nome) {
         dados.preRequisitos ? 'Possui pré-requisitos cadastrados' : 'Sem pré-requisitos cadastrados';
     document.getElementById('descricao-talento-selecionado').textContent = obterResumoTalento(nome);
     document.getElementById('resumo-talento-selecionado').hidden = false;
+    atualizarBonusAtributoTalento(nome);
 }
 
 function renderizarCardsTalentos(filtro = '') {
@@ -149,6 +150,85 @@ const ATRIBUTOS_PROGRESSAO = {
     for: 'Força', des: 'Destreza', con: 'Constituição',
     int: 'Inteligência', sab: 'Sabedoria', car: 'Carisma'
 };
+
+const BONUS_ATRIBUTOS_TALENTOS = {
+    'Atleta (Athlete)': ['for', 'des'],
+    'Ator (Actor)': ['car'],
+    'Especialista em Briga (Tavern Brawler)': ['for', 'con'],
+    'Mestre de Armas Pesadas (Heavy Armor Master)': ['for'],
+    'Mente Afiada (Keen Mind)': ['int'],
+    'Mestre de Armas (Weapon Master)': ['for', 'des'],
+    'Observador (Observant)': ['int', 'sab'],
+    'Poliglota (Linguist)': ['int'],
+    'Proteção Leve (Lightly Armored)': ['for', 'des'],
+    'Proteção Moderada (Moderately Armored)': ['for', 'des'],
+    'Proteção Pesada (Heavily Armored)': ['for'],
+    'Resiliente (Resilient)': ['for', 'des', 'con', 'int', 'sab', 'car'],
+    'Resistente (Durable)': ['con']
+};
+
+function atualizarBonusAtributoTalento(nome) {
+    const painel = document.getElementById('bonus-atributo-talento');
+    const select = document.getElementById('atributo-bonus-talento');
+    const titulo = document.getElementById('titulo-bonus-talento');
+    const ajuda = document.getElementById('ajuda-bonus-talento');
+    if (!painel || !select || !titulo || !ajuda) return;
+
+    const opcoes = BONUS_ATRIBUTOS_TALENTOS[nome] || [];
+    painel.hidden = opcoes.length === 0;
+    select.innerHTML = '';
+
+    if (!opcoes.length) return;
+
+    opcoes.forEach(sigla => {
+        const opcao = document.createElement('option');
+        const valorAtual = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+        opcao.value = sigla;
+        opcao.textContent = ATRIBUTOS_PROGRESSAO[sigla] + (valorAtual >= 20 ? ' — já está no máximo' : '');
+        opcao.disabled = valorAtual >= 20;
+        select.appendChild(opcao);
+    });
+
+    const primeiraDisponivel = Array.from(select.options).find(opcao => !opcao.disabled);
+    if (primeiraDisponivel) select.value = primeiraDisponivel.value;
+
+    const automatico = opcoes.length === 1;
+    select.hidden = automatico;
+    titulo.textContent = automatico
+        ? '+1 em ' + ATRIBUTOS_PROGRESSAO[opcoes[0]]
+        : 'Escolha o atributo que receberá +1';
+    ajuda.textContent = automatico
+        ? (primeiraDisponivel
+            ? 'Esse bônus será aplicado automaticamente quando você confirmar o talento.'
+            : 'Esse atributo já está no limite máximo de 20.')
+        : (primeiraDisponivel
+            ? 'O bônus faz parte do talento e será aplicado junto com a confirmação.'
+            : 'Todos os atributos permitidos por este talento já estão no limite máximo de 20.');
+}
+
+function obterBonusAtributoTalento(nome) {
+    const opcoes = BONUS_ATRIBUTOS_TALENTOS[nome] || [];
+    if (!opcoes.length) return null;
+    const sigla = opcoes.length === 1
+        ? opcoes[0]
+        : document.getElementById('atributo-bonus-talento')?.value;
+    if (!sigla || !opcoes.includes(sigla)) {
+        mostrarToast('Escolha o atributo que receberá o bônus do talento.', 'aviso');
+        return false;
+    }
+    const atual = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+    if (atual >= 20) {
+        mostrarToast(ATRIBUTOS_PROGRESSAO[sigla] + ' já está no limite máximo de 20.', 'aviso');
+        return false;
+    }
+    return { sigla, quantidade: 1 };
+}
+
+function aplicarBonusAtributoTalento(bonus) {
+    if (!bonus) return;
+    const campo = document.getElementById('attr-' + bonus.sigla);
+    campo.value = (parseInt(campo.value, 10) || 10) + bonus.quantidade;
+}
 
 const CATALOGO_IDIOMAS = [
     'Comum', 'Anão', 'Élfico', 'Gigante', 'Gnômico', 'Goblin', 'Halfling', 'Orc',
@@ -1419,6 +1499,7 @@ function abrirModalProgressao(nivel) {
     document.getElementById('talento-selecionado').value = '';
     document.getElementById('busca-talento').value = '';
     document.getElementById('resumo-talento-selecionado').hidden = true;
+    document.getElementById('bonus-atributo-talento').hidden = true;
     renderizarCardsTalentos();
     selecionarTipoProgressao('atributos');
     atualizarCamposIncremento();
@@ -1508,22 +1589,27 @@ function salvarProgressao(evento) {
         mostrarToast('Este talento já foi escolhido.', 'aviso');
         return;
     }
+    const bonusAtributo = obterBonusAtributoTalento(talento);
+    if (bonusAtributo === false) return;
+    aplicarBonusAtributoTalento(bonusAtributo);
+    const descricaoBonus = bonusAtributo
+        ? ' Bônus aplicado: +' + bonusAtributo.quantidade + ' em ' + ATRIBUTOS_PROGRESSAO[bonusAtributo.sigla] + '.'
+        : '';
     tracosPersonagem.push({
         id: 'talento-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
         nome: talento,
         tipo: 'talento',
-        descricao: obterResumoTalento(talento) + ' Escolhido como melhoria do ' + nivel + 'º nível.' +
+        descricao: obterResumoTalento(talento) + descricaoBonus + ' Escolhido como melhoria do ' + nivel + 'º nível.' +
             (dadosTalento.preRequisitos ? ' Possui pré-requisitos que devem ser conferidos.' : ''),
+        bonusAtributo,
         fonteTalento: 'talentos_phb.js',
         bloqueado: false,
         expandido: false,
         progressaoNivel: nivel
     });
-    progressosResolvidos.push({ nivel, classe, tipo: 'talento', talento });
+    progressosResolvidos.push({ nivel, classe, tipo: 'talento', talento, bonusAtributo });
     fecharModalProgressao();
-    renderizarTracos();
-    renderizarNotificacoesNivel();
-    salvarEstado();
+    iniciarPersonagem(true);
     mostrarToast('Talento adicionado aos traços do personagem.', 'sucesso');
 }
 
