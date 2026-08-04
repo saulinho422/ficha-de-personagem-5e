@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260803-4">
+    <link rel="stylesheet" href="style.css?v=20260803-5">
 </head>
 <body>
 
@@ -337,8 +337,8 @@
                         <label><input type="radio" name="modo-incremento" value="um-um" onchange="atualizarCamposIncremento()"> <span><strong>+1 em duas habilidades</strong><small>Divida os pontos entre dois atributos diferentes.</small></span></label>
                     </div>
                     <div class="grid-incrementos">
-                        <label class="grupo-input"><span>Primeira habilidade</span><select id="incremento-atributo-1" class="input-elegante"></select></label>
-                        <label id="grupo-incremento-atributo-2" class="grupo-input" hidden><span>Segunda habilidade</span><select id="incremento-atributo-2" class="input-elegante"></select></label>
+                        <div class="grupo-input"><span>Primeira habilidade</span><select id="incremento-atributo-1" hidden aria-label="Primeira habilidade"></select><div id="cards-incremento-atributo-1" class="cards-atributos" role="listbox" aria-label="Escolha a primeira habilidade"></div></div>
+                        <div id="grupo-incremento-atributo-2" class="grupo-input" hidden><span>Segunda habilidade</span><select id="incremento-atributo-2" hidden aria-label="Segunda habilidade"></select><div id="cards-incremento-atributo-2" class="cards-atributos" role="listbox" aria-label="Escolha a segunda habilidade"></div></div>
                     </div>
                     <div id="previa-incremento" class="previa-incremento"></div>
                 </div>
@@ -362,11 +362,12 @@
                         <span class="icone-bonus-talento" aria-hidden="true">↑</span>
                         <div class="conteudo-bonus-talento">
                             <strong id="titulo-bonus-talento">Escolha o atributo que receberá +1</strong>
-                            <select id="atributo-bonus-talento" aria-label="Atributo aumentado pelo talento"></select>
+                            <select id="atributo-bonus-talento" hidden aria-label="Atributo aumentado pelo talento"></select>
+                            <div id="cards-atributo-bonus-talento" class="cards-atributos cards-atributos-talento" role="listbox" aria-label="Escolha o atributo aumentado pelo talento"></div>
                             <small id="ajuda-bonus-talento"></small>
                         </div>
                     </div>
-                    <div class="aviso-talento"><span>✦</span><p>Ao confirmar, o talento será adicionado automaticamente em “Traços e Características”, vinculado ao registro original de talentos_phb.js.</p></div>
+                    <div class="aviso-talento"><span>✦</span><p>Ao confirmar, o talento será adicionado automaticamente em “Traços e Características”.</p></div>
                 </div>
 
                 <div class="acoes-modal-traco"><button class="btn-secundario" type="button" onclick="fecharModalProgressao()">Cancelar</button><button class="btn-primario btn-inline" type="submit">Confirmar evolução</button></div>
@@ -562,6 +563,6 @@
 
     <script src="banco_phb.js?v=20260723-10"></script>
     <script src="talentos_phb.js?v=20260803-1"></script>
-    <script src="app.js?v=20260803-6"></script>
+    <script src="app.js?v=20260803-8"></script>
 </body>
 </html>
