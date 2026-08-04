@@ -1811,6 +1811,50 @@ button.chip-pendente:hover {
     font-size: 10.5px;
     line-height: 1.4;
 }
+.bonus-atributo-talento {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 13px;
+    border: 1px solid #e3c36c;
+    border-radius: 9px;
+    background: #fff9e8;
+}
+.icone-bonus-talento {
+    display: grid;
+    place-items: center;
+    flex: 0 0 36px;
+    height: 36px;
+    color: #7a5200;
+    font-weight: 900;
+    font-size: 20px;
+    border-radius: 9px;
+    background: #ffe9a8;
+}
+.conteudo-bonus-talento {
+    display: grid;
+    flex: 1;
+    gap: 6px;
+}
+.conteudo-bonus-talento strong {
+    color: #5c4000;
+    font-size: 11px;
+}
+.conteudo-bonus-talento select {
+    width: 100%;
+    min-height: 38px;
+    padding: 0 10px;
+    color: #333;
+    font: 11px 'Roboto', sans-serif;
+    border: 1px solid #d7b556;
+    border-radius: 7px;
+    background: white;
+}
+.conteudo-bonus-talento small {
+    color: #745f2b;
+    font-size: 9.5px;
+    line-height: 1.35;
+}
 .talentos-vazios {
     grid-column: 1 / -1;
     padding: 30px 15px;
