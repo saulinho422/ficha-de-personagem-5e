@@ -83,10 +83,7 @@ function renderizarCardsTalentos(filtro = '') {
         beneficios.textContent = dados.beneficios ? 'Benefícios cadastrados' : 'Sem benefícios cadastrados';
         metadados.append(requisito, beneficios);
 
-        const fonte = document.createElement('small');
-        fonte.className = 'fonte-card-talento';
-        fonte.textContent = 'Fonte: talentos_phb.js';
-        card.append(topo, titulo, metadados, fonte);
+        card.append(topo, titulo, metadados);
         card.onclick = () => {
             selecionarCardTalento(nome);
             renderizarCardsTalentos(document.getElementById('busca-talento').value);
