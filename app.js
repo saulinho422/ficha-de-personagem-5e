@@ -131,7 +131,7 @@ function renderizarCardsTalentos(filtro = '') {
         metadados.append(requisito);
         const resumo = document.createElement('p');
         resumo.className = 'resumo-card-talento';
-        resumo.textContent = obterResumoTalento(nome);
+        resumo.textContent = dados.beneficios || obterResumoTalento(nome);
 
         card.append(topo, titulo, metadados, resumo);
         card.onclick = () => {
