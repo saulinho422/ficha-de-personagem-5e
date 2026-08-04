@@ -170,13 +170,15 @@ const BONUS_ATRIBUTOS_TALENTOS = {
 function atualizarBonusAtributoTalento(nome) {
     const painel = document.getElementById('bonus-atributo-talento');
     const select = document.getElementById('atributo-bonus-talento');
+    const cards = document.getElementById('cards-atributo-bonus-talento');
     const titulo = document.getElementById('titulo-bonus-talento');
     const ajuda = document.getElementById('ajuda-bonus-talento');
-    if (!painel || !select || !titulo || !ajuda) return;
+    if (!painel || !select || !cards || !titulo || !ajuda) return;
 
     const opcoes = BONUS_ATRIBUTOS_TALENTOS[nome] || [];
     painel.hidden = opcoes.length === 0;
     select.innerHTML = '';
+    cards.innerHTML = '';
 
     if (!opcoes.length) return;
 
@@ -184,7 +186,7 @@ function atualizarBonusAtributoTalento(nome) {
         const opcao = document.createElement('option');
         const valorAtual = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
         opcao.value = sigla;
-        opcao.textContent = ATRIBUTOS_PROGRESSAO[sigla] + (valorAtual >= 20 ? ' — já está no máximo' : '');
+        opcao.textContent = ATRIBUTOS_PROGRESSAO[sigla];
         opcao.disabled = valorAtual >= 20;
         select.appendChild(opcao);
     });
@@ -193,7 +195,6 @@ function atualizarBonusAtributoTalento(nome) {
     if (primeiraDisponivel) select.value = primeiraDisponivel.value;
 
     const automatico = opcoes.length === 1;
-    select.hidden = automatico;
     titulo.textContent = automatico
         ? '+1 em ' + ATRIBUTOS_PROGRESSAO[opcoes[0]]
         : 'Escolha o atributo que receberá +1';
@@ -202,8 +203,30 @@ function atualizarBonusAtributoTalento(nome) {
             ? 'Esse bônus será aplicado automaticamente quando você confirmar o talento.'
             : 'Esse atributo já está no limite máximo de 20.')
         : (primeiraDisponivel
-            ? 'O bônus faz parte do talento e será aplicado junto com a confirmação.'
+            ? 'Selecione um dos cards. O bônus será aplicado quando você confirmar.'
             : 'Todos os atributos permitidos por este talento já estão no limite máximo de 20.');
+
+    cards.hidden = automatico;
+    if (!automatico) renderizarCardsBonusTalento(opcoes);
+}
+
+function renderizarCardsBonusTalento(opcoes) {
+    const select = document.getElementById('atributo-bonus-talento');
+    const cards = document.getElementById('cards-atributo-bonus-talento');
+    if (!select || !cards) return;
+    cards.innerHTML = '';
+    opcoes.forEach(sigla => {
+        const valor = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+        cards.appendChild(criarCardAtributo(
+            sigla,
+            select.value === sigla,
+            valor >= 20,
+            () => {
+                select.value = sigla;
+                renderizarCardsBonusTalento(opcoes);
+            }
+        ));
+    });
 }
 
 function obterBonusAtributoTalento(nome) {
@@ -1480,9 +1503,83 @@ function preencherSelectAtributosProgressao() {
             select.appendChild(opcao);
         });
         if ([...select.options].some(opcao => opcao.value === anterior)) select.value = anterior;
-        select.onchange = atualizarPreviaIncremento;
     });
-    document.getElementById('incremento-atributo-2').selectedIndex = 1;
+    if (!document.getElementById('incremento-atributo-2').value ||
+        document.getElementById('incremento-atributo-2').value === document.getElementById('incremento-atributo-1').value) {
+        document.getElementById('incremento-atributo-2').selectedIndex = 1;
+    }
+    renderizarCardsAtributosProgressao();
+}
+
+function criarCardAtributo(sigla, selecionado, desabilitado, aoSelecionar) {
+    const valor = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'card-atributo' + (selecionado ? ' selecionado' : '');
+    card.disabled = desabilitado;
+    card.dataset.atributo = sigla;
+    card.setAttribute('role', 'option');
+    card.setAttribute('aria-selected', String(selecionado));
+    card.innerHTML = '<strong>' + ATRIBUTOS_PROGRESSAO[sigla] + '</strong><small>Valor atual: ' + valor +
+        (desabilitado ? ' · indisponível' : '') + '</small><span class="marcador-card-atributo">' +
+        (selecionado ? '✓' : '') + '</span>';
+    card.onclick = aoSelecionar;
+    return card;
+}
+
+function renderizarCardsAtributosProgressao() {
+    const modo = document.querySelector('input[name="modo-incremento"]:checked')?.value || 'dois';
+    const primeiro = document.getElementById('incremento-atributo-1');
+    const segundo = document.getElementById('incremento-atributo-2');
+
+    const quantidadePrimeiro = modo === 'dois' ? 2 : 1;
+    const valorPrimeiro = parseInt(document.getElementById('final-' + primeiro.value)?.innerText, 10) || 10;
+    if (valorPrimeiro + quantidadePrimeiro > 20) {
+        const alternativa = Array.from(primeiro.options).find(opcao => {
+            const valor = parseInt(document.getElementById('final-' + opcao.value)?.innerText, 10) || 10;
+            return valor + quantidadePrimeiro <= 20;
+        });
+        if (alternativa) primeiro.value = alternativa.value;
+    }
+
+    if (modo === 'um-um') {
+        const valorSegundo = parseInt(document.getElementById('final-' + segundo.value)?.innerText, 10) || 10;
+        if (primeiro.value === segundo.value || valorSegundo >= 20) {
+            const alternativa = Array.from(segundo.options).find(opcao => {
+                const valor = parseInt(document.getElementById('final-' + opcao.value)?.innerText, 10) || 10;
+                return opcao.value !== primeiro.value && valor < 20;
+            });
+            if (alternativa) segundo.value = alternativa.value;
+        }
+    }
+
+    [
+        { select: primeiro, container: document.getElementById('cards-incremento-atributo-1'), segundo: false },
+        { select: segundo, container: document.getElementById('cards-incremento-atributo-2'), segundo: true }
+    ].forEach(grupo => {
+        if (!grupo.container) return;
+        grupo.container.innerHTML = '';
+        Object.keys(ATRIBUTOS_PROGRESSAO).forEach(sigla => {
+            const valor = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+            const quantidade = modo === 'dois' && !grupo.segundo ? 2 : 1;
+            const repetido = modo === 'um-um' && grupo.segundo && sigla === primeiro.value;
+            const desabilitado = valor + quantidade > 20 || repetido;
+            grupo.container.appendChild(criarCardAtributo(
+                sigla,
+                grupo.select.value === sigla,
+                desabilitado,
+                () => selecionarAtributoProgressao(grupo.select.id, sigla)
+            ));
+        });
+    });
+}
+
+function selecionarAtributoProgressao(idSelect, sigla) {
+    const select = document.getElementById(idSelect);
+    if (!select || ![...select.options].some(opcao => opcao.value === sigla)) return;
+    select.value = sigla;
+    renderizarCardsAtributosProgressao();
+    atualizarPreviaIncremento();
 }
 
 function abrirModalProgressao(nivel) {
@@ -1522,6 +1619,7 @@ function selecionarTipoProgressao(tipo, botao = null) {
 function atualizarCamposIncremento() {
     const modo = document.querySelector('input[name="modo-incremento"]:checked')?.value || 'dois';
     document.getElementById('grupo-incremento-atributo-2').hidden = modo !== 'um-um';
+    renderizarCardsAtributosProgressao();
     atualizarPreviaIncremento();
 }
 
