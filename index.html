@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260803-3">
+    <link rel="stylesheet" href="style.css?v=20260803-4">
 </head>
 <body>
 
@@ -358,6 +358,14 @@
                         <span class="icone-talento-selecionado">✦</span>
                         <div><small>TALENTO SELECIONADO</small><strong id="nome-talento-selecionado"></strong><span id="requisito-talento-selecionado"></span><p id="descricao-talento-selecionado"></p></div>
                     </div>
+                    <div id="bonus-atributo-talento" class="bonus-atributo-talento" hidden>
+                        <span class="icone-bonus-talento" aria-hidden="true">↑</span>
+                        <div class="conteudo-bonus-talento">
+                            <strong id="titulo-bonus-talento">Escolha o atributo que receberá +1</strong>
+                            <select id="atributo-bonus-talento" aria-label="Atributo aumentado pelo talento"></select>
+                            <small id="ajuda-bonus-talento"></small>
+                        </div>
+                    </div>
                     <div class="aviso-talento"><span>✦</span><p>Ao confirmar, o talento será adicionado automaticamente em “Traços e Características”, vinculado ao registro original de talentos_phb.js.</p></div>
                 </div>
 
@@ -554,6 +562,6 @@
 
     <script src="banco_phb.js?v=20260723-10"></script>
     <script src="talentos_phb.js?v=20260803-1"></script>
-    <script src="app.js?v=20260803-5"></script>
+    <script src="app.js?v=20260803-6"></script>
 </body>
 </html>
