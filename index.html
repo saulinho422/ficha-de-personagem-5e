@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260803-1">
+    <link rel="stylesheet" href="style.css?v=20260803-2">
 </head>
 <body>
 
@@ -343,9 +343,22 @@
                     <div id="previa-incremento" class="previa-incremento"></div>
                 </div>
 
-                <div id="painel-progressao-talento" class="painel-opcao-progressao" hidden>
-                    <label class="grupo-input"><span>Talento</span><select id="select-talento" class="input-elegante"></select></label>
-                    <div class="aviso-talento"><span>✦</span><p>O talento selecionado será adicionado automaticamente em “Traços e Características”.</p></div>
+                <div id="painel-progressao-talento" class="painel-opcao-progressao painel-talentos" hidden>
+                    <input id="talento-selecionado" type="hidden">
+                    <div class="cabecalho-selecao-talentos">
+                        <div><strong>Escolha um talento</strong><small>Selecione um dos talentos carregados de talentos_phb.js.</small></div>
+                        <span id="contador-talentos">0 talentos</span>
+                    </div>
+                    <label class="busca-talentos">
+                        <span aria-hidden="true">⌕</span>
+                        <input id="busca-talento" type="search" placeholder="Pesquisar talento pelo nome..." oninput="filtrarCardsTalentos()">
+                    </label>
+                    <div id="grid-talentos" class="grid-talentos" role="listbox" aria-label="Talentos disponíveis"></div>
+                    <div id="resumo-talento-selecionado" class="resumo-talento-selecionado" hidden>
+                        <span class="icone-talento-selecionado">✦</span>
+                        <div><small>TALENTO SELECIONADO</small><strong id="nome-talento-selecionado"></strong><span id="requisito-talento-selecionado"></span></div>
+                    </div>
+                    <div class="aviso-talento"><span>✦</span><p>Ao confirmar, o talento será adicionado automaticamente em “Traços e Características”, vinculado ao registro original de talentos_phb.js.</p></div>
                 </div>
 
                 <div class="acoes-modal-traco"><button class="btn-secundario" type="button" onclick="fecharModalProgressao()">Cancelar</button><button class="btn-primario btn-inline" type="submit">Confirmar evolução</button></div>
@@ -541,6 +554,6 @@
 
     <script src="banco_phb.js?v=20260723-10"></script>
     <script src="talentos_phb.js?v=20260803-1"></script>
-    <script src="app.js?v=20260803-2"></script>
+    <script src="app.js?v=20260803-3"></script>
 </body>
 </html>
