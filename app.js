@@ -15,6 +15,53 @@ const NIVEIS_INCREMENTO_POR_CLASSE = {
     'Guerreiro': [4, 6, 8, 12, 14, 16, 19],
     padrao: [4, 8, 12, 16, 19]
 };
+const RESUMOS_TALENTOS = {
+    "Adepto Elemental (Elemental Adept)": "Especializa suas magias em um tipo de dano elemental, ajudando a superar resistências e melhorar resultados baixos de dano.",
+    "Adepto Marcial (Martial Adept)": "Concede treinamento em manobras de combate e um recurso de superioridade para executá-las.",
+    "Alerta (Alert)": "Melhora bastante a iniciativa e dificulta que o personagem seja surpreendido ou fique vulnerável a atacantes ocultos.",
+    "Ambidestro (Dual Wielder)": "Aprimora o combate com duas armas, aumentando a defesa e permitindo empunhar armas mais versáteis em cada mão.",
+    "Atacante Bestial (Savage Attacker)": "Permite refazer uma rolagem de dano com arma para tentar obter um resultado melhor.",
+    "Atirador Aguçado (Sharpshooter)": "Favorece disparos a longa distância, reduz o efeito de cobertura e permite trocar precisão por dano elevado.",
+    "Atirador de Magia (Spell Sniper)": "Amplia o alcance de magias de ataque, ajuda a ignorar cobertura e concede um truque ofensivo adicional.",
+    "Atleta (Athlete)": "Melhora Força ou Destreza e facilita escaladas, saltos e a recuperação após cair.",
+    "Ator (Actor)": "Aprimora Carisma e torna o personagem mais convincente ao imitar vozes ou assumir identidades.",
+    "Conjurador de Guerra (War Caster)": "Ajuda a manter concentração em combate, conjurar com as mãos ocupadas e reagir com magias.",
+    "Conjurador de Ritual (Ritual Caster)": "Concede um livro de rituais e permite aprender e conjurar determinadas magias como rituais.",
+    "Curandeiro (Healer)": "Torna kits de primeiros socorros mais eficientes para estabilizar aliados e recuperar pontos de vida.",
+    "Duelista Defensivo (Defensive Duelist)": "Permite usar a reação e uma arma de acuidade para aumentar a defesa contra um ataque.",
+    "Especialista em Besta (Crossbow Expert)": "Aprimora o uso de bestas, reduz limitações de recarga e favorece ataques próximos ou adicionais.",
+    "Especialista em Briga (Tavern Brawler)": "Melhora o combate improvisado e desarmado, além de facilitar agarrões após acertar um ataque.",
+    "Explorador de Cavernas (Dungeon Delver)": "Ajuda a encontrar passagens e armadilhas, resistir a seus efeitos e explorar locais perigosos.",
+    "Imobilizador (Grappler)": "Aprimora agarrões e oferece maior controle sobre criaturas que o personagem consegue segurar.",
+    "Iniciado em Magia (Magic Initiate)": "Concede truques e uma magia básica escolhidos de uma classe conjuradora.",
+    "Investida Poderosa (Charger)": "Permite transformar uma corrida em um ataque ou empurrão mais impactante.",
+    "Líder Inspirador (Inspiring Leader)": "Usa uma fala motivadora para conceder pontos de vida temporários ao grupo.",
+    "Maestria em Arma de Haste (Polearm Master)": "Aprimora armas de haste, oferecendo ataque adicional e mais oportunidades de reação.",
+    "Mestre de Armas Pesadas (Heavy Armor Master)": "Melhora Força e reduz parte do dano físico comum enquanto usa armadura pesada.",
+    "Matador de Conjuradores (Mage Slayer)": "Favorece reações contra conjuradores próximos e ajuda a resistir ou interromper suas magias.",
+    "Mente Afiada (Keen Mind)": "Melhora Inteligência e concede memória, orientação e noção de tempo excepcionalmente precisas.",
+    "Mestre de Armas (Weapon Master)": "Melhora Força ou Destreza e concede proficiência com armas escolhidas.",
+    "Mestre de Armas Grandes (Great Weapon Master)": "Favorece armas pesadas, permitindo ataques extras e a troca de precisão por dano elevado.",
+    "Mestre de Escudos (Shield Master)": "Permite usar melhor o escudo para empurrar inimigos e se proteger de efeitos que exigem Destreza.",
+    "Mobilidade (Mobile)": "Aumenta o deslocamento e facilita atravessar o campo de batalha sem sofrer certas reações.",
+    "Observador (Observant)": "Melhora Inteligência ou Sabedoria, leitura labial e percepção passiva de detalhes e pistas.",
+    "Perito (Skilled)": "Concede proficiência em três perícias ou ferramentas escolhidas.",
+    "Poliglota (Linguist)": "Melhora Inteligência, concede novos idiomas e permite criar códigos escritos.",
+    "Proteção Leve (Lightly Armored)": "Melhora Força ou Destreza e concede treinamento com armaduras leves.",
+    "Proteção Moderada (Moderately Armored)": "Melhora Força ou Destreza e concede treinamento com armaduras médias e escudos.",
+    "Proteção Pesada (Heavily Armored)": "Melhora Força e concede treinamento com armaduras pesadas.",
+    "Resiliente (Resilient)": "Melhora uma habilidade escolhida e concede proficiência nos testes de resistência relacionados a ela.",
+    "Resistente (Durable)": "Melhora Constituição e aumenta a eficiência da recuperação ao gastar Dados de Vida.",
+    "Robusto (Tough)": "Aumenta os pontos de vida máximos do personagem conforme o nível.",
+    "Sentinela (Sentinel)": "Aprimora ataques de oportunidade e dificulta que inimigos escapem ou ataquem aliados próximos.",
+    "Sorrateiro (Skulker)": "Melhora a furtividade em pouca luz e reduz as consequências de errar ataques à distância enquanto escondido.",
+    "Sortudo (Lucky)": "Concede pontos de sorte para refazer jogadas importantes ou dificultar ataques inimigos."
+};
+
+function obterResumoTalento(nome) {
+    return RESUMOS_TALENTOS[nome] || 'Talento com benefícios disponíveis no banco de talentos.';
+}
+
 function obterTalentosDisponiveis() {
     if (typeof talentos === 'undefined' || !talentos || typeof talentos !== 'object') return [];
     return Object.keys(talentos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
@@ -32,6 +79,7 @@ function selecionarCardTalento(nome) {
     document.getElementById('nome-talento-selecionado').textContent = nome;
     document.getElementById('requisito-talento-selecionado').textContent =
         dados.preRequisitos ? 'Possui pré-requisitos cadastrados' : 'Sem pré-requisitos cadastrados';
+    document.getElementById('descricao-talento-selecionado').textContent = obterResumoTalento(nome);
     document.getElementById('resumo-talento-selecionado').hidden = false;
 }
 
@@ -79,11 +127,12 @@ function renderizarCardsTalentos(filtro = '') {
         const requisito = document.createElement('small');
         requisito.className = dados.preRequisitos ? 'com-requisito' : 'sem-requisito';
         requisito.textContent = dados.preRequisitos ? 'Com pré-requisito' : 'Sem pré-requisito';
-        const beneficios = document.createElement('small');
-        beneficios.textContent = dados.beneficios ? 'Benefícios cadastrados' : 'Sem benefícios cadastrados';
-        metadados.append(requisito, beneficios);
+        metadados.append(requisito);
+        const resumo = document.createElement('p');
+        resumo.className = 'resumo-card-talento';
+        resumo.textContent = obterResumoTalento(nome);
 
-        card.append(topo, titulo, metadados);
+        card.append(topo, titulo, metadados, resumo);
         card.onclick = () => {
             selecionarCardTalento(nome);
             renderizarCardsTalentos(document.getElementById('busca-talento').value);
@@ -1463,8 +1512,8 @@ function salvarProgressao(evento) {
         id: 'talento-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
         nome: talento,
         tipo: 'talento',
-        descricao: 'Talento escolhido como melhoria do ' + nivel + 'º nível.' +
-            (dadosTalento.preRequisitos ? ' Este talento possui pré-requisitos que devem ser conferidos.' : ''),
+        descricao: obterResumoTalento(talento) + ' Escolhido como melhoria do ' + nivel + 'º nível.' +
+            (dadosTalento.preRequisitos ? ' Possui pré-requisitos que devem ser conferidos.' : ''),
         fonteTalento: 'talentos_phb.js',
         bloqueado: false,
         expandido: false,
