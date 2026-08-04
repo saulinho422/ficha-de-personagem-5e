@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260723-10">
+    <link rel="stylesheet" href="style.css?v=20260803-1">
 </head>
 <body>
 
@@ -114,7 +114,20 @@
                     <div class="info-personagem"><span id="display-origem"></span> • <span id="display-classe"></span> — <span id="display-subclasse"></span> • <strong>Nível <span id="display-nivel">1</span></strong></div>
                     <div class="info-personagem info-secundaria"><span id="display-alinhamento"></span> • <span id="display-antecedente"></span></div>
                 </div>
-                <div class="acoes-cabecalho"><button class="btn-secundario" onclick="editarPersonagem()">Editar personagem</button></div>
+                <div class="acoes-cabecalho acoes-nivel">
+                    <button class="btn-gerenciar-nivel" type="button" onclick="abrirModalNivel()">
+                        <small>NÍVEL ATUAL</small><strong id="display-nivel-acao">1</strong><span>Alterar</span>
+                    </button>
+                    <div class="notificacoes-nivel">
+                        <button id="btn-notificacoes-nivel" class="btn-notificacoes-nivel" type="button" onclick="alternarNotificacoesNivel()" aria-label="Notificações de progressão" aria-expanded="false">
+                            <span aria-hidden="true">🔔</span><b id="badge-notificacoes-nivel" hidden>0</b>
+                        </button>
+                        <div id="painel-notificacoes-nivel" class="painel-notificacoes-nivel" hidden>
+                            <div class="painel-notificacoes-cabecalho"><strong>Progressão do personagem</strong><small id="resumo-notificacoes-nivel"></small></div>
+                            <div id="lista-notificacoes-nivel" class="lista-notificacoes-nivel"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="dnd-grid-principal">
@@ -285,6 +298,61 @@
         </div>
     </div>
 
+    <!-- MODAL DE NÍVEL -->
+    <div id="modal-nivel" class="modal-overlay" style="display: none;">
+        <div class="modal-conteudo modal-nivel-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-nivel">
+            <div class="modal-cabecalho">
+                <div><h3 id="titulo-modal-nivel">Gerenciar nível</h3><p>Atualize o nível para descobrir novas melhorias disponíveis.</p></div>
+                <button class="btn-fechar" type="button" onclick="fecharModalNivel()">&times;</button>
+            </div>
+            <form class="form-nivel" onsubmit="salvarNovoNivel(event)">
+                <label class="controle-nivel">
+                    <span>Nível do personagem</span>
+                    <div><button type="button" onclick="ajustarNivelModal(-1)">−</button><input id="novo-nivel-personagem" type="number" min="1" max="20" value="1" required><button type="button" onclick="ajustarNivelModal(1)">+</button></div>
+                    <small>O nível deve ficar entre 1 e 20.</small>
+                </label>
+                <div class="acoes-modal-traco"><button class="btn-secundario" type="button" onclick="fecharModalNivel()">Cancelar</button><button class="btn-primario btn-inline" type="submit">Atualizar nível</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE PROGRESSÃO -->
+    <div id="modal-progressao" class="modal-overlay" style="display: none;">
+        <div class="modal-conteudo modal-progressao-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-progressao">
+            <div class="modal-cabecalho">
+                <div><h3 id="titulo-modal-progressao">Melhoria de nível</h3><p id="subtitulo-modal-progressao">Escolha como evoluir o personagem.</p></div>
+                <button class="btn-fechar" type="button" onclick="fecharModalProgressao()">&times;</button>
+            </div>
+            <form id="form-progressao" class="form-progressao" onsubmit="salvarProgressao(event)">
+                <input id="nivel-progressao-atual" type="hidden">
+                <div class="escolhas-progressao">
+                    <button class="card-escolha-progressao selecionado" type="button" data-escolha="atributos" onclick="selecionarTipoProgressao('atributos', this)"><span>＋2</span><strong>Melhorar habilidades</strong><small>Distribua dois pontos nos atributos.</small></button>
+                    <button class="card-escolha-progressao" type="button" data-escolha="talento" onclick="selecionarTipoProgressao('talento', this)"><span>✦</span><strong>Escolher talento</strong><small>Adicione uma especialização ao personagem.</small></button>
+                </div>
+                <input id="tipo-progressao" type="hidden" value="atributos">
+
+                <div id="painel-progressao-atributos" class="painel-opcao-progressao">
+                    <div class="modo-distribuicao">
+                        <label><input type="radio" name="modo-incremento" value="dois" checked onchange="atualizarCamposIncremento()"> <span><strong>+2 em uma habilidade</strong><small>Concentre os dois pontos no mesmo atributo.</small></span></label>
+                        <label><input type="radio" name="modo-incremento" value="um-um" onchange="atualizarCamposIncremento()"> <span><strong>+1 em duas habilidades</strong><small>Divida os pontos entre dois atributos diferentes.</small></span></label>
+                    </div>
+                    <div class="grid-incrementos">
+                        <label class="grupo-input"><span>Primeira habilidade</span><select id="incremento-atributo-1" class="input-elegante"></select></label>
+                        <label id="grupo-incremento-atributo-2" class="grupo-input" hidden><span>Segunda habilidade</span><select id="incremento-atributo-2" class="input-elegante"></select></label>
+                    </div>
+                    <div id="previa-incremento" class="previa-incremento"></div>
+                </div>
+
+                <div id="painel-progressao-talento" class="painel-opcao-progressao" hidden>
+                    <label class="grupo-input"><span>Talento</span><select id="select-talento" class="input-elegante"></select></label>
+                    <div class="aviso-talento"><span>✦</span><p>O talento selecionado será adicionado automaticamente em “Traços e Características”.</p></div>
+                </div>
+
+                <div class="acoes-modal-traco"><button class="btn-secundario" type="button" onclick="fecharModalProgressao()">Cancelar</button><button class="btn-primario btn-inline" type="submit">Confirmar evolução</button></div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL DE TRAÇOS E CARACTERÍSTICAS -->
     <div id="modal-traco" class="modal-overlay" style="display: none;">
         <div class="modal-conteudo modal-traco-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-traco">
@@ -313,6 +381,8 @@
                     <textarea id="traco-descricao" class="input-elegante textarea-traco" maxlength="2000" required placeholder="Explique o que essa habilidade faz"></textarea>
                 </div>
                 <div class="acoes-modal-traco">
+                    <button id="btn-excluir-traco-modal" class="btn-excluir-modal" type="button" onclick="excluirTracoAtual()" hidden>Excluir</button>
+                    <span class="espacador-acoes-modal"></span>
                     <button class="btn-secundario" type="button" onclick="fecharModalTraco()">Cancelar</button>
                     <button class="btn-primario btn-inline" type="submit">Salvar</button>
                 </div>
@@ -470,6 +540,6 @@
     </div>
 
     <script src="banco_phb.js?v=20260723-10"></script>
-    <script src="app.js?v=20260723-10"></script>
+    <script src="app.js?v=20260803-1"></script>
 </body>
 </html>
