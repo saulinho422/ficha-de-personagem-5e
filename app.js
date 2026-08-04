@@ -4,10 +4,31 @@ let inventarioPersonagem = [];
 let ataquesPersonagem = [];
 let tracosPersonagem = [];
 let proficienciasAdicionais = [];
+let progressosResolvidos = [];
 let tracosAutomaticosExpandidos = new Set();
 let filtroTracosAtual = 'todos';
 const CHAVE_FICHA = 'forjaPersonagens.ficha.v2';
 let personagemAtual = { raca: '', classe: '' };
+
+const NIVEIS_INCREMENTO_POR_CLASSE = {
+    'Ladino': [4, 8, 10, 12, 16, 19],
+    'Guerreiro': [4, 6, 8, 12, 14, 16, 19],
+    padrao: [4, 8, 12, 16, 19]
+};
+const TALENTOS_DISPONIVEIS = [
+    'Mãos Destruidoras',
+    'Mestre da Lâmina',
+    'Mestre do Mangual',
+    'Maestria com Lança',
+    'Alquimista',
+    'Arrombador',
+    'Gourmand',
+    'Mestre do Disfarce'
+];
+const ATRIBUTOS_PROGRESSAO = {
+    for: 'Força', des: 'Destreza', con: 'Constituição',
+    int: 'Inteligência', sab: 'Sabedoria', car: 'Carisma'
+};
 
 const CATALOGO_IDIOMAS = [
     'Comum', 'Anão', 'Élfico', 'Gigante', 'Gnômico', 'Goblin', 'Halfling', 'Orc',
@@ -146,6 +167,7 @@ function iniciarPersonagem(restaurando = false) {
     document.getElementById('display-antecedente').innerText = formatarNomeAntecedente(antecedente);
     document.getElementById('display-nivel').innerText = nivel;
     document.getElementById('display-proficiencia').innerText = "+" + obterBonusProficiencia();
+    renderizarNotificacoesNivel();
 
     calcularAtributos(raca, subraca);
     calcularCombate(raca, classe);
@@ -983,6 +1005,7 @@ function salvarEstado() {
         ataques: ataquesPersonagem,
         tracos: tracosPersonagem,
         proficienciasAdicionais,
+        progressosResolvidos,
         fichaGerada: document.getElementById('ficha-completa')?.style.display === 'block'
     }));
 }
@@ -1025,6 +1048,7 @@ function restaurarEstado() {
     ataquesPersonagem = Array.isArray(estado.ataques) ? estado.ataques : [];
     tracosPersonagem = Array.isArray(estado.tracos) ? estado.tracos : [];
     proficienciasAdicionais = Array.isArray(estado.proficienciasAdicionais) ? estado.proficienciasAdicionais : [];
+    progressosResolvidos = Array.isArray(estado.progressosResolvidos) ? estado.progressosResolvidos : [];
     renderizarTracos();
     renderizarAtaques();
     renderizarPericiasDaClasse();
@@ -1162,12 +1186,223 @@ function obterBonusProficiencia() {
     return 2 + Math.floor((validarNivel() - 1) / 4);
 }
 
-function editarPersonagem() {
-    document.getElementById('ficha-completa').style.display = 'none';
-    document.getElementById('criacao-rapida').style.display = 'block';
-    mostrarEtapa(1);
+function niveisIncrementoDaClasse(classe) {
+    return NIVEIS_INCREMENTO_POR_CLASSE[classe] || NIVEIS_INCREMENTO_POR_CLASSE.padrao;
 }
 
+function obterIncrementosPendentes() {
+    const classe = document.getElementById('select-classe')?.value || personagemAtual.classe;
+    const nivel = validarNivel();
+    const resolvidos = new Set(progressosResolvidos.filter(item => item.classe === classe || !item.classe).map(item => item.nivel));
+    return niveisIncrementoDaClasse(classe).filter(nivelIncremento => nivelIncremento <= nivel && !resolvidos.has(nivelIncremento));
+}
+
+function renderizarNotificacoesNivel() {
+    const nivel = validarNivel();
+    const pendentes = obterIncrementosPendentes();
+    const displayAcao = document.getElementById('display-nivel-acao');
+    const badge = document.getElementById('badge-notificacoes-nivel');
+    const lista = document.getElementById('lista-notificacoes-nivel');
+    const resumo = document.getElementById('resumo-notificacoes-nivel');
+    if (displayAcao) displayAcao.textContent = nivel;
+    if (!badge || !lista || !resumo) return;
+
+    badge.textContent = pendentes.length;
+    badge.hidden = pendentes.length === 0;
+    resumo.textContent = pendentes.length
+        ? pendentes.length + (pendentes.length === 1 ? ' melhoria pendente' : ' melhorias pendentes')
+        : 'Tudo em dia';
+    lista.innerHTML = '';
+
+    if (!pendentes.length) {
+        const vazio = document.createElement('div');
+        vazio.className = 'notificacao-nivel-vazia';
+        vazio.innerHTML = '<span>✓</span><div><strong>Nenhuma melhoria pendente</strong><small>Novas opções aparecerão conforme o nível aumentar.</small></div>';
+        lista.appendChild(vazio);
+        return;
+    }
+
+    pendentes.forEach(nivelPendente => {
+        const botao = document.createElement('button');
+        botao.type = 'button';
+        botao.className = 'item-notificacao-nivel';
+        botao.innerHTML = '<span class="icone-notificacao-nivel">!</span><div><strong>Melhoria do ' +
+            nivelPendente + 'º nível</strong><small>Escolha um talento ou melhore suas habilidades.</small></div><b>›</b>';
+        botao.onclick = () => abrirModalProgressao(nivelPendente);
+        lista.appendChild(botao);
+    });
+}
+
+function alternarNotificacoesNivel() {
+    const painel = document.getElementById('painel-notificacoes-nivel');
+    const botao = document.getElementById('btn-notificacoes-nivel');
+    const abrir = painel.hidden;
+    painel.hidden = !abrir;
+    botao.setAttribute('aria-expanded', String(abrir));
+    if (abrir) renderizarNotificacoesNivel();
+}
+
+function abrirModalNivel() {
+    document.getElementById('novo-nivel-personagem').value = validarNivel();
+    document.getElementById('modal-nivel').style.display = 'flex';
+}
+
+function fecharModalNivel() {
+    document.getElementById('modal-nivel').style.display = 'none';
+}
+
+function ajustarNivelModal(delta) {
+    const campo = document.getElementById('novo-nivel-personagem');
+    campo.value = Math.min(20, Math.max(1, (parseInt(campo.value, 10) || 1) + delta));
+}
+
+function salvarNovoNivel(evento) {
+    evento.preventDefault();
+    const novoNivel = Math.min(20, Math.max(1, parseInt(document.getElementById('novo-nivel-personagem').value, 10) || 1));
+    document.getElementById('nivel-personagem').value = novoNivel;
+    personagemAtual.nivel = novoNivel;
+    fecharModalNivel();
+    iniciarPersonagem(true);
+    renderizarNotificacoesNivel();
+    mostrarToast('Personagem atualizado para o nível ' + novoNivel + '.', 'sucesso');
+}
+
+function preencherSelectAtributosProgressao() {
+    ['incremento-atributo-1', 'incremento-atributo-2'].forEach(id => {
+        const select = document.getElementById(id);
+        const anterior = select.value;
+        select.innerHTML = '';
+        Object.entries(ATRIBUTOS_PROGRESSAO).forEach(([sigla, nome]) => {
+            const valor = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+            const opcao = document.createElement('option');
+            opcao.value = sigla;
+            opcao.textContent = nome + ' (' + valor + ')';
+            select.appendChild(opcao);
+        });
+        if ([...select.options].some(opcao => opcao.value === anterior)) select.value = anterior;
+        select.onchange = atualizarPreviaIncremento;
+    });
+    document.getElementById('incremento-atributo-2').selectedIndex = 1;
+}
+
+function abrirModalProgressao(nivel) {
+    document.getElementById('painel-notificacoes-nivel').hidden = true;
+    document.getElementById('btn-notificacoes-nivel').setAttribute('aria-expanded', 'false');
+    document.getElementById('nivel-progressao-atual').value = nivel;
+    document.getElementById('subtitulo-modal-progressao').textContent = 'Melhoria disponível no ' + nivel + 'º nível.';
+    document.getElementById('form-progressao').reset();
+    document.getElementById('tipo-progressao').value = 'atributos';
+    document.querySelectorAll('.card-escolha-progressao').forEach(card =>
+        card.classList.toggle('selecionado', card.dataset.escolha === 'atributos')
+    );
+    preencherSelectAtributosProgressao();
+    const selectTalento = document.getElementById('select-talento');
+    selectTalento.innerHTML = '';
+    TALENTOS_DISPONIVEIS.forEach(talento => {
+        const opcao = document.createElement('option');
+        opcao.value = talento;
+        opcao.textContent = talento;
+        selectTalento.appendChild(opcao);
+    });
+    selecionarTipoProgressao('atributos');
+    atualizarCamposIncremento();
+    document.getElementById('modal-progressao').style.display = 'flex';
+}
+
+function fecharModalProgressao() {
+    document.getElementById('modal-progressao').style.display = 'none';
+}
+
+function selecionarTipoProgressao(tipo, botao = null) {
+    document.getElementById('tipo-progressao').value = tipo;
+    document.querySelectorAll('.card-escolha-progressao').forEach(card =>
+        card.classList.toggle('selecionado', card === botao || (!botao && card.dataset.escolha === tipo))
+    );
+    document.getElementById('painel-progressao-atributos').hidden = tipo !== 'atributos';
+    document.getElementById('painel-progressao-talento').hidden = tipo !== 'talento';
+}
+
+function atualizarCamposIncremento() {
+    const modo = document.querySelector('input[name="modo-incremento"]:checked')?.value || 'dois';
+    document.getElementById('grupo-incremento-atributo-2').hidden = modo !== 'um-um';
+    atualizarPreviaIncremento();
+}
+
+function atualizarPreviaIncremento() {
+    const modo = document.querySelector('input[name="modo-incremento"]:checked')?.value || 'dois';
+    const primeiro = document.getElementById('incremento-atributo-1').value;
+    const segundo = document.getElementById('incremento-atributo-2').value;
+    const previa = document.getElementById('previa-incremento');
+    previa.textContent = modo === 'dois'
+        ? ATRIBUTOS_PROGRESSAO[primeiro] + ' receberá +2.'
+        : ATRIBUTOS_PROGRESSAO[primeiro] + ' e ' + ATRIBUTOS_PROGRESSAO[segundo] + ' receberão +1 cada.';
+}
+
+function aplicarIncrementosAtributos() {
+    const modo = document.querySelector('input[name="modo-incremento"]:checked')?.value || 'dois';
+    const primeiro = document.getElementById('incremento-atributo-1').value;
+    const segundo = document.getElementById('incremento-atributo-2').value;
+    const incrementos = modo === 'dois' ? { [primeiro]: 2 } : { [primeiro]: 1, [segundo]: 1 };
+    if (modo === 'um-um' && primeiro === segundo) {
+        mostrarToast('Escolha duas habilidades diferentes.', 'aviso');
+        return null;
+    }
+    for (const [sigla, quantidade] of Object.entries(incrementos)) {
+        const atual = parseInt(document.getElementById('final-' + sigla).innerText, 10) || 10;
+        if (atual + quantidade > 20) {
+            mostrarToast(ATRIBUTOS_PROGRESSAO[sigla] + ' não pode ultrapassar 20.', 'aviso');
+            return null;
+        }
+    }
+    Object.entries(incrementos).forEach(([sigla, quantidade]) => {
+        const campo = document.getElementById('attr-' + sigla);
+        campo.value = (parseInt(campo.value, 10) || 10) + quantidade;
+    });
+    return incrementos;
+}
+
+function salvarProgressao(evento) {
+    evento.preventDefault();
+    const nivel = parseInt(document.getElementById('nivel-progressao-atual').value, 10);
+    const classe = document.getElementById('select-classe').value || personagemAtual.classe;
+    if (!obterIncrementosPendentes().includes(nivel)) {
+        mostrarToast('Esta melhoria já foi resolvida.', 'aviso');
+        fecharModalProgressao();
+        return;
+    }
+
+    const tipo = document.getElementById('tipo-progressao').value;
+    if (tipo === 'atributos') {
+        const incrementos = aplicarIncrementosAtributos();
+        if (!incrementos) return;
+        progressosResolvidos.push({ nivel, classe, tipo: 'atributos', incrementos });
+        fecharModalProgressao();
+        iniciarPersonagem(true);
+        mostrarToast('Valores de habilidade atualizados.', 'sucesso');
+        return;
+    }
+
+    const talento = document.getElementById('select-talento').value;
+    if (tracosPersonagem.some(item => item.tipo === 'talento' && normalizarTextoProficiencia(item.nome) === normalizarTextoProficiencia(talento))) {
+        mostrarToast('Este talento já foi escolhido.', 'aviso');
+        return;
+    }
+    tracosPersonagem.push({
+        id: 'talento-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+        nome: talento,
+        tipo: 'talento',
+        descricao: 'Talento escolhido como melhoria do ' + nivel + 'º nível. Consulte a fonte de talentos da campanha para verificar seus benefícios e pré-requisitos.',
+        bloqueado: false,
+        expandido: false,
+        progressaoNivel: nivel
+    });
+    progressosResolvidos.push({ nivel, classe, tipo: 'talento', talento });
+    fecharModalProgressao();
+    renderizarTracos();
+    renderizarNotificacoesNivel();
+    salvarEstado();
+    mostrarToast('Talento adicionado aos traços do personagem.', 'sucesso');
+}
 
 function configuracaoPericiasClasse() {
     const classe = document.getElementById('select-classe').value;
@@ -1466,6 +1701,11 @@ function abrirModalTraco(id = '') {
     document.getElementById('traco-tipo').value = traco?.tipo || '';
     document.getElementById('traco-descricao').value = traco?.descricao || '';
     titulo.textContent = traco ? 'Editar traço ou característica' : 'Adicionar traço ou característica';
+    const botaoExcluir = document.getElementById('btn-excluir-traco-modal');
+    botaoExcluir.hidden = !traco;
+    botaoExcluir.dataset.confirmando = 'nao';
+    botaoExcluir.textContent = 'Excluir';
+    botaoExcluir.classList.remove('confirmando');
     modal.style.display = 'flex';
     document.getElementById('traco-nome').focus();
 }
@@ -1474,6 +1714,40 @@ function fecharModalTraco() {
     document.getElementById('modal-traco').style.display = 'none';
     document.getElementById('form-traco').reset();
     document.getElementById('traco-id').value = '';
+    const botaoExcluir = document.getElementById('btn-excluir-traco-modal');
+    if (botaoExcluir) {
+        botaoExcluir.hidden = true;
+        botaoExcluir.dataset.confirmando = 'nao';
+        botaoExcluir.textContent = 'Excluir';
+        botaoExcluir.classList.remove('confirmando');
+    }
+}
+
+function excluirTracoAtual() {
+    const id = document.getElementById('traco-id').value;
+    const traco = tracosPersonagem.find(item => item.id === id);
+    if (!traco || traco.bloqueado) {
+        mostrarToast('Este traço não pode ser excluído.', 'aviso');
+        return;
+    }
+    const botao = document.getElementById('btn-excluir-traco-modal');
+    if (botao.dataset.confirmando !== 'sim') {
+        botao.dataset.confirmando = 'sim';
+        botao.textContent = 'Confirmar exclusão';
+        botao.classList.add('confirmando');
+        return;
+    }
+    tracosPersonagem = tracosPersonagem.filter(item => item.id !== id);
+    if (traco.progressaoNivel) {
+        progressosResolvidos = progressosResolvidos.filter(item =>
+            !(item.nivel === traco.progressaoNivel && item.tipo === 'talento')
+        );
+    }
+    fecharModalTraco();
+    renderizarTracos();
+    renderizarNotificacoesNivel();
+    salvarEstado();
+    mostrarToast('Traço excluído.', 'sucesso');
 }
 
 function salvarTraco(evento) {
