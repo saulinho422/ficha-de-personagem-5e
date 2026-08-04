@@ -15,16 +15,11 @@ const NIVEIS_INCREMENTO_POR_CLASSE = {
     'Guerreiro': [4, 6, 8, 12, 14, 16, 19],
     padrao: [4, 8, 12, 16, 19]
 };
-const TALENTOS_DISPONIVEIS = [
-    'Mãos Destruidoras',
-    'Mestre da Lâmina',
-    'Mestre do Mangual',
-    'Maestria com Lança',
-    'Alquimista',
-    'Arrombador',
-    'Gourmand',
-    'Mestre do Disfarce'
-];
+function obterTalentosDisponiveis() {
+    if (typeof talentos === 'undefined' || !talentos || typeof talentos !== 'object') return [];
+    return Object.keys(talentos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
 const ATRIBUTOS_PROGRESSAO = {
     for: 'Força', des: 'Destreza', con: 'Constituição',
     int: 'Inteligência', sab: 'Sabedoria', car: 'Carisma'
@@ -1298,12 +1293,19 @@ function abrirModalProgressao(nivel) {
     preencherSelectAtributosProgressao();
     const selectTalento = document.getElementById('select-talento');
     selectTalento.innerHTML = '';
-    TALENTOS_DISPONIVEIS.forEach(talento => {
+    const talentosDisponiveis = obterTalentosDisponiveis();
+    talentosDisponiveis.forEach(talento => {
         const opcao = document.createElement('option');
         opcao.value = talento;
         opcao.textContent = talento;
         selectTalento.appendChild(opcao);
     });
+    if (!talentosDisponiveis.length) {
+        const opcao = document.createElement('option');
+        opcao.value = '';
+        opcao.textContent = 'Nenhum talento carregado';
+        selectTalento.appendChild(opcao);
+    }
     selecionarTipoProgressao('atributos');
     atualizarCamposIncremento();
     document.getElementById('modal-progressao').style.display = 'flex';
@@ -1383,6 +1385,11 @@ function salvarProgressao(evento) {
     }
 
     const talento = document.getElementById('select-talento').value;
+    const dadosTalento = typeof talentos !== 'undefined' ? talentos?.[talento] : null;
+    if (!talento || !dadosTalento) {
+        mostrarToast('Não foi possível carregar esse talento do banco de talentos.', 'aviso');
+        return;
+    }
     if (tracosPersonagem.some(item => item.tipo === 'talento' && normalizarTextoProficiencia(item.nome) === normalizarTextoProficiencia(talento))) {
         mostrarToast('Este talento já foi escolhido.', 'aviso');
         return;
@@ -1391,7 +1398,9 @@ function salvarProgressao(evento) {
         id: 'talento-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
         nome: talento,
         tipo: 'talento',
-        descricao: 'Talento escolhido como melhoria do ' + nivel + 'º nível. Consulte a fonte de talentos da campanha para verificar seus benefícios e pré-requisitos.',
+        descricao: 'Talento escolhido como melhoria do ' + nivel + 'º nível.' +
+            (dadosTalento.preRequisitos ? ' Este talento possui pré-requisitos que devem ser conferidos.' : ''),
+        fonteTalento: 'talentos_phb.js',
         bloqueado: false,
         expandido: false,
         progressaoNivel: nivel
