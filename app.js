@@ -20,6 +20,85 @@ function obterTalentosDisponiveis() {
     return Object.keys(talentos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 }
 
+function selecionarCardTalento(nome) {
+    const dados = typeof talentos !== 'undefined' ? talentos?.[nome] : null;
+    if (!dados) return;
+    document.getElementById('talento-selecionado').value = nome;
+    document.querySelectorAll('.card-talento').forEach(card => {
+        const selecionado = card.dataset.talento === nome;
+        card.classList.toggle('selecionado', selecionado);
+        card.setAttribute('aria-selected', String(selecionado));
+    });
+    document.getElementById('nome-talento-selecionado').textContent = nome;
+    document.getElementById('requisito-talento-selecionado').textContent =
+        dados.preRequisitos ? 'Possui pré-requisitos cadastrados' : 'Sem pré-requisitos cadastrados';
+    document.getElementById('resumo-talento-selecionado').hidden = false;
+}
+
+function renderizarCardsTalentos(filtro = '') {
+    const grid = document.getElementById('grid-talentos');
+    const nomes = obterTalentosDisponiveis().filter(nome =>
+        normalizarTextoProficiencia(nome).includes(normalizarTextoProficiencia(filtro))
+    );
+    const selecionadoAtual = document.getElementById('talento-selecionado').value;
+    grid.innerHTML = '';
+    document.getElementById('contador-talentos').textContent =
+        nomes.length + (nomes.length === 1 ? ' talento' : ' talentos');
+
+    if (!nomes.length) {
+        const vazio = document.createElement('div');
+        vazio.className = 'talentos-vazios';
+        vazio.textContent = 'Nenhum talento encontrado para esta pesquisa.';
+        grid.appendChild(vazio);
+        return;
+    }
+
+    nomes.forEach(nome => {
+        const dados = talentos[nome] || {};
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'card-talento' + (selecionadoAtual === nome ? ' selecionado' : '');
+        card.dataset.talento = nome;
+        card.setAttribute('role', 'option');
+        card.setAttribute('aria-selected', String(selecionadoAtual === nome));
+
+        const topo = document.createElement('span');
+        topo.className = 'topo-card-talento';
+        const icone = document.createElement('span');
+        icone.className = 'icone-card-talento';
+        icone.textContent = '✦';
+        const marcador = document.createElement('span');
+        marcador.className = 'marcador-card-talento';
+        marcador.textContent = selecionadoAtual === nome ? '✓' : '';
+        topo.append(icone, marcador);
+
+        const titulo = document.createElement('strong');
+        titulo.textContent = nome;
+        const metadados = document.createElement('span');
+        metadados.className = 'metadados-card-talento';
+        const requisito = document.createElement('small');
+        requisito.className = dados.preRequisitos ? 'com-requisito' : 'sem-requisito';
+        requisito.textContent = dados.preRequisitos ? 'Com pré-requisito' : 'Sem pré-requisito';
+        const beneficios = document.createElement('small');
+        beneficios.textContent = dados.beneficios ? 'Benefícios cadastrados' : 'Sem benefícios cadastrados';
+        metadados.append(requisito, beneficios);
+
+        const fonte = document.createElement('small');
+        fonte.className = 'fonte-card-talento';
+        fonte.textContent = 'Fonte: talentos_phb.js';
+        card.append(topo, titulo, metadados, fonte);
+        card.onclick = () => {
+            selecionarCardTalento(nome);
+            renderizarCardsTalentos(document.getElementById('busca-talento').value);
+        };
+        grid.appendChild(card);
+    });
+}
+
+function filtrarCardsTalentos() {
+    renderizarCardsTalentos(document.getElementById('busca-talento').value);
+}
+
 const ATRIBUTOS_PROGRESSAO = {
     for: 'Força', des: 'Destreza', con: 'Constituição',
     int: 'Inteligência', sab: 'Sabedoria', car: 'Carisma'
@@ -1291,21 +1370,10 @@ function abrirModalProgressao(nivel) {
         card.classList.toggle('selecionado', card.dataset.escolha === 'atributos')
     );
     preencherSelectAtributosProgressao();
-    const selectTalento = document.getElementById('select-talento');
-    selectTalento.innerHTML = '';
-    const talentosDisponiveis = obterTalentosDisponiveis();
-    talentosDisponiveis.forEach(talento => {
-        const opcao = document.createElement('option');
-        opcao.value = talento;
-        opcao.textContent = talento;
-        selectTalento.appendChild(opcao);
-    });
-    if (!talentosDisponiveis.length) {
-        const opcao = document.createElement('option');
-        opcao.value = '';
-        opcao.textContent = 'Nenhum talento carregado';
-        selectTalento.appendChild(opcao);
-    }
+    document.getElementById('talento-selecionado').value = '';
+    document.getElementById('busca-talento').value = '';
+    document.getElementById('resumo-talento-selecionado').hidden = true;
+    renderizarCardsTalentos();
     selecionarTipoProgressao('atributos');
     atualizarCamposIncremento();
     document.getElementById('modal-progressao').style.display = 'flex';
@@ -1384,7 +1452,7 @@ function salvarProgressao(evento) {
         return;
     }
 
-    const talento = document.getElementById('select-talento').value;
+    const talento = document.getElementById('talento-selecionado').value;
     const dadosTalento = typeof talentos !== 'undefined' ? talentos?.[talento] : null;
     if (!talento || !dadosTalento) {
         mostrarToast('Não foi possível carregar esse talento do banco de talentos.', 'aviso');
