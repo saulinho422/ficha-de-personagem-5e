@@ -1755,7 +1755,7 @@ function renderizarPericiasDaClasse() {
     const anteriores = new Set(obterPericiasSelecionadas());
     container.innerHTML = '';
     document.getElementById('instrucao-pericias').textContent = classe
-        ? 'Escolha ' + config.quantidade + ' perícia(s) disponíveis para ' + classe + '.'
+        ? `Você pode escolher ${config.quantidade} perícia${config.quantidade > 1 ? 's' : ''} que combinam com seu treinamento como ${classe}.`
         : 'Selecione uma classe na etapa anterior.';
     document.getElementById('limite-pericias').textContent = config.quantidade;
 

@@ -40,6 +40,7 @@ body {
 
 .titulo-principal { font-family: 'Cinzel', serif; font-size: 36px; color: var(--cor-primaria); margin-top: 0; text-align: center; }
 .subtitulo { text-align: center; color: #666; margin-bottom: 30px; }
+.dica-etapa { font-size: 14px; color: #64748b; margin-bottom: 25px; line-height: 1.5; background: #f8fafc; padding: 12px 18px; border-left: 4px solid var(--cor-primaria); border-radius: 6px; }
 .titulo-secao { font-family: 'Cinzel', serif; color: var(--cor-primaria); border-bottom: 2px solid var(--cor-secundaria); padding-bottom: 5px; margin-top: 30px;}
 
 .seletores-iniciais { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
@@ -61,7 +62,11 @@ body {
 .centralizado { text-align: center; width: 60px; font-weight: bold;}
 
 .grid-atributos-base { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 30px; }
-
+.grid-atributos-base .grupo-input { background: #fafafa; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 20px; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s; }
+.grid-atributos-base .grupo-input:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); background: white; border-color: #cbd5e1; }
+.grid-atributos-base label { text-align: center; margin-bottom: 8px; font-size: 14px; color: #334155; }
+.grid-atributos-base label small { display: block; font-size: 11px; color: #94a3b8; font-weight: normal; margin-top: 2px; }
+.grid-atributos-base input { font-size: 20px; font-family: 'Cinzel', serif; padding: 8px; border-radius: 8px; border-width: 1px; width: 65px; height: 50px;}
 .btn-primario {
     display: block;
     width: 100%;
@@ -254,8 +259,9 @@ body {
 .btn-adicionar-catalogo:hover { background-color: #1b5e20; }
 
 /* Criação guiada e cabeçalho de personagem */
-.progresso-criacao { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:25px 0 35px; }
+.progresso-criacao { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:25px 0 35px; animation: fadeInModal 0.5s ease-out; }
 .passo-indicador { display:flex; align-items:center; justify-content:center; gap:8px; color:#8a8a8a; font-weight:700; padding:12px; border-bottom:3px solid #ddd; transition: var(--transicao-suave); }
+.passo-indicador:hover { color: var(--cor-primaria); border-color: rgba(185, 28, 28, 0.4); cursor: default; }
 .passo-indicador span { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:#e5e7eb; transition: var(--transicao-suave); }
 .passo-indicador.ativo { color:var(--cor-primaria); border-color:var(--cor-primaria); transform: translateY(-2px); }
 .passo-indicador.ativo span { color:white; background:var(--cor-primaria); box-shadow: 0 4px 10px rgba(185, 28, 28, 0.3); }

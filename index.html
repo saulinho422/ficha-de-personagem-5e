@@ -22,7 +22,8 @@
         </div>
 
         <section class="etapa-criacao ativa" data-etapa="1">
-            <h3 class="titulo-secao">Quem é seu personagem?</h3>
+            <h3 class="titulo-secao">🎭 Quem é seu personagem?</h3>
+            <p class="dica-etapa">Defina o nome e a experiência (nível) do seu herói para começar sua jornada.</p>
             <div class="grid-formulario">
                 <div class="grupo-input campo-largo">
                     <label for="nome-personagem">Nome do personagem</label>
@@ -37,7 +38,8 @@
         </section>
 
         <section class="etapa-criacao" data-etapa="2">
-            <h3 class="titulo-secao">Origem e treinamento</h3>
+            <h3 class="titulo-secao">⚔️ Origem e treinamento</h3>
+            <p class="dica-etapa">A raça define seus traços físicos e cultura, enquanto a classe determina suas habilidades de combate e magia.</p>
             <div class="grid-formulario">
                 <div class="grupo-input"><label for="select-raca">Raça</label><select id="select-raca" class="input-elegante"><option value="">-- Escolha uma Raça --</option></select></div>
                 <div class="grupo-input campo-largo" id="pergunta-subraca" hidden>
@@ -55,20 +57,22 @@
         </section>
 
         <section class="etapa-criacao" data-etapa="3">
-            <h3 class="titulo-secao">Atributos base</h3>
+            <h3 class="titulo-secao">💪 Atributos base</h3>
+            <p class="dica-etapa">Distribua os valores baseados na sua classe. Força e Destreza afetam ataques físicos e defesa; atributos mentais são essenciais para magias e interação.</p>
             <div class="grid-atributos-base">
-                <div class="grupo-input"><label>FOR</label><input type="number" id="attr-for" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-                <div class="grupo-input"><label>DES</label><input type="number" id="attr-des" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-                <div class="grupo-input"><label>CON</label><input type="number" id="attr-con" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-                <div class="grupo-input"><label>INT</label><input type="number" id="attr-int" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-                <div class="grupo-input"><label>SAB</label><input type="number" id="attr-sab" value="10" min="1" max="20" class="input-elegante centralizado"></div>
-                <div class="grupo-input"><label>CAR</label><input type="number" id="attr-car" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>Força <small>FOR</small></label><input type="number" id="attr-for" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>Destreza <small>DES</small></label><input type="number" id="attr-des" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>Constituição <small>CON</small></label><input type="number" id="attr-con" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>Inteligência <small>INT</small></label><input type="number" id="attr-int" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>Sabedoria <small>SAB</small></label><input type="number" id="attr-sab" value="10" min="1" max="20" class="input-elegante centralizado"></div>
+                <div class="grupo-input"><label>Carisma <small>CAR</small></label><input type="number" id="attr-car" value="10" min="1" max="20" class="input-elegante centralizado"></div>
             </div>
             <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(2)">Voltar</button><button class="btn-primario btn-inline" onclick="proximaEtapa(4)">Continuar</button></div>
         </section>
 
         <section class="etapa-criacao" data-etapa="4">
-            <h3 class="titulo-secao">Perícias da classe</h3>
+            <h3 class="titulo-secao">🎯 Perícias da classe</h3>
+            <p class="dica-etapa">As perícias representam as habilidades específicas que seu personagem domina, baseadas no treinamento da sua classe.</p>
             <p id="instrucao-pericias" class="subtitulo-pericias"></p>
             <div id="lista-pericias-criacao" class="grid-pericias-criacao"></div>
             <div class="contador-escolhas">Selecionadas: <strong id="contador-pericias">0</strong> / <strong id="limite-pericias">0</strong></div>
@@ -76,7 +80,8 @@
         </section>
 
         <section class="etapa-criacao" data-etapa="5">
-            <h3 class="titulo-secao">Alinhamento e antecedente</h3>
+            <h3 class="titulo-secao">📖 Alinhamento e antecedente</h3>
+            <p class="dica-etapa">O alinhamento reflete a bússola moral do seu personagem. O antecedente revela sua vida e profissão antes de se aventurar.</p>
             <div class="grid-formulario">
                 <div class="grupo-input">
                     <label for="select-alinhamento">Alinhamento</label>
