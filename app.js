@@ -474,7 +474,7 @@ function obterDadosProficienciasAutomaticas() {
     const classe = bancoDnD.classes?.[classeNome] || {};
     const antecedente = bancoDnD.antecedentes?.[antecedenteNome] || {};
 
-    const dados = { idioma: [], arma: [], armadura: [], ferramenta: [], limites: { idioma: 0, ferramenta: 0 } };
+    const dados = { idioma: [], arma: [], armadura: [], ferramenta: [], limites: { idioma: 0, ferramenta: 0, arma: 0 } };
     adicionarListaUnica(dados.idioma, raca.idiomas);
     adicionarListaUnica(dados.idioma, subraca.idiomas);
     adicionarListaUnica(dados.idioma, antecedente.idiomas);
@@ -488,15 +488,22 @@ function obterDadosProficienciasAutomaticas() {
     adicionarListaUnica(dados.ferramenta, subraca.proficienciasFerramentas);
     adicionarListaUnica(dados.ferramenta, classe.proficienciasFerramentas);
     adicionarListaUnica(dados.ferramenta, antecedente.proficienciasFerramentas || antecedente.ferramentas);
+    
+    // Bônus de Talentos
+    if (tracosPersonagem.some(t => t.nome === 'Proteção Leve (Lightly Armored)')) adicionarListaUnica(dados.armadura, ['Armaduras leves']);
+    if (tracosPersonagem.some(t => t.nome === 'Proteção Moderada (Moderately Armored)')) adicionarListaUnica(dados.armadura, ['Armaduras médias', 'Escudos']);
+    if (tracosPersonagem.some(t => t.nome === 'Proteção Pesada (Heavily Armored)')) adicionarListaUnica(dados.armadura, ['Armaduras pesadas']);
+
     dados.limites.idioma = (Number(raca.idiomasEscolha) || 0) + (Number(subraca.idiomasEscolha) || 0) +
-        (Number(antecedente.idiomasEscolha) || 0);
+        (Number(antecedente.idiomasEscolha) || 0) + (tracosPersonagem.some(t => t.nome === 'Poliglota (Linguist)') ? 3 : 0);
     dados.limites.ferramenta = (Number(raca.ferramentasEscolha) || 0) + (Number(subraca.ferramentasEscolha) || 0) +
-        (Number(classe.ferramentasEscolha) || 0) + (Number(antecedente.ferramentasEscolha) || 0);
+        (Number(classe.ferramentasEscolha) || 0) + (Number(antecedente.ferramentasEscolha) || 0) + (tracosPersonagem.some(t => t.nome === 'Perito (Skilled)') ? 3 : 0);
+    dados.limites.arma = tracosPersonagem.some(t => t.nome === 'Mestre de Armas (Weapon Master)') ? 4 : 0;
     return dados;
 }
 
 function limitarEscolhasAtuais(dados) {
-    ['idioma', 'ferramenta'].forEach(tipo => {
+    ['idioma', 'ferramenta', 'arma'].forEach(tipo => {
         let usadas = 0;
         proficienciasAdicionais = proficienciasAdicionais.filter(item => {
             if (item.origem !== 'escolha' || item.tipo !== tipo) return true;
@@ -580,13 +587,19 @@ function criarGrupoProficiencias(titulo, icone, tipo, itensAutomaticos, limiteEs
 
 function atualizarPercepcaoEProficiencias() {
     const modificadorSabedoria = parseInt(document.getElementById('mod-sab')?.innerText, 10) || 0;
-    const percepcaoPassiva = 10 + modificadorSabedoria;
+    let percepcaoPassiva = 10 + modificadorSabedoria;
+    let textoCalculo = '10 ' + (modificadorSabedoria >= 0 ? '+ ' : '- ') + Math.abs(modificadorSabedoria) + ' de Sabedoria';
+    
+    if (tracosPersonagem.some(t => t.nome === 'Observador (Observant)')) {
+        percepcaoPassiva += 5;
+        textoCalculo += ' + 5 (Observador)';
+    }
+
     const displayPercepcao = document.getElementById('display-percepcao-passiva');
     const calculoPercepcao = document.getElementById('calculo-percepcao-passiva');
     if (displayPercepcao) displayPercepcao.textContent = percepcaoPassiva;
     if (calculoPercepcao) {
-        calculoPercepcao.textContent = '10 ' + (modificadorSabedoria >= 0 ? '+ ' : '- ') +
-            Math.abs(modificadorSabedoria) + ' de Sabedoria';
+        calculoPercepcao.textContent = textoCalculo;
     }
 
     const dados = obterDadosProficienciasAutomaticas();
@@ -596,7 +609,7 @@ function atualizarPercepcaoEProficiencias() {
     container.innerHTML = '';
     const grupos = [
         criarGrupoProficiencias('Idiomas', '文', 'idioma', dados.idioma, dados.limites.idioma),
-        criarGrupoProficiencias('Armas', '⚔', 'arma', dados.arma),
+        criarGrupoProficiencias('Armas', '⚔', 'arma', dados.arma, dados.limites.arma),
         criarGrupoProficiencias('Armaduras e escudos', '◆', 'armadura', dados.armadura),
         criarGrupoProficiencias('Ferramentas e veículos', '⚒', 'ferramenta', dados.ferramenta, dados.limites.ferramenta)
     ].filter(Boolean);
@@ -727,16 +740,24 @@ function calcularCombate(racaEscolhida, classeEscolhida) {
     const modCon = parseInt(document.getElementById('mod-con').innerText) || 0;
 
     atualizarClasseArmadura();
-    document.getElementById('display-iniciativa').innerText = modDes >= 0 ? "+" + modDes : modDes;
+    
+    let iniciativaBase = modDes;
+    if (tracosPersonagem.some(t => t.nome === 'Alerta (Alert)')) iniciativaBase += 5;
+    document.getElementById('display-iniciativa').innerText = iniciativaBase >= 0 ? "+" + iniciativaBase : iniciativaBase;
     
     const raca = bancoDnD.racas[racaEscolhida];
-    document.getElementById('display-deslocamento').innerText = raca && raca.deslocamento ? raca.deslocamento : 9;
+    let deslocamento = raca && raca.deslocamento ? raca.deslocamento : 9;
+    if (tracosPersonagem.some(t => t.nome === 'Mobilidade (Mobile)')) deslocamento += 3;
+    document.getElementById('display-deslocamento').innerText = deslocamento;
 
     const classe = bancoDnD.classes[classeEscolhida];
     const dadoVidaClasse = classe && classe.dadoVida ? classe.dadoVida : 8;
     const nivel = validarNivel();
     const ganhoMedio = Math.floor(dadoVidaClasse / 2) + 1;
-    const hpMax = Math.max(1, dadoVidaClasse + modCon + (nivel - 1) * Math.max(1, ganhoMedio + modCon));
+    let hpMax = Math.max(1, dadoVidaClasse + modCon + (nivel - 1) * Math.max(1, ganhoMedio + modCon));
+    
+    if (tracosPersonagem.some(t => t.nome === 'Robusto (Tough)')) hpMax += (nivel * 2);
+    
     document.getElementById('display-hp-max').innerText = hpMax;
     document.getElementById('display-hp-atual').innerText = hpMax;
 }
@@ -747,10 +768,16 @@ function calcularSalvaguardas(classeEscolhida) {
     const bonusProficiencia = obterBonusProficiencia(); 
     const atributosIds = ['for', 'des', 'con', 'int', 'sab', 'car'];
 
+    const talentoResiliente = tracosPersonagem.find(t => t.nome === 'Resiliente (Resilient)');
+
     atributosIds.forEach(function(sigla) {
         let nomeNoBanco = mapearNomeAtributo(sigla); 
         let temProficiencia = proficienciasDaClasse.includes(nomeNoBanco);
         
+        if (talentoResiliente && talentoResiliente.bonusAtributo && talentoResiliente.bonusAtributo.sigla === sigla) {
+            temProficiencia = true;
+        }
+
         document.getElementById('salva-' + sigla).checked = temProficiencia;
         let modificadorAtributo = parseInt(document.getElementById('mod-' + sigla).innerText);
         
