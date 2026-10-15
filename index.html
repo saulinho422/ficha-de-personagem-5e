@@ -5,9 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260804-2">
+    <link rel="stylesheet" href="style.css?v=20261015-1">
 </head>
 <body>
+    <aside id="alerta-salvamento" class="alerta-salvamento" role="alert" hidden>
+        <strong>A ficha precisa da sua atenção</strong>
+        <p id="mensagem-salvamento"></p>
+        <div class="acoes-recuperacao">
+            <button type="button" class="btn-secundario" onclick="baixarCopiaDaFicha()">Baixar cópia dos dados</button>
+            <button type="button" class="btn-secundario" onclick="recuperarCopiaDaFicha()">Recuperar cópia anterior</button>
+            <button type="button" class="btn-secundario" onclick="tentarSalvarNovamente()">Tentar salvar novamente</button>
+        </div>
+    </aside>
 
     <!-- TELA 1: CRIAÇÃO GUIADA -->
     <div class="painel form-criacao" id="criacao-rapida">
@@ -162,12 +171,17 @@
                         <div id="lista-pericias"></div>
                     </div>
 
-                    <div class="caixa-percepcao-passiva" title="10 + modificador de Sabedoria">
+                    <div class="caixa-percepcao-passiva">
                         <div id="display-percepcao-passiva" class="valor-percepcao-passiva">10</div>
                         <div class="texto-percepcao-passiva">
                             <strong>SABEDORIA PASSIVA (PERCEPÇÃO)</strong>
                             <small id="calculo-percepcao-passiva">10 + 0 de Sabedoria</small>
                         </div>
+                        <label class="situacao-passiva" for="situacao-percepcao">Situação do teste
+                            <select id="situacao-percepcao" onchange="alterarSituacaoPercepcao(this.value)">
+                                <option value="normal">Normal</option><option value="vantagem">Com vantagem (+5)</option><option value="desvantagem">Com desvantagem (−5)</option>
+                            </select>
+                        </label>
                     </div>
 
                     <div class="caixa-proficiencias-automaticas">
@@ -196,10 +210,14 @@
                         <div class="combate-box"><div class="titulo-combate">INICIATIVA</div><div class="combate-valor" id="display-iniciativa">+0</div></div>
                         <div class="combate-box"><div class="titulo-combate">DESLOC.</div><div class="combate-valor"><span id="display-deslocamento">9</span>m</div></div>
                     </div>
+                    <p id="calculo-ca" class="memoria-combate"></p>
+                    <p id="aviso-armadura" class="aviso-armadura" role="status" hidden></p>
 
                     <div class="caixa-hp">
                         <div class="titulo-combate">PONTOS DE VIDA ATUAIS / MÁXIMOS</div>
                         <div class="hp-valores"><span id="display-hp-atual">10</span> / <span id="display-hp-max">10</span></div>
+                        <p class="pv-temporarios">Temporários: <strong id="display-hp-temporarios">0</strong></p>
+                        <button class="btn-secundario btn-recurso" type="button" onclick="abrirModalPV()">Gerenciar PV</button>
                     </div>
 
                     <div class="caixa-generica caixa-ataques">
@@ -265,6 +283,28 @@
         <div id="pagina-3" class="aba"><h2>Página 3: Conjuração</h2></div>
     </div>
 
+    <div id="modal-pv" class="modal-overlay" style="display: none;">
+        <div class="modal-conteudo modal-pv-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-pv">
+            <div class="modal-cabecalho">
+                <div><h3 id="titulo-modal-pv">Pontos de vida</h3><p>Registre dano, cura ou ajuste os valores da ficha.</p></div>
+                <button class="btn-fechar" type="button" onclick="fecharModalPV()" aria-label="Fechar pontos de vida">&times;</button>
+            </div>
+            <form id="form-pv" onsubmit="salvarPV(event)">
+                <div class="grid-formulario">
+                    <div class="grupo-input"><label for="pv-atual-edicao">PV atuais</label><input id="pv-atual-edicao" class="input-elegante" type="number" min="0" required></div>
+                    <div class="grupo-input"><label for="pv-temporario-edicao">PV temporários</label><input id="pv-temporario-edicao" class="input-elegante" type="number" min="0" max="1000000" required></div>
+                </div>
+                <p class="dica-etapa">Os PV temporários absorvem o dano primeiro. Ao receber novos PV temporários, escolha um dos valores; eles não se somam.</p>
+                <div class="grupo-input"><label for="quantidade-pv">Quantidade de dano ou cura</label><input id="quantidade-pv" class="input-elegante" type="number" min="1" max="1000000" value="1" required></div>
+                <div class="acoes-pv">
+                    <button class="btn-secundario" type="button" onclick="alterarPV('dano')">Aplicar dano</button>
+                    <button class="btn-secundario" type="button" onclick="alterarPV('cura')">Aplicar cura</button>
+                </div>
+                <div class="acoes-modal"><button class="btn-secundario" type="button" onclick="fecharModalPV()">Fechar</button><button class="btn-primario btn-inline" type="submit">Salvar PV</button></div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL DE ATAQUES -->
     <div id="modal-ataque" class="modal-overlay" style="display: none;">
         <div class="modal-conteudo modal-ataque-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-ataque">
@@ -313,9 +353,10 @@
             <form class="form-nivel" onsubmit="salvarNovoNivel(event)">
                 <label class="controle-nivel">
                     <span>Nível do personagem</span>
-                    <div><button type="button" onclick="ajustarNivelModal(-1)">−</button><input id="novo-nivel-personagem" type="number" min="1" max="20" value="1" required><button type="button" onclick="ajustarNivelModal(1)">+</button></div>
+                    <div><button type="button" onclick="ajustarNivelModal(-1)">−</button><input id="novo-nivel-personagem" type="number" min="1" max="20" value="1" oninput="atualizarSubclasseNivelModal()" required><button type="button" onclick="ajustarNivelModal(1)">+</button></div>
                     <small>O nível deve ficar entre 1 e 20.</small>
                 </label>
+                <label class="campo-formulario" id="grupo-subclasse-nivel"><span>Subclasse</span><select id="nova-subclasse-personagem"></select><small id="ajuda-subclasse-nivel"></small></label>
                 <div class="acoes-modal-traco"><button class="btn-secundario" type="button" onclick="fecharModalNivel()">Cancelar</button><button class="btn-primario btn-inline" type="submit">Atualizar nível</button></div>
             </form>
         </div>
@@ -566,8 +607,26 @@
         </div>
     </div>
 
-    <script src="banco_phb.js?v=20260804-2"></script>
-    <script src="talentos_phb.js?v=20260804-2"></script>
-    <script src="app.js?v=20260804-2"></script>
+    <script src="banco_phb.js?v=20261015-1"></script>
+    <script src="talentos_phb.js?v=20261015-1"></script>
+    <script src="dados/opcoes.js?v=20261015-1"></script>
+    <script src="dados/classes.js?v=20261015-1"></script>
+    <script src="dados/auxiliares.js?v=20261015-1"></script>
+    <script src="dados/kits.js?v=20261015-1"></script>
+    <script src="dados/magias-origem.js?v=20261015-1"></script>
+    <script src="dados/magias-1.js?v=20261015-1"></script>
+    <script src="dados/magias-2.js?v=20261015-1"></script>
+    <script src="dados/magias-3.js?v=20261015-1"></script>
+    <script src="dados/magias-4.js?v=20261015-1"></script>
+    <script src="dados/magias-5.js?v=20261015-1"></script>
+    <script src="dados/magias-6.js?v=20261015-1"></script>
+    <script src="js/catalogo.js?v=20261015-1"></script>
+
+    <script src="js/regras.js?v=20261015-1"></script>
+    <script src="js/campanha.js?v=20261015-1"></script>
+    <script src="js/estado.js?v=20261015-1"></script>
+    <script src="js/colecao.js?v=20261015-1"></script>
+    <script src="app.js?v=20261015-1"></script>
+    <script src="js/interface.js?v=20261015-1"></script>
 </body>
 </html>

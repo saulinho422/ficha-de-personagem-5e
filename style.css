@@ -1968,3 +1968,81 @@ button.chip-pendente:hover {
     .card-talento { min-height: 170px; }
     .cabecalho-selecao-talentos { align-items: flex-start; flex-direction: column; }
 }
+/* Primeiro bloco da atualização: recursos e equipamento realmente usado. */
+.alerta-salvamento {
+    max-width: 1160px;
+    margin: 20px auto;
+    padding: 18px;
+    border: 2px solid #a44a32;
+    border-radius: 12px;
+    background: #fff5eb;
+    color: #45241c;
+}
+.alerta-salvamento[hidden], .aviso-armadura[hidden] { display: none; }
+.acoes-recuperacao, .acoes-pv { display: flex; flex-wrap: wrap; gap: 10px; }
+.caixa-percepcao-passiva { flex-wrap: wrap; }
+.situacao-passiva { flex-basis: 100%; display: grid; gap: 5px; font-size: 12px; }
+.situacao-passiva select { width: 100%; min-height: 34px; background: #fff; border: 1px solid #c7c3bd; border-radius: 6px; padding: 5px; }
+.memoria-combate { font-size: 12px; color: #62574c; line-height: 1.5; margin: 8px 2px; }
+.aviso-armadura { font-size: 12px; color: #7b3424; line-height: 1.5; background: #fff0df; padding: 10px; border-radius: 6px; }
+.pv-temporarios { font-size: 13px; margin: 8px 0 12px; }
+.btn-recurso { min-height: 36px; }
+.modal-pv-conteudo { max-width: 520px; }
+.modal-pv-conteudo .acoes-pv { margin: 15px 0; }
+.item-inventario-acoes { display: flex; align-items: center; gap: 7px; }
+.btn-equipar { padding: 5px 8px; min-height: 32px; font-size: 11px; border: 1px solid #8b7355; border-radius: 6px; background: #fff9ef; cursor: pointer; }
+.btn-equipar[aria-pressed="true"] { background: #ead5b6; }
+.pericia-item label { cursor: pointer; }
+.pericia-item input:disabled + .pericia-valor { color: #725537; }
+.traco-inativo { display: inline-block; color: #854632; font-size: 11px; margin-left: 8px; }
+@media (max-width: 600px) {
+    .alerta-salvamento { margin: 10px; }
+    .item-inventario-acoes { flex-wrap: wrap; justify-content: flex-end; }
+    .acoes-recuperacao > button { flex: 1 1 100%; }
+}
+/* Mega atualização — controles compartilhados entre criação e uso em mesa. */
+body { flex-direction: column; align-items: center; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
+.forja-barra { width:100%;max-width:1180px;display:flex;justify-content:space-between;gap:18px;align-items:center;margin:0 auto 22px;padding:18px 22px;background:#fff;border:1px solid #d7dce1;border-radius:14px; }
+.forja-barra strong { font-family:'Cinzel',serif;color:#991b1b;display:block;letter-spacing:.05em;font-size:16px; }
+.forja-barra small { display:block;color:#64748b;font-size:11px;margin-top:5px; }
+.forja-barra nav { display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end; }
+.forja-barra button { padding:9px 12px;font-size:12px;min-height:40px; }
+.forja-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px; }
+.forja-card { padding:20px;border:1px solid #d5dbe2;border-radius:12px;background:#fff;margin:18px 0;min-width:0; }
+.forja-card h3 { font-family:'Cinzel',serif;color:#8e2828;margin-top:0;font-size:18px; }
+.forja-campo { display:flex;flex-direction:column;gap:7px;margin:12px 0;font-size:13px;font-weight:600;min-width:0; }
+.forja-campo input,.forja-campo select,.forja-campo textarea,.forja-catalogo input,input[type=search] { width:100%;min-height:42px;padding:10px 12px;border:1px solid #bdc5d0;border-radius:7px;background:#fff;font:14px 'Roboto',sans-serif;color:#1e293b; }
+.forja-campo textarea { min-height:130px;resize:vertical; }
+.forja-campo-largo { grid-column:1/-1; }
+.forja-nota { font-size:12px;line-height:1.6;color:#64748b; }
+.forja-ok { padding:12px;color:#166534;background:#f0fdf4;border-radius:8px; }
+.forja-recurso { display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #edf0f4;padding:12px 0; }
+.forja-recurso>div { flex:1 1 180px; }.forja-recurso small { display:block;margin:4px 0; }.forja-recurso>.forja-nota { flex-basis:100%; }
+.forja-item-detalhe { display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 0;border-bottom:1px solid #e2e8f0; }
+.forja-item-detalhe>div:first-child,.forja-item-detalhe>strong:first-child { flex:1 1 180px; }.forja-item-detalhe small { display:block;color:#64748b;line-height:1.5; }
+.forja-item-detalhe button { padding:8px 10px;font-size:12px;min-height:36px; }.forja-item-detalhe details { flex-basis:100%; }
+.forja-escolha { border:1px solid #d3dae4;border-radius:9px;margin:16px 0;padding:14px;min-width:0; }
+.forja-escolha legend { color:#722626;font-weight:700;padding:0 7px;font-size:13px; }
+.forja-checks { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px;max-height:260px;overflow:auto;padding:3px; }
+.forja-checks label { display:flex;align-items:center;gap:8px;padding:7px;border-radius:6px;background:#f8fafc;font-size:13px;cursor:pointer;min-height:36px; }
+.forja-checks input { flex:0 0 auto;width:16px;height:16px; }
+.forja-detalhes { padding:14px 0;border-bottom:1px solid #e0e5ec;min-width:0; }.forja-detalhes>summary { cursor:pointer;font-weight:600;line-height:1.5; }.forja-detalhes[open]>summary { margin-bottom:15px;color:#991b1b; }
+.forja-texto { white-space:pre-wrap;font-size:13px;line-height:1.7;overflow-wrap:anywhere; }
+.forja-magia { padding:16px;border:1px solid #e1e5eb;border-radius:10px;margin:12px 0; }.forja-magia h4 { margin:0 0 9px;color:#4c2732; }
+.forja-carteira { display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px; }
+.forja-dados { display:flex;flex-wrap:wrap;gap:10px;padding:10px 0; }.forja-dados>span { padding:10px;background:#f1f5f9;border-radius:8px; }.forja-dados strong,.forja-dados s { margin:0 3px; }.forja-dados s { color:#94a3b8; }
+.forja-retrato { max-width:100%;height:auto;max-height:350px;object-fit:contain;border-radius:9px;display:block;margin:10px 0; }.forja-retrato[hidden]{display:none;}
+.forja-sr { position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap; }
+#forja-dialogo { width:min(860px,94vw);max-height:90vh;border:1px solid #d9dfe6;border-radius:15px;padding:24px;box-shadow:0 24px 80px #17202e44; }
+#forja-dialogo::backdrop { background:#11182799;backdrop-filter:blur(3px); }
+.forja-dialogo-topo { display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #e1e5ed;padding-bottom:12px;margin-bottom:18px; }
+.forja-dialogo-topo h2 { font-family:'Cinzel',serif;color:#8c2020;font-size:21px;margin:0; }
+#forja-dialogo-corpo { overflow-wrap:anywhere; }.forja-sugestao{border-bottom:1px solid #ddd;padding-bottom:10px;}
+#forja-evolucao { margin-top:24px; }#forja-evolucao>input { margin:12px 0; }
+#forja-metodos { display:flex;align-items:center;gap:14px;flex-wrap:wrap; }#forja-metodos .forja-campo{flex:1 1 230px;}
+.progresso-criacao { flex-wrap:wrap;gap:7px; }.passo-indicador { flex:1 1 95px;font-size:11px; }
+.forja-opcoes-regras { margin:10px 0 20px; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible { outline:3px solid #2563eb;outline-offset:3px; }
+@media(max-width:760px){body{padding:12px 8px}.painel{padding:20px 14px;width:100%}.forja-grid{grid-template-columns:1fr}.forja-barra{padding:15px;flex-direction:column;align-items:stretch}.forja-barra nav{justify-content:flex-start}.forja-barra nav button{flex:1 1 100px}.forja-card{padding:15px}.forja-carteira{grid-template-columns:repeat(3,minmax(0,1fr))}.menu-abas{position:sticky;top:0;z-index:30;background:#fff;padding:8px 0;display:flex}.menu-abas button{flex:1 1 0;padding:12px 6px;font-size:12px}.forja-checks{grid-template-columns:1fr 1fr}.forja-item-detalhe{gap:7px}.forja-item-detalhe>strong:first-child{flex-basis:100%}.forja-dialogo-topo h2{font-size:17px}.acoes-etapa{gap:8px}.acoes-etapa button{min-height:44px}#forja-dialogo{padding:16px}.forja-campo-largo{grid-column:auto}.progresso-criacao{justify-content:flex-start}.passo-indicador{flex:0 1 calc(33.333% - 7px)}.item-inventario{flex-wrap:wrap}}
+@media(max-width:380px){.forja-checks{grid-template-columns:1fr}.forja-carteira{grid-template-columns:repeat(2,minmax(0,1fr))}}

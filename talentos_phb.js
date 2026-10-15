@@ -1,183 +1,382 @@
-// talentos_phb.js
-
-// Lista de talentos (feats) adicionada como arquivo separado.
-// Pode ser importado ou mesclado em banco_phb.js se desejar.
-
+// Talentos do perfil 2014, com descrições conferidas no PDF fornecido.
 const talentos = {
   "Adepto Elemental (Elemental Adept)": {
-    preRequisitos: "Capacidade de conjurar pelo menos uma magia",
-    beneficios: "Suas magias ignoram a resistência a um tipo de dano escolhido (ácido, elétrico, fogo, frio ou trovão). Além disso, ao rolar dados de dano desse tipo para uma magia, você pode tratar qualquer resultado 1 como se fosse 2. Pode ser escolhido várias vezes, selecionando elementos diferentes."
+    "id": "elemental-adept",
+    "preRequisitos": "Capacidade de conjurar pelo menos uma magia",
+    "beneficios": "Quando você ganha esse talento, escolha um dos tipos de\ndano a seguir: ácido, elétrico, fogo, frio ou trovão.\nAs magias que você conjurar ignoram resistência a\ndano do tipo escolhido. Além disso, quando você rola o\ndano para uma magia que você conjurar que causar dano\ndesse tipo, você pode tratar qualquer 1 num dado de dano\ncomo um 2.\nVocê pode escolher esse talento diversas vezes. A cada\nvez que o fizer, você deve escolher um tipo diferente de\ndano.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 167
+    }
   },
-
   "Adepto Marcial (Martial Adept)": {
-    beneficios: "Você aprende duas manobras da classe de arquétipo Mestre de Batalha do Guerreiro. Você ganha um dado de superioridade (um d6) para alimentar essas manobras, o qual é recuperado após um descanso curto ou longo."
+    "id": "martial-adept",
+    "preRequisitos": "",
+    "beneficios": "Você tem treinamento marcial que permite a você realizar\nmanobras de combate especiais. Você ganha os seguintes\nbenefícios:\n• Você aprende duas manobras, à sua escolha, das que\nestão disponíveis ao arquétipo Mestre de Batalha na\nclasse guerreiro. Se a manobra que você usar obrigar\num alvo a realizar um teste de resistência, a CD do\nteste de resistência será igual a 8 + seu bônus de\nproficiência + seu modificador de Força ou Destreza (à\nsua escolha).\n• Se você já tiver dados de superioridade, você ganha\num adicional; do contrário, você terá um dado de\nsuperioridade, que é um d6. Esse dado é usado para\nabastecer suas manobras. Um dado de superioridade é\ngasto quando você o usa. Você recupera seus dados de\nsuperioridade gastos quando termina um descanso\ncurto ou longo.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 167
+    }
   },
-
   "Alerta (Alert)": {
-    beneficios: "+5 de bônus em iniciativa. Você não pode ser surpreso enquanto estiver consciente, e criaturas escondidas não ganham vantagem nas jogadas de ataque contra você por estarem ocultas."
+    "id": "alert",
+    "preRequisitos": "",
+    "beneficios": "Sempre a espera de perigo, você ganha os seguintes\nbenefícios:\n• Você recebe +5 de bônus em iniciativa.\n• Você não pode ser surpreso enquanto estiver\nconsciente.\n• Outras criaturas não ganham vantagem nas jogadas\nde ataque contra você por estarem escondidas de você.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 167
+    }
   },
-
   "Ambidestro (Dual Wielder)": {
-    beneficios: "+1 de bônus na CA enquanto estiver empunhando uma arma corpo-a-corpo em cada mão. Permite usar o combate com duas armas mesmo se as armas não forem leves, e permite sacar/guardar duas armas de uma mão ao mesmo tempo."
+    "id": "dual-wielder",
+    "preRequisitos": "",
+    "beneficios": "Você dominou o estilo de luta com duas armas, ganhando\nos seguintes benefícios:\n• Você ganha +1 de bônus na CA enquanto estiver\nempunhando uma arma corpo-a-corpo em cada mão.\n• Você pode usar combater com duas armas mesmo que\nas armas de uma mão que você está empunhando não\nsejam leves.\n• Você pode sacar ou guardar duas armas de uma mão\nquando você, normalmente, seria capaz de sacar ou\nguardar apenas uma.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 167
+    }
   },
-
   "Atacante Bestial (Savage Attacker)": {
-    beneficios: "Uma vez por turno, ao rolar o dano de um ataque corpo-a-corpo com arma, você pode rolar novamente os dados de dano e escolher qual dos dois valores utilizar."
+    "id": "savage-attacker",
+    "preRequisitos": "",
+    "beneficios": "Uma vez por turno, quando você rolar o dano para um\nataque corpo-a-corpo com arma, você pode jogar\nnovamente o dado de dano da arma e usar qualquer dos\nvalores.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 167
+    }
   },
-
   "Atirador Aguçado (Sharpshooter)": {
-    beneficios: "Você domina o uso de armas à distância e consegue realizar disparos extremamente difíceis. (Detalhes adicionais dos benefícios omitidos neste resumo)."
+    "id": "sharpshooter",
+    "preRequisitos": "",
+    "beneficios": "Você dominou o uso de armas à distância e pode realizar\ntiros que seriam impossíveis para outros. Você ganha os\nseguintes benefícios:\n• Atacar um alvo além da distância normal não impõem\ndesvantagem nas suas jogadas de ataque com armas à\ndistância.\n• Seus ataques com armas à distância ignoram meia-\ncobertura e três-quartos de cobertura.\n• Antes de realizar um ataque com uma arma à\ndistância na qual você seja proficiente, você pode\nescolher sofrer –5 de penalidade na jogada de ataque.\nSe o ataque atingir, você adiciona +10 no dano do\nataque.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 167
+    }
   },
-
   "Atirador de Magia (Spell Sniper)": {
-    preRequisitos: "Capacidade de conjurar pelo menos uma magia",
-    beneficios: "Dobra o alcance de suas magias que requerem jogada de ataque. Seus ataques à distância com magia ignoram meia-cobertura e três-quartos de cobertura. Você também aprende um truque de ataque da lista de Bardo, Bruxo, Clérigo, Druida, Feiticeiro ou Mago."
+    "id": "spell-sniper",
+    "preRequisitos": "Capacidade de conjurar pelo menos uma magia",
+    "beneficios": "Você aprendeu técnicas para aprimorar seus ataques com\ncertos tipos de magia, ganhando os seguintes benefícios:\n Quando você conjura uma magia que requer que você\nrealize uma jogada de ataque, o alcance da magia é\ndobrada.\n Seus ataques à distância com magia ignoram meia-\ncobertura ou três-quartos de cobertura.\n Você aprende um truque que requer uma jogada de\nataque. Escolha o truque da lista de magias do bardo,\nbruxo, clérigo, druida, feiticeiro ou mago. Sua\nhabilidade de conjuração para esse truque depende da\nlista de magia a qual você escolheu o truque: Carisma\npara bardo, bruxo ou feiticeiro; Sabedoria para clérigo\nou druida; ou Inteligência para mago.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 167
+    }
   },
-
   "Atleta (Athlete)": {
-    beneficios: "Aumenta Força ou Destreza em 1 (máximo de 20). Levantar-se quando estiver caído consome apenas 1,5 metro de deslocamento. Escalar não custa movimento adicional, e você pode realizar saltos com corrida se movendo apenas 1,5 metro antes."
+    "id": "athlete",
+    "preRequisitos": "",
+    "beneficios": "Você passou por extenso treinamento físico para ganhar\nos seguintes benefícios:\n Aumente seu valor de Força ou Destreza em 1, até o\nmáximo de 20.\n Quando você estiver caído, se levantar requer apenas\n1,5 metro do seu deslocamento.\n Escalar não custa movimento adicional a você.\n Você pode realizar um salto em distância correndo ou\num salto em altura correndo se movendo apenas um\npasso de ajuste de 1,5 metro, ao invés de 3 metros.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 168
+    }
   },
-
   "Ator (Actor)": {
-    beneficios: "Aumenta Carisma em 1 (máximo de 20). Garante vantagem em testes de Atuação e Enganação para se passar por outra pessoa. Permite imitar a voz de outras pessoas ou sons de criaturas que você tenha ouvido por pelo menos 1 minuto."
+    "id": "actor",
+    "preRequisitos": "",
+    "beneficios": "Perito em mimica e dramaturgia, você recebe os seguintes\nbenefícios:\n Aumente seu valor de Carisma em 1, até o máximo de\n20.\n Você tem vantagem em testes de Carisma (Atuação) e\nCarisma (Enganação) quando você estiver tentando se\npassar por uma pessoa diferente.\n Você pode imitar a articulação de outra pessoa ou os\nsons feitos por outras criaturas. Você deve ter ouvido a\npessoa falando ou ouvido a criatura fazendo o som por,\npelo menos, 1 minuto. Um sucesso num teste de\nSabedoria (Intuição) resistido pelo seu teste de\nCarisma (Enganação) permite que um ouvinte\ndetermine que o efeito é falso.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 168
+    }
   },
-
+  "Combatente Montado (Mounted Combatant)": {
+    "id": "mounted-combatant",
+    "preRequisitos": "",
+    "beneficios": "Você é um oponente perigoso de se enfrentar quando está\nmontado. Enquanto estiver montado e não estiver\nincapacitado, você ganha os seguintes benefícios:\n Você tem vantagem nas jogadas de ataque corpo-a-\ncorpo contra qualquer criatura desmontada que seja\nmenor que a sua montaria.\n Você pode forçar que um ataque direcionado a sua\nmontaria seja direcionado a você, em seu lugar.\n Se sua montaria for alvo de um efeito que permita a\nela realizar um teste de resistência de Destreza para\nreduzir o dano à metade, ao invés disso, ela não sofre\nqualquer dano se for bem sucedida no teste de\nresistência, e apenas metade se falhar.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 168
+    }
+  },
   "Conjurador de Guerra (War Caster)": {
-    preRequisitos: "Capacidade de conjurar pelo menos uma magia",
-    beneficios: "Vantagem em testes de resistência de Constituição para manter concentração ao sofrer dano. Permite realizar componentes somáticos mesmo empunhando armas ou escudo. Permite usar uma reação para conjurar uma magia quando uma criatura provoca um ataque de oportunidade por movimento."
+    "id": "war-caster",
+    "preRequisitos": "Capacidade de conjurar pelo menos uma magia",
+    "beneficios": "Você praticou a conjuração de magias no meio do\ncombate, aprendendo técnicas que lhe concedem os\nseguintes benefícios:\n Você tem vantagem em testes de resistência de\nConstituição para manter sua concentração em uma\nmagia quando você sofrer dano.\n Você pode realizar os componentes somáticos de uma\nmagia mesmo quando está com armas ou um escudo\nem uma ou ambas as mãos.\n Quando o movimento de uma criatura hostil provocar\num ataque de oportunidade para você, você pode usar\nsua reação para conjurar uma magia na criatura, ao\ninvés de realizar o ataque de oportunidade. A magia\ndeve ter um tempo de conjuração de 1 ação e deve ter\napenas uma criatura como alvo.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 169
+    }
   },
-
   "Conjurador de Ritual (Ritual Caster)": {
-    preRequisitos: "Inteligência ou Sabedoria 13 ou maior",
-    beneficios: "Você adquire um livro de rituais com duas magias de 1º nível de ritual de uma classe de sua escolha (Bardo, Bruxo, Clérigo, Druida, Feiticeiro ou Mago). Permite transcrever outras magias de rituais encontradas em pergaminhos ou grimórios, gastando tempo e ouro por nível da magia."
+    "id": "ritual-caster",
+    "preRequisitos": "Inteligência ou Sabedoria 13 ou maior",
+    "beneficios": "Você aprendeu um número de magias que você pode\nconjurar como rituais. Essas magias são escritas em um\nlivro de rituais, o qual deve estar em suas mãos enquanto\nvocê conjura uma dessas magias.\nQuando você escolhe esse talento, você adquire um\nlivro de rituais que contem duas magias de 1° nível, à sua\nescolha. Escolha uma das seguintes classes: bardo, bruxo,\nclérigo, druida, feiticeiro ou mago. Você deve escolher\nsuas magias da lista de magias dessa classe e as magias\nescolhidas devem ter o descritor ritual. A classe que você\nescolheu também determina a habilidade de conjuração\ndessas magias: Carisma para bardo, bruxo ou feiticeiro;\nSabedoria para clérigo ou druida; ou Inteligência para\nmago.\nSe você encontrar uma magia na forma escrita, como a\ncontida em um pergaminho de magia ou o grimório de um\nmago, você é capaz de adicioná-la ao seu livro de rituais.\nA magia deve estar na lista de magias da classe escolhida,\no nível da magia não pode ser maior que metade do seu\nnível (arredondado para cima) e deve conter o descritor\nritual. O processo para copiar a magia no seu livro de\nrituais leva 2 horas por nível da magia e custa 50 po por\nnível. O custo representa os componentes materiais que\nvocê gasta para experimentar a magia até dominá-la, bem\ncomo as finas tintas utilizadas para escrevê-la.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 169
+    }
   },
-
   "Curandeiro (Healer)": {
-    beneficios: "Estabilizar uma criatura moribunda com um kit de primeiros-socorros faz com que ela recupere 1 ponto de vida. Com uma ação, você pode gastar um uso do kit para curar uma criatura em 1d6 + 4, mais um adicional igual ao número de Dados de Vida dela (uma vez por descanso curto ou longo por criatura)."
+    "id": "healer",
+    "preRequisitos": "",
+    "beneficios": "Você é um cirurgião capacitado, permitindo que você trate\nde ferimentos rapidamente, trazendo seus aliados de\nvolta à luta. Você adquire os seguintes benefícios:\n Quando você usar um kit de primeiros-socorros para\nestabilizar uma criatura morrendo, a criatura\nrecupera 1 ponto de vida, ao invés disso.\n Com uma ação, você pode gastar um uso do kit de\nprimeiros-socorros para tratar de uma criatura e\nrestaurar 1d6 + 4 pontos de vida mais uma\nquantidade de pontos de vida adicionais igual ao\nnúmero total de Dados de Vida da criatura. A criatura\nnão pode recuperar pontos de vida através desse\ntalento novamente até ter terminado um descanso\ncurto ou longo.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 169
+    }
   },
-
   "Duelista Defensivo (Defensive Duelist)": {
-    preRequisitos: "Destreza 13 ou maior",
-    beneficios: "Ao empunhar uma arma de acuidade na qual seja proficiente, você pode usar sua reação para adicionar seu bônus de proficiência à sua CA contra um ataque corpo-a-corpo."
+    "id": "defensive-duelist",
+    "preRequisitos": "Destreza 13 ou maior",
+    "beneficios": "Quando você estiver empunhando uma arma de acuidade\ncom a qual você seja proficiente e outra criatura atingir\nvocê com um ataque corpo-a-corpo, você pode usar sua\nreação para adicionar seu bônus de proficiência a sua CA\npara esse ataque, potencialmente fazendo o ataque errar.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 169
+    }
   },
-
   "Especialista em Besta (Crossbow Expert)": {
-    beneficios: "Ignora a qualidade de recarga de bestas nas quais você tem proficiência. Estar a 1,5 metro de uma criatura hostil não impõe desvantagem em suas jogadas de ataque à distância. Ao usar a ação de Ataque com arma de uma mão, pode usar ação bônus para atacar com besta de mão."
+    "id": "crossbow-expert",
+    "preRequisitos": "",
+    "beneficios": "Graças a sua pratica extensiva com bestas, você ganha os\nseguintes benefícios:\n Você ignora a qualidade de recarga de bestas nas\nquais você é proficiente.\n Estar a 1,5 metro de uma criatura hostil não impõem\ndesvantagem nas suas jogadas de ataque à distância.\n Quando você usa a ação de Ataque e ataca com uma\narma de uma mão, você pode usar sua ação bônus para\natacar com uma besta de mão carregada que você\nesteja empunhando.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 169
+    }
   },
-
   "Especialista em Briga (Tavern Brawler)": {
-    beneficios: "Aumenta Força ou Constituição em 1 (máximo de 20). Seus ataques desarmados causam 1d4 de dano. Ao atingir uma criatura com ataque desarmado ou arma improvisada no seu turno, pode tentar agarrá-la como ação bônus."
+    "id": "tavern-brawler",
+    "preRequisitos": "",
+    "beneficios": "Acostumado a brigas de bar usando qualquer coisa como\narmas, e na falta, os punhos, você ganha os seguintes\nbenefícios:\n Aumente o valor de Força ou Constituição em 1, até o\nmáximo de 20.\n Seus ataques desarmados causam 1d4 de dano.\n Quando você atinge uma criatura com um ataque\ndesarmado ou com uma arma improvisada, no seu\nturno, você pode usar uma ação bônus para tentar\nagarrar o alvo.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 169
+    }
   },
-
   "Explorador de Cavernas (Dungeon Delver)": {
-    beneficios: "Vantagem em testes de Percepção e Investigação para encontrar portas secretas. Vantagem em testes de resistência e resistência ao dano causado por armadilhas. Permite procurar armadilhas viajando em ritmo normal."
+    "id": "dungeon-delver",
+    "preRequisitos": "",
+    "beneficios": "Alerta às armadilhas escondidas e portas secretas\nencontradas em muitas masmorras, você ganha os\nseguintes benefícios:\n Você tem vantagem em testes de Sabedoria\n(Percepção) e de Inteligência (Investigação) feitos para\ndetectar a presença de portas secretas.\n Você tem vantagem em testes de resistência feitos\npara evitar ou resistir a armadilhas.\n Você tem resistência ao dano causado por armadilhas.\n Você pode procurar armadilhas enquanto viaja a um\nritmo normal, ao invés de metade do ritmo.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 169
+    }
   },
-
   "Imobilizador (Grappler)": {
-    preRequisitos: "Força 13 ou maior",
-    beneficios: "Vantagem em ataques contra criaturas que você tenha agarrado. Você pode tentar realizar um segundo teste para imobilizar a criatura agarrada, deixando ambos na condição impedido."
+    "id": "grappler",
+    "preRequisitos": "Força 13 ou maior",
+    "beneficios": "Você desenvolveu a perícia necessária para se prender a\nalguém em um combate engajado. Você recebe os\nseguintes benefícios:\n Você tem vantagem nas jogadas de ataque contra uma\ncriatura agarrada.\nVocê pode usar sua ação para tentar imobilizar uma\n\ncriatura agarrada por você. Para tanto, realize outro\nteste de agarrar. Se você for bem sucedido, você e a\ncriatura estarão ambos impedidos até o agarre\nterminar.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 169
+    }
   },
-
   "Iniciado em Magia (Magic Initiate)": {
-    beneficios: "Você aprende dois truques e uma magia de 1º nível de uma classe de sua escolha. A magia de 1º nível pode ser conjurada uma vez por descanso longo."
+    "id": "magic-initiate",
+    "preRequisitos": "",
+    "beneficios": "Escolha uma classe: bardo, bruxo, clérigo, druida,\nfeiticeiro ou mago. Você aprende dois truques da lista de\nmagias da classe escolhida.\nAlém disso, escolha uma magia de 1° nível da mesma\nlista. Você aprende essa magia e pode conjura-la com o\nmenor nível possível. Uma vez que a conjure, você precisa\nterminar um descanso longo para poder conjura-la\nnovamente. Essa restrição aplica-se apenas à magia\nadquirida através desse talento.\nSua habilidade de conjuração depende da classe que\nvocê escolher: Carisma para bardo, bruxo ou feiticeiro;\nSabedoria para clérigo ou druida; ou Inteligência para\nmago.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 170
+    }
   },
-
   "Investida Poderosa (Charger)": {
-    beneficios: "Ao usar a ação de Disparada, você pode usar uma ação bônus para fazer um ataque corpo-a-corpo ou empurrar uma criatura. Se mover-se pelo menos 3 metros em linha reta antes dessa ação bônus, ganha +5 no dano do ataque ou empurra o alvo por até 3 metros."
+    "id": "charger",
+    "preRequisitos": "",
+    "beneficios": "Quando você usa a ação de Disparada, você pode usar sua\nação bônus para realizar um ataque corpo-a-corpo com\narma ou para empurrar uma criatura.\nSe você se mover, pelo menos, 3 metros em linha reta,\nimediatamente antes de realizar essa ação bônus, você\npode tanto ganhar +5 de bônus na jogada de dano do\nataque (se você escolher realizar um ataque corpo-a-corpo\ne atingir) ou empurrar o alvo até 3 metros de você (se você\nescolher empurrar e for bem sucedido).",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 170
+    }
   },
-
   "Líder Inspirador (Inspiring Leader)": {
-    preRequisitos: "Carisma 13 ou maior",
-    beneficios: "Você gasta 10 minutos inspirando até 6 companheiros dentro de 9 metros. Cada um ganha pontos de vida temporários igual ao seu nível + seu modificador de Carisma (uma vez por descanso curto ou longo)."
+    "id": "inspiring-leader",
+    "preRequisitos": "Carisma 13 ou maior",
+    "beneficios": "Você pode gastar 10 minutos inspirando seus\ncompanheiros, suportando a vontade deles de lutar.\nQuando fizer isso, escolha até seis criaturas amigáveis\n(que pode incluir você) a até 9 metros de você que possam\nver ou ouvir você e possam te compreender. Cada criatura\nganha pontos de vida temporários igual ao seu nível + seu\nmodificador de Carisma. Uma criatura não pode ganhar\npontos de vida temporários desse talento novamente até\nterminar um descanso curto ou longo.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 170
+    }
   },
-
   "Maestria em Arma de Haste (Polearm Master)": {
-    beneficios: "Oferece técnicas de combate e alcance aprimorado para armas de haste. (Detalhes adicionais omitidos)."
+    "id": "polearm-master",
+    "preRequisitos": "",
+    "beneficios": "Você consegue manter seus inimigos afastados utilizando\narmas de haste. Você ganha os seguintes benefícios:\n Quando você realiza a ação de Ataque e ataca com\numa glaive, alabarda ou bordão, você pode usar uma\nação bônus para realizar um ataque corpo-a-corpo com\na outra extremidade da arma. Esse ataque usa o\nmesmo modificador de habilidade do ataque primário.\nO dado de dano da arma para esse ataque é um d4 e o\nataque causa dano de concussão.\n Enquanto você estiver empunhando uma glaive,\nalabarda, lança longa ou bastão, as outras criaturas\nprovocam um ataque de oportunidade a você quando\nentrarem no seu alcance.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 170
+    }
   },
-
-  "Mestre de Armas Pesadas (Heavy Armor Master)": {
-    beneficios: "Aumenta Força em 1 (máximo de 20). Ao usar uma armadura pesada, reduz em 3 todo dano de concussão, cortante e perfurante recebido de ataques não-mágicos."
+  "Maestria em Armadura Média (Medium Armor Master)": {
+    "id": "medium-armor-master",
+    "preRequisitos": "Proficiência em armadura média",
+    "beneficios": "Você praticou seus movimentos usando armaduras\npesadas para ganhar os seguintes benefícios:\n Vestir uma armadura média não lhe impõe\ndesvantagem em testes de Destreza (Furtividade).\n Quando você estiver vestindo uma armadura média,\nvocê pode adicionar 3, ao invés de 2, à sua CA, se você\ntiver Destreza 16 ou maior.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 170
+    }
   },
-
+  "Maestria em Armadura Pesada (Heavy Armor Master)": {
+    "id": "heavy-armor-master",
+    "preRequisitos": "Proficiência em armadura pesada",
+    "beneficios": "Você pode usar sua armadura para defletir ataques\npotencialmente fatais a outros. Você ganha os seguintes\nbenefícios:\n Aumente seu valor de Força em 1, até o máximo de 20.\n Quando você estiver vestindo uma armadura pesada,\ndano de concussão, cortante e perfurante que você\nreceba de ataques não-mágicos será reduzido em 3.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 170
+    }
+  },
   "Matador de Conjuradores (Mage Slayer)": {
-    beneficios: "Quando uma criatura a 1,5 metro de você conjura uma magia, você pode usar sua reação para atacá-la. Ao causar dano em um conjurador concentrado em magia, ele tem desvantagem no teste para manter a concentração. Vantagem em salvaguardas contra magias conjuradas por criaturas a até 1,5 metro de você."
+    "id": "mage-slayer",
+    "preRequisitos": "",
+    "beneficios": "Você praticou técnicas úteis em combate corpo-a-corpo\ncontra conjuradores, ganhando os seguintes benefícios:\n Quando uma criatura a até 1,5 metro de você conjurar\numa magia, você pode usar sua reação para realizar\num ataque corpo-a-corpo contra ela.\n Quando você causa dano em uma criatura que está se\nconcentrando em uma magia, a criatura terá\ndesvantagem no teste de resistência que ela fizer para\nmanter a concentração.\n Você tem vantagem em testes de resistência contra\nmagias conjuradas por criaturas a até 1,5 metro de\nvocê.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 170
+    }
   },
-
   "Mente Afiada (Keen Mind)": {
-    beneficios: "Aumenta Inteligência em 1 (máximo de 20). Você sempre sabe qual é a direção do norte, o número de horas para o nascer ou pôr do sol, e pode relembrar com precisão qualquer coisa que tenha visto ou ouvido no último mês."
+    "id": "keen-mind",
+    "preRequisitos": "",
+    "beneficios": "Você tem uma mente que pode cronometrar o tempo e\nmemorizar direção e detalhes com precisão absurda. Você\nganha os seguintes benefícios:\n Aumente seu valor de Inteligência em 1, até o máximo\nde 20.\n Você sempre sabe qual a direção do norte.\n Você sempre sabe o número de horas restantes para o\npróximo nascer ou pôr do sol.\n Você pode relembrar, com precisão, qualquer coisa que\nvocê tenha visto ou ouvido no último mês.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 170
+    }
   },
-
   "Mestre de Armas (Weapon Master)": {
-    beneficios: "Aumenta Força ou Destreza em 1 (máximo de 20). Você ganha proficiência com quatro armas simples ou marciais de sua escolha."
+    "id": "weapon-master",
+    "preRequisitos": "",
+    "beneficios": "Você tem praticado extensamente com uma variedade de\narmas, ganhando os seguintes benefícios:\n Aumente o valor de Força ou Destreza em 1, até o\nmáximo de 20.\n Você ganha proficiência com quatro armas simples ou\nmarciais, à sua escolha.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 170
+    }
   },
-
   "Mestre de Armas Grandes (Great Weapon Master)": {
-    beneficios: "Permite desferir golpes devastadores e usar o peso das armas em sua vantagem. (Detalhes adicionais omitidos)."
+    "id": "great-weapon-master",
+    "preRequisitos": "",
+    "beneficios": "Você aprendeu a usar o peso em sua vantagem, deixando\no balanço potencializar seus golpes. Você recebe os\nseguintes benefícios:\n No seu turno, quando você atingir um acerto crítico\ncom uma arma corpo-a-corpo ou reduzir os pontos de\nvida de uma criatura a 0, você pode realizar um\nataque corpo-a-corpo com arma, com uma ação bônus.\n Antes de você realizar um ataque corpo-a-corpo com\numa arma pesada na qual você seja proficiente, você\npode escolher sofrer –5 de penalidade em sua jogada\nde ataque. Se o ataque atingir, você adiciona +10 ao\ndano do ataque.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 171
+    }
   },
-
   "Mestre de Escudos (Shield Master)": {
-    beneficios: "Se você for alvo de um efeito que exija salvaguarda de Destreza para sofrer apenas metade do dano, você pode usar sua reação para interpor o escudo e não sofrer dano caso passe no teste. (Outros benefícios omitidos)."
+    "id": "shield-master",
+    "preRequisitos": "",
+    "beneficios": "Você não usa escudos apenas para proteção, mas também\nde forma ofensiva. Você ganha os seguintes benefícios\nenquanto estiver empunhando um escudo:\n Se você realizar a ação de Ataque no seu turno, você\npode usar uma ação bônus para tentar empurrar uma\ncriatura, a até 1,5 metro de você, com seu escudo.\n Se você não estiver incapacitado, você pode adicionar\nseu bônus de CA do escudo a qualquer teste de\nresistência de Destreza que você fizer contra uma\nmagia ou outro efeito nocivo que tenha você como alvo.\n Se você for alvo de um efeito que permita realizar um\nteste de resistência de Destreza para sofrer apenas\nmetade do dano, você pode usar sua reação para não\nsofrer dano se passar no teste de resistência,\ninterpondo seu escudo entre você e a fonte do efeito.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 171
+    }
   },
-
   "Mobilidade (Mobile)": {
-    beneficios: "Seu deslocamento aumenta em 3 metros. Ao usar Disparada, mover-se por terreno difícil não custa movimento adicional. Ao realizar um ataque corpo-a-corpo contra uma criatura, você não provoca ataques de oportunidade dela pelo resto do turno."
+    "id": "mobile",
+    "preRequisitos": "",
+    "beneficios": "Você é excepcionalmente rápido e ágil. Você ganha os\nseguintes benefícios:\n Seu deslocamento aumenta em 3 metros.\n Quando você usa a ação de Disparada, mover-se\natravés de terreno difícil não lhe custa qualquer\nmovimento adicional neste turno.\n Quando você realiza um ataque corpo-a-corpo contra\numa criatura, você não provoca ataques de\noportunidade para essa criatura pelo resto do turno,\nindependentemente de ter atingido ou não.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 171
+    }
   },
-
   "Observador (Observant)": {
-    beneficios: "Aumenta Inteligência ou Sabedoria em 1 (máximo de 20). Você pode ler os lábios de criaturas falando um idioma que você compreenda. Você recebe +5 de bônus nos valores passivos de Percepção e Investigação."
+    "id": "observant",
+    "preRequisitos": "",
+    "beneficios": "Rápido em perceber os detalhes do ambiente, você ganha\nos seguintes benefícios:\n Aumente seu valor de Inteligência ou Sabedoria em 1,\naté o máximo de 20.\n Se você puder ver a boca de uma criatura enquanto ela\nfala um idioma que você compreende, você pode\ninterpretar o que ela está dizendo ao ler os seus lábios.\n Você tem +5 de bônus nos seus valores passivos de\nSabedoria (Percepção) e Inteligência (Investigação).",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 171
+    }
   },
-
   "Perito (Skilled)": {
-    beneficios: "Você ganha proficiência em qualquer combinação de três perícias ou ferramentas de sua escolha."
+    "id": "skilled",
+    "preRequisitos": "",
+    "beneficios": "Você ganha proficiência em qualquer combinação de três\nperícias ou ferramentas, à sua escolha.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Poliglota (Linguist)": {
-    beneficios: "Aumenta Inteligência em 1 (máximo de 20). Você aprende três idiomas à sua escolha. Permite criar criptogramas escritos que outros só decifram com teste de Inteligência ou mágica."
+    "id": "linguist",
+    "preRequisitos": "",
+    "beneficios": "Você estudou línguas e códigos, ganhando os seguintes\nbenefícios:\n Aumente seu valor de Inteligência em 1, até o máximo\nde 20.\n Você aprende três idiomas, à sua escolha.\n Você é capaz de criar criptogramas escritos. Outros\nnão podem decifrar um código criado por você a não\nser que você os ensine, elas sejam bem sucedidas num\nteste de inteligência (CD igual ao seu valor de\nInteligência + seu bônus de proficiência) ou usem\nmágica para decifrá-lo.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Proteção Leve (Lightly Armored)": {
-    beneficios: "Aumenta Força ou Destreza em 1 (máximo de 20). Você ganha proficiência com armaduras leves."
+    "id": "lightly-armored",
+    "preRequisitos": "",
+    "beneficios": "Você treinou até dominar o uso de armaduras leves,\nganhando os seguintes benefícios:\n Aumente seu valor de Força ou Destreza em 1, até o\nmáximo de 20.\n Você ganha proficiência com armadura leves.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Proteção Moderada (Moderately Armored)": {
-    preRequisitos: "Proficiência em armadura leve",
-    beneficios: "Aumenta Força ou Destreza em 1 (máximo de 20). Você ganha proficiência com armaduras médias e escudos."
+    "id": "moderately-armored",
+    "preRequisitos": "Proficiência em armadura leve",
+    "beneficios": "Você treinou até dominar o uso de armaduras médias e\nescudos, ganhando os seguintes benefícios:\n Aumente seu valor de Força ou Destreza em 1, até o\nmáximo de 20.\n Você ganha proficiência com armadura média e\nescudos.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Proteção Pesada (Heavily Armored)": {
-    preRequisitos: "Proficiência em armadura média",
-    beneficios: "Aumenta Força em 1 (máximo de 20). Você ganha proficiência com armaduras pesadas."
+    "id": "heavily-armored",
+    "preRequisitos": "Proficiência em armadura média",
+    "beneficios": "Você treinou até dominar o uso de armaduras pesadas,\nganhando os seguintes benefícios:\n Aumente seu valor de Força em 1, até o máximo de 20.\n Você ganha proficiência com armadura pesada.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Resiliente (Resilient)": {
-    beneficios: "Escolha um atributo para aumentar em 1 (máximo de 20). Você ganha proficiência nos testes de resistência do atributo escolhido."
+    "id": "resilient",
+    "preRequisitos": "",
+    "beneficios": "Escolha um valor de habilidade. Você ganha os seguintes\nbenefícios:\n Aumente o valor de habilidade escolhido em 1, até o\nmáximo de 20.\n Você ganha proficiência em testes de resistência\nusando a habilidade escolhida.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Resistente (Durable)": {
-    beneficios: "Aumenta Constituição em 1 (máximo de 20). O valor mínimo recuperado ao rolar Dado de Vida para recuperar pontos de vida é igual a duas vezes seu modificador de Constituição (mínimo de 2)."
+    "id": "durable",
+    "preRequisitos": "",
+    "beneficios": "Duro e resistente, você ganha os seguintes benefícios:\n Aumente seu valor de Constituição em 1, até o\nmáximo de 20.\n Quando você rolar um Dado de Vida para recuperar\npontos de vida, o valor mínimo de pontos de vida que\nvocê recupera dessa rolagem será igual a duas vezes\nseu modificador de Constituição (mínimo de 2).",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Robusto (Tough)": {
-    beneficios: "Seu máximo de pontos de vida aumenta em duas vezes o seu nível ao adquirir o talento. Toda vez que subir de nível, você ganha 2 pontos de vida adicionais."
+    "id": "tough",
+    "preRequisitos": "",
+    "beneficios": "Seu máximo de pontos de vida aumenta em um valor\nigual a duas vezes seu nível quando você adquire esse\ntalento. Toda vez que você ganhar um nível, após isso, seu\nmáximo de pontos de vida aumenta em 2 pontos de vida\nadicionais.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Sentinela (Sentinel)": {
-    beneficios: "Atingir uma criatura com ataque de oportunidade zera o deslocamento dela pelo resto do turno. Criaturas provocam ataques de oportunidade de você mesmo usando a ação de Desengajar. Quando uma criatura a até 1,5 metro de você atacar um alvo que não possua esse talento, você pode usar sua reação para fazer um ataque corpo-a-corpo contra o atacante."
+    "id": "sentinel",
+    "preRequisitos": "",
+    "beneficios": "Você domina técnicas para obter vantagem a cada vez que\nqualquer inimigo baixar a guarda, ganhando os seguintes\nbenefícios:\n Quando você atinge uma criatura com um ataque de\noportunidade, o deslocamento da criatura se torna 0\npelo resto do turno.\n As criaturas provocam ataques de oportunidade de\nvocê mesmo se realizarem a ação de Desengajar antes\nde saírem do seu alcance.\n Quando uma criatura a até 1,5 metro de você realizar\num ataque contra um alvo diferente de você (e o alvo\nnão possuir esse talento), você pode usar sua reação\npara realizar um ataque corpo-a-corpo com arma\ncontra a criatura atacante.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Sorrateiro (Skulker)": {
-    preRequisitos: "Destreza 13 ou maior",
-    beneficios: "Você pode tentar se esconder quando estiver levemente obscurecido. Errar um ataque à distância enquanto estiver escondido não revela sua posição. Penumbra não impõe desvantagem em testes de Percepção baseados em visão."
+    "id": "skulker",
+    "preRequisitos": "Destreza 13 ou maior",
+    "beneficios": "Você é especialista em espreitar através das sombras.\nVocê ganha os seguintes benefícios:\n Você pode tentar se esconder quando estiver\nlevemente obscurecido para a criatura de quem você\nestá tentando se esconder.\n Quando você estiver escondido de uma criatura e errar\num ataque à distância contra ela, realizar esse ataque\nnão revelará sua posição.\n Penumbra não impõem desvantagem nos seus testes\nde Sabedoria (Percepção) relacionados a visão.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   },
-
   "Sortudo (Lucky)": {
-    beneficios: "Você ganha 3 pontos de sorte. Pode gastar 1 ponto de sorte para rolar um d20 adicional em jogadas de ataque, testes de habilidade ou testes de resistência, escolhendo qual dado utilizar. Pontos são restaurados após um descanso longo."
+    "id": "lucky",
+    "preRequisitos": "",
+    "beneficios": "Você tem uma sorte inexplicável que parece surgir nos\nmomentos exatos.\nVocê tem 3 pontos de sorte. A qualquer momento que\nvocê realizar uma jogada de ataque, teste de habilidade\nou teste de resistência, você pode gastar um ponto de\nsorte para rolar um d20 adicional. Você pode escolher\ngastar um dos seus pontos de sorte depois de rolar o dado,\nmas antes de saber o resultado da jogada. Você escolhe\nqual dos d20s irá usar para a jogada de ataque, teste de\nhabilidade ou teste de resistência.\nVocê também pode gastar um ponto de sorte quando\numa jogada de ataque for feita contra você. Role um d20,\ne então escolha se o ataque irá usar a jogada do atacante\nou a sua.\nSe mais de uma criatura gastar um ponto de sorte\npara influenciar uma mesma jogada, os pontos se\ncancelam mutuamente; nenhum dado adicional é rolado.\nVocê recupera seus pontos de sorte gastos após\nterminar um descanso longo.",
+    "referencia": {
+      "livro": "LDJ fornecido",
+      "pagina": 172
+    }
   }
 };
-
-// Para uso com CommonJS/Node: module.exports = talentos;
-// Para uso em browser, pode-se importar o arquivo diretamente e acessar a variável 'talentos'.
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = talentos;
-}
+if(typeof module!=="undefined"&&module.exports)module.exports=talentos;
