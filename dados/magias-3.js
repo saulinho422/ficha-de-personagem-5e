@@ -458,7 +458,7 @@
   },
   {
     "id": "magia-falar-com-plantas",
-    "nome": "Falar Com Plantas",
+    "nome": "Falar com Plantas",
     "nivel": 3,
     "escola": "transmutação",
     "tempo": "1 ação",

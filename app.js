@@ -2379,6 +2379,7 @@ function salvarPV(evento) {
     const recursos = lerEdicaoPV();
     if (!recursos) return;
     recursosPersonagem = recursos;
+    ForjaInterface.aposPV();
     atualizarDisplayPV(); salvarEstado(); fecharModalPV();
 }
 
@@ -2392,7 +2393,7 @@ function alterarPV(tipo) {
     }
     if (tipo === 'dano') ForjaInterface.aoSofrerDano(quantidade, recursos);
     recursosPersonagem = tipo === 'dano' ? ForjaRegras.aplicarDano(recursos, quantidade)
-        : ForjaRegras.aplicarCura(recursos, quantidade, Number(document.getElementById('display-hp-max').textContent));
+        : ForjaInterface.registrarCura(quantidade, recursos);
     ForjaInterface.aposPV();
     atualizarDisplayPV(); preencherEdicaoPV(); salvarEstado();
 }
@@ -2402,7 +2403,7 @@ function configurarDialogoPV() {
     modal.addEventListener('keydown', evento => {
         if (evento.key === 'Escape') { evento.preventDefault(); fecharModalPV(); }
         if (evento.key !== 'Tab') return;
-        const campos = [...modal.querySelectorAll('button, input')].filter(campo => !campo.disabled);
+        const campos = [...modal.querySelectorAll('button, input, select, textarea, summary')].filter(campo => !campo.disabled);
         const primeiro = campos[0], ultimo = campos[campos.length - 1];
         if (evento.shiftKey && document.activeElement === primeiro) { evento.preventDefault(); ultimo.focus(); }
         else if (!evento.shiftKey && document.activeElement === ultimo) { evento.preventDefault(); primeiro.focus(); }

@@ -1,8 +1,8 @@
-(function(r,f){const api=f();if(typeof module!=='undefined'&&module.exports)module.exports=api;else{r.ForjaCatalogo=api;api.preparar(bancoDnD,r.ForjaOpcoes,r.ForjaClasses);}})(globalThis,function(){
+(function(r,f){const api=f();if(typeof module!=='undefined'&&module.exports)module.exports=api;else{r.ForjaCatalogo=api;api.preparar(bancoDnD,r.ForjaOpcoes,r.ForjaClasses,r.ForjaAventura);}})(globalThis,function(){
 'use strict';
 const id=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const aliases={'Artisao da Guilda':'Artesão da Guilda','Orfao':'Órfão','Caçador':'Conclave do Caçador','Mestre das Feras':'Conclave da Besta'};
-function preparar(banco,opcoes,progressao){
+function preparar(banco,opcoes,progressao,aventura={}){
  for(const [de,para]of Object.entries(aliases)){if(banco.antecedentes[de]){banco.antecedentes[para]=banco.antecedentes[de];delete banco.antecedentes[de];}}
  banco.racas.Anão.proficienciasFerramentas=[];
  banco.classes.Bardo.proficienciasFerramentas=[];banco.classes.Monge.proficienciasFerramentas=[];
@@ -25,6 +25,8 @@ function preparar(banco,opcoes,progressao){
  for(const [grupo,colecao]of [['raca',banco.racas],['classe',banco.classes],['antecedente',banco.antecedentes]])for(const [nome,dado]of Object.entries(colecao)){dado.id=dado.id||grupo+'-'+id(nome);dado.nome=nome;dado.referencia=dado.referencia||{livro:'LDJ fornecido',pagina:grupo==='classe'?progressao.classes[nome]?.pagina:grupo==='raca'?17:125};for(const [sub,valor]of Object.entries(dado.subracas||{})){valor.id='subraca-'+id(sub);valor.nome=sub;}}
  banco.equipamentos.ferramentas=opcoes.ferramentas;
  banco.equipamentos.veiculos=opcoes.veiculos;
+ banco.equipamentos.bens=(aventura.bens||[]).map(([nome,preco,peso])=>({id:'item-'+id(nome),nome,preco,peso,grupo:'bem'}));
+ banco.equipamentos.arreios=(aventura.arreios||[]).map(([nome,preco,peso])=>({id:'item-'+id(nome),nome,preco,peso,grupo:'arreio'}));
  for(const extra of opcoes.extras)if(!banco.equipamentos.equipamento_aventura.some(x=>(x.item||x.nome)===extra.nome))banco.equipamentos.equipamento_aventura.push({...extra,item:extra.nome,custo:extra.preco});
  for(const grupo of ['armas','armaduras'])for(const [sub,lista]of Object.entries(banco.equipamentos[grupo]))for(const item of lista){item.id=(grupo==='armas'?'arma-':'armadura-')+id(item.nome);item.subtipo=sub;}
  for(const grupo of ['equipamento_aventura','ferramentas','veiculos'])for(const item of banco.equipamentos[grupo])item.id='item-'+id(item.nome||item.item);
@@ -34,6 +36,6 @@ function preparar(banco,opcoes,progressao){
  }
  return banco;
 }
-function itens(banco){const arr=[];for(const g of ['armas','armaduras'])for(const [sub,lista]of Object.entries(banco.equipamentos[g]))for(const item of lista)arr.push({...item,tipo:g,subtipo:sub});for(const g of ['equipamento_aventura','ferramentas','veiculos'])for(const item of banco.equipamentos[g]||[])arr.push({...item,nome:item.nome||item.item,preco:item.preco||item.custo,tipo:g});return arr;}
+function itens(banco){const arr=[];for(const g of ['armas','armaduras'])for(const [sub,lista]of Object.entries(banco.equipamentos[g]))for(const item of lista)arr.push({...item,tipo:g,subtipo:sub});for(const g of ['equipamento_aventura','ferramentas','veiculos','bens','arreios'])for(const item of banco.equipamentos[g]||[])arr.push({...item,nome:item.nome||item.item,preco:item.preco||item.custo,tipo:g});return arr;}
 return {id,aliases,preparar,itens};
 });

@@ -16,6 +16,7 @@
 
     function validar(estado) {
         if (!objeto(estado) || estado.schemaVersion !== VERSION) throw new Error('Versão da ficha inválida ou não suportada.');
+        if (estado.ruleset !== 'ldj-2014-patrulheiro-revisado') throw new Error('Perfil de regras inválido ou incompatível.');
         if (!objeto(estado.atributos) || !objeto(estado.recursos) || !objeto(estado.equipamento) || !objeto(estado.periciasManuais)) throw new Error('A ficha está incompleta.');
         if (!Number.isInteger(estado.nivel) || estado.nivel < 1 || estado.nivel > 20) throw new Error('Nível inválido.');
         for (const sigla of Object.keys(regras.ATRIBUTOS)) {
@@ -43,6 +44,7 @@
             if (!objeto(traco) || typeof traco.id !== 'string' || typeof traco.nome !== 'string' || typeof traco.tipo !== 'string' || typeof traco.descricao !== 'string') throw new Error('Característica inválida.');
             if (traco.bonusAtributo && (!objeto(traco.bonusAtributo) || !(traco.bonusAtributo.sigla in regras.ATRIBUTOS) || traco.bonusAtributo.quantidade !== 1)) throw new Error('Bônus de talento inválido.');
         }
+        if (new Set(estado.tracos.map(traco => traco.id)).size !== estado.tracos.length) throw new Error('Características com identificadores repetidos.');
         for (const progresso of estado.progressosResolvidos) {
             if (!objeto(progresso) || !Number.isInteger(progresso.nivel) || progresso.nivel < 1 || progresso.nivel > 20 || typeof progresso.classe !== 'string' || !['atributos', 'talento'].includes(progresso.tipo)) throw new Error('Progressão inválida.');
             if (progresso.tipo === 'atributos' && (!objeto(progresso.incrementos) || Object.entries(progresso.incrementos).some(([sigla, valor]) => !(sigla in regras.ATRIBUTOS) || ![1, 2].includes(valor)))) throw new Error('Incremento inválido.');
@@ -53,6 +55,10 @@
         for (const ataque of estado.ataques) {
             if (!objeto(ataque) || typeof ataque.nomeArma !== 'string' || typeof ataque.id !== 'string') throw new Error('Ataque inválido.');
         }
+        if (new Set(estado.ataques.map(ataque => ataque.id)).size !== estado.ataques.length) throw new Error('Ataques com identificadores repetidos.');
+        if (new Set(estado.progressosResolvidos.map(p => p.classe + ':' + p.nivel)).size !== estado.progressosResolvidos.length) throw new Error('Progressões repetidas para o mesmo nível de classe.');
+        const equipados = Object.values(estado.detalhes?.equipados || {}).filter(Boolean);
+        if (equipados.some(id => !ids.includes(id))) throw new Error('Item empunhado não existe no inventário.');
         if (estado.periciasClasse.some(nome => typeof nome !== 'string')) throw new Error('Perícia inválida.');
         if (estado.especializacoes && (!Array.isArray(estado.especializacoes) || estado.especializacoes.some(nome => typeof nome !== 'string'))) throw new Error('Especialização inválida.');
         if (Object.values(estado.periciasManuais).some(valor => typeof valor !== 'boolean')) throw new Error('Proficiência manual inválida.');

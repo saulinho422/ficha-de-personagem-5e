@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const raiz=path.resolve(__dirname,'..');
 const R=require('../js/regras.js'),F=require('../js/campanha.js'),E=require('../js/estado.js');
 const banco=vm.runInNewContext(fs.readFileSync(path.join(raiz,'banco_phb.js'),'utf8')+';bancoDnD;');
-require('../js/catalogo.js').preparar(banco,require('../dados/opcoes.js'),require('../dados/classes.js'));
+require('../js/catalogo.js').preparar(banco,require('../dados/opcoes.js'),require('../dados/classes.js'),require('../dados/aventura.js'));
 const magias=fs.readdirSync(path.join(raiz,'dados')).filter(x=>/^magias-\d+\.js$/.test(x)).flatMap(x=>require('../dados/'+x));
 function ficha(over={}){return {schemaVersion:3,ruleset:'ldj-2014-patrulheiro-revisado',nome:'Lia',nivel:1,raca:'Elfo',subraca:'Elfo da Floresta',classe:'Mago',subclasse:'',alinhamento:'Neutro e Bom',antecedente:'Sábio',atributos:{for:8,des:14,con:13,int:15,sab:10,car:12},tracos:[],progressosResolvidos:[],periciasClasse:['Arcanismo','Investigação'],periciasManuais:{},especializacoes:[],proficienciasAdicionais:[],percepcaoSituacao:'normal',inventario:[],ataques:[],recursos:{pvAtual:null,pvTemporarios:0},equipamento:{armadura:null,escudo:null},detalhes:F.novo(),tracosAutomaticosExpandidos:[],fichaGerada:true,...over};}
 class Storage{constructor(dados={}){this.dados=new Map(Object.entries(dados));this.falhar=null;}getItem(k){return this.dados.has(k)?this.dados.get(k):null;}setItem(k,v){if(this.falhar?.(k,v))throw Error('QuotaExceededError');this.dados.set(k,String(v));}removeItem(k){this.dados.delete(k);}}
