@@ -98,8 +98,8 @@ Esta matriz liga os 98 requisitos do plano à implementação. “Automático”
 | Q04 | Automático | Salvamento incremental e falhas sem apagar a cópia boa. |
 | Q05 | Automático | Impressão selecionável em três grupos e quebra A4. |
 | Q06 | Automático | Exportação/importação e backup completo. |
-| Q07 | Automático | 88 testes de regras, persistência e DOM. |
-| Q08 | Automático | 11 cenários em Chromium no CI. |
+| Q07 | Automático | 91 testes de regras, persistência e DOM. |
+| Q08 | Automático | 12 cenários em Chromium no CI, incluindo hub e navegação mobile. |
 | Q09 | Assistido | Relatório/capturas/PDF do navegador publicados como artefato. |
 | Q10 | Conteúdo | README, implementação, plano e esta matriz mantidos no repositório. |
 

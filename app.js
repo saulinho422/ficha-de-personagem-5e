@@ -317,6 +317,7 @@ window.onload = function() {
     ForjaInterface.iniciar();
     restaurarEstado();
     ForjaInterface.renderizar();
+    ForjaInterface.abrirHubInicial();
 };
 
 function carregarOpcoes() {
@@ -2053,6 +2054,20 @@ function obterTracosAutomaticos() {
         });
     }
 
+    ForjaCampanha.caracteristicas(contextoDaFicha(), bancoDnD).forEach((caracteristica, indice) => {
+        const id = 'automatico-classe-' + normalizarIdTraco(caracteristica.fonte + '-' + caracteristica.nivel + '-' + caracteristica.nome + '-' + indice);
+        automaticos.push({
+            id,
+            nome: caracteristica.nome,
+            tipo: 'classe',
+            descricao: caracteristica.descricao,
+            meta: caracteristica.fonte + ' • nível ' + caracteristica.nivel,
+            bloqueado: true,
+            automatico: true,
+            expandido: tracosAutomaticosExpandidos.has(id)
+        });
+    });
+
     return automaticos;
 }
 
@@ -2149,6 +2164,12 @@ function renderizarTracos() {
         }
         const descricao = document.createElement('p');
         descricao.textContent = traco.descricao;
+        if (traco.meta) {
+            const meta = document.createElement('small');
+            meta.className = 'meta-traco';
+            meta.textContent = traco.meta;
+            detalhes.append(meta);
+        }
         detalhes.append(descricao);
 
         item.append(cabecalho, detalhes);

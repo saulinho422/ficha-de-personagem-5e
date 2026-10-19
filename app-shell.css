@@ -1,0 +1,332 @@
+:root {
+    --forja-vinho: #7f1d2d;
+    --forja-vinho-escuro: #4f101d;
+    --forja-vinho-claro: #a73d4e;
+    --forja-ouro: #c7943e;
+    --forja-tinta: #241f1d;
+    --forja-muted: #756b65;
+    --forja-papel: #fffdf9;
+    --forja-fundo: #f4efe8;
+    --forja-linha: #e5dbcf;
+    --forja-sombra: 0 12px 32px rgba(62, 36, 28, .09);
+    --forja-raio: 18px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+    min-height: 100vh;
+    color: var(--forja-tinta);
+    background:
+        radial-gradient(circle at 10% 0%, rgba(199, 148, 62, .11), transparent 28rem),
+        linear-gradient(180deg, #fbf8f3 0, var(--forja-fundo) 100%);
+}
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: .27;
+    background-image: linear-gradient(rgba(127, 29, 45, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(127, 29, 45, .025) 1px, transparent 1px);
+    background-size: 30px 30px;
+}
+
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; }
+button { transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, border-color .16s ease; }
+button:not(:disabled):active { transform: translateY(1px) scale(.99); }
+.btn-primario, .forja-acao-principal {
+    color: #fff !important;
+    border: 1px solid var(--forja-vinho) !important;
+    background: linear-gradient(135deg, var(--forja-vinho-claro), var(--forja-vinho-escuro)) !important;
+    box-shadow: 0 8px 18px rgba(127, 29, 45, .18);
+}
+.btn-secundario {
+    color: #4d2926;
+    border: 1px solid #d8c9bc;
+    border-radius: 10px;
+    background: rgba(255, 253, 249, .94);
+}
+.btn-secundario:not(:disabled):hover { border-color: #b69175; background: #fff8ed; box-shadow: 0 5px 14px rgba(83, 48, 35, .08); }
+button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none !important; }
+
+.input-elegante,
+.forja-campo input,
+.forja-campo textarea,
+.forja-campo select,
+.grupo-input input,
+.grupo-input select,
+input[type="search"] {
+    border: 1px solid #d5c8bb !important;
+    border-radius: 12px !important;
+    color: var(--forja-tinta) !important;
+    background-color: #fffdfa !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 2px 6px rgba(74, 44, 33, .035);
+    transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+.input-elegante:focus,
+.forja-campo input:focus,
+.forja-campo textarea:focus,
+.forja-campo select:focus,
+.grupo-input input:focus,
+.grupo-input select:focus,
+input[type="search"]:focus {
+    border-color: var(--forja-vinho-claro) !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 4px rgba(167, 61, 78, .11) !important;
+    outline: none !important;
+}
+select.input-elegante,
+.forja-campo select,
+.grupo-input select,
+.situacao-passiva select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 42px !important;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--forja-vinho) 50%),
+        linear-gradient(135deg, var(--forja-vinho) 50%, transparent 50%),
+        linear-gradient(to right, #eadfd4, #eadfd4) !important;
+    background-position:
+        calc(100% - 19px) 50%,
+        calc(100% - 13px) 50%,
+        calc(100% - 38px) 50% !important;
+    background-size: 6px 6px, 6px 6px, 1px 60% !important;
+    background-repeat: no-repeat !important;
+}
+
+.forja-barra {
+    border-color: rgba(127, 29, 45, .12);
+    border-radius: var(--forja-raio);
+    background: rgba(255, 253, 249, .88);
+    box-shadow: var(--forja-sombra);
+    backdrop-filter: blur(14px);
+}
+.forja-barra strong { color: var(--forja-vinho); font-size: 17px; }
+.forja-barra nav button { border-radius: 999px; }
+.painel {
+    max-width: 1240px;
+    border: 1px solid rgba(127, 29, 45, .1);
+    border-radius: 24px;
+    background: rgba(255, 253, 249, .95);
+    box-shadow: var(--forja-sombra);
+}
+.cabecalho-ficha { padding: 22px; border: 1px solid var(--forja-linha); border-radius: 18px; background: linear-gradient(135deg, #fffaf2, #fff); }
+.nome-personagem { color: var(--forja-vinho-escuro); letter-spacing: -.02em; }
+.menu-abas { gap: 8px; padding: 6px; border: 1px solid var(--forja-linha); border-radius: 14px; background: #f4ece3; }
+.menu-abas .btn-aba { border-radius: 10px; border: 0; }
+.menu-abas .btn-aba.ativa { color: #fff; background: linear-gradient(135deg, var(--forja-vinho-claro), var(--forja-vinho-escuro)); box-shadow: 0 7px 16px rgba(127, 29, 45, .18); }
+.dnd-grid-principal { grid-template-columns: minmax(220px,.78fr) minmax(300px,1.02fr) minmax(330px,1.12fr); gap: 18px; align-items: start; }
+.coluna-esquerda, .coluna-meio, .coluna-direita { min-width: 0; gap: 14px; }
+.coluna-meio #forja-sessao, .coluna-direita #forja-inventario-extra { grid-template-columns: 1fr; gap: 14px; }
+.caixa-equipamentos { display: none; }
+.caixa-generica, .caixa-hp, .lista-habilidades, .caixa-proficiencias-automaticas, .caixa-percepcao-passiva, .forja-card, .caixa-destaque {
+    border-color: var(--forja-linha) !important;
+    border-radius: 16px !important;
+    background: var(--forja-papel) !important;
+    box-shadow: 0 5px 18px rgba(66, 38, 29, .055);
+}
+.forja-card { margin: 0; padding: 18px; }
+.forja-card h3 { margin-bottom: 12px; color: var(--forja-vinho-escuro); font-size: 16px; }
+#forja-resumo { margin: 12px 0; }
+#forja-resumo .forja-detalhes, #forja-resumo .forja-ok { margin: 0; }
+#forja-escolhas { margin-top: 18px; }
+#forja-evolucao { margin-top: 14px; padding: 18px; border: 1px solid var(--forja-linha); border-radius: 16px; background: var(--forja-papel); }
+#forja-evolucao > h3 { margin: 0 0 8px; color: var(--forja-vinho-escuro); font-family: 'Cinzel', serif; font-size: 16px; }
+.grid-status-combate { gap: 9px; }
+.combate-box { border: 1px solid #eadfd4; border-radius: 14px; background: linear-gradient(180deg,#fff,#fbf3e9); }
+.combate-valor { color: var(--forja-vinho-escuro); }
+.caixa-hp { background: linear-gradient(145deg, #fffafa, #fff7f0) !important; }
+.forja-recurso { padding: 10px 0; }
+.forja-item-detalhe { align-items: flex-start; }
+.item-traco { border-radius: 12px; border: 1px solid #eadfd5; overflow: hidden; margin-bottom: 8px; }
+.item-traco-cabecalho { padding: 12px; background: #fffaf4; }
+.detalhes-traco { padding: 0 12px 13px; }
+.meta-traco { display: block; margin: 6px 0; color: var(--forja-vinho); font-weight: 700; }
+
+.forja-morte { background: linear-gradient(145deg,#fffdf9,#fbf6f1) !important; }
+.forja-estado-morte { margin: 0 0 12px; color: var(--forja-muted); font-size: 12px; line-height: 1.5; }
+.forja-morte-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; }
+.forja-morte-linha > strong { font-size: 13px; }
+.forja-morte-pontos { display: flex; gap: 9px; }
+.forja-morte-ponto {
+    width: 35px;
+    min-height: 35px !important;
+    padding: 0 !important;
+    border: 2px solid #d8c7bb !important;
+    border-radius: 50% !important;
+    color: transparent !important;
+    background: #fff !important;
+    box-shadow: inset 0 0 0 4px #fff;
+}
+.forja-morte-ponto.marcado { border-color: var(--forja-vinho) !important; background: var(--forja-vinho) !important; }
+
+.forja-mobile-topo, .forja-mobile-nav { display: none; }
+
+/* Hub de personagens */
+.modo-hub { align-items: stretch; padding: 0; }
+.forja-hub { width: 100%; min-height: 100vh; padding: clamp(24px,5vw,64px); }
+.forja-hub-cabecalho { max-width: 1180px; margin: 0 auto 30px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; }
+.forja-hub-marca { display: block; color: var(--forja-vinho); font-family: 'Cinzel',serif; font-size: 12px; font-weight: 700; letter-spacing: .16em; }
+.forja-hub-cabecalho h1 { margin: 8px 0 5px; color: var(--forja-vinho-escuro); font-family: 'Cinzel',serif; font-size: clamp(30px,4vw,48px); }
+.forja-hub-cabecalho p { margin: 0; color: var(--forja-muted); }
+.forja-hub-acoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.forja-hub-acoes button { min-height: 44px; padding: 10px 16px; }
+.forja-herois-grade { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill,minmax(270px,1fr)); gap: 20px; }
+.forja-heroi-card { overflow: hidden; border: 1px solid rgba(127,29,45,.12); border-radius: 22px; background: rgba(255,253,249,.96); box-shadow: var(--forja-sombra); transition: transform .2s ease, box-shadow .2s ease; }
+.forja-heroi-card:hover { transform: translateY(-3px); box-shadow: 0 18px 42px rgba(62,36,28,.14); }
+.forja-heroi-visual { position: relative; height: 190px; overflow: hidden; background: linear-gradient(145deg,#571322,#9c3747); }
+.forja-heroi-visual img { width: 100%; height: 100%; object-fit: cover; }
+.forja-heroi-monograma { display: grid; place-items: center; width: 100%; height: 100%; color: rgba(255,255,255,.92); font-family: 'Cinzel',serif; font-size: 72px; background: radial-gradient(circle at 25% 10%,rgba(255,255,255,.18),transparent 34%); }
+.forja-heroi-nivel { position: absolute; right: 13px; bottom: 13px; padding: 6px 10px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; color: #fff; font-size: 11px; font-weight: 700; background: rgba(38,13,17,.72); backdrop-filter: blur(8px); }
+.forja-heroi-corpo { padding: 18px; }
+.forja-heroi-corpo small { color: var(--forja-muted); }
+.forja-heroi-corpo h2 { margin: 6px 0; color: var(--forja-vinho-escuro); font-family: 'Cinzel',serif; font-size: 22px; }
+.forja-heroi-corpo p { margin: 0; color: #594d47; }
+.forja-heroi-status { display: flex; gap: 8px; margin-top: 16px; }
+.forja-heroi-status span { flex: 1; padding: 9px 10px; border-radius: 10px; color: var(--forja-muted); font-size: 12px; background: #f6eee5; }
+.forja-heroi-status strong { color: var(--forja-vinho-escuro); }
+.forja-heroi-acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 0 18px 18px; }
+.forja-heroi-acoes .forja-acao-principal { grid-column: 1/-1; min-height: 44px; }
+.forja-hub-vazio { grid-column: 1/-1; min-height: 340px; display: grid; place-items: center; align-content: center; text-align: center; padding: 36px; border: 1px dashed #c9aa92; border-radius: 22px; background: rgba(255,253,249,.72); }
+.forja-hub-vazio > span { color: var(--forja-ouro); font-size: 42px; }
+.forja-hub-vazio h2 { margin-bottom: 6px; color: var(--forja-vinho-escuro); font-family: 'Cinzel',serif; }
+.forja-hub-vazio p { max-width: 430px; color: var(--forja-muted); }
+.forja-hub-lixeira { max-width: 1180px; margin: 24px auto 0; padding: 16px; border-radius: 14px; background: rgba(255,253,249,.78); }
+.forja-lixeira-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; }
+
+@media (max-width: 900px) {
+    .dnd-grid-principal { grid-template-columns: 1fr 1fr; }
+    .coluna-direita { grid-column: 1/-1; display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+    .coluna-direita #forja-inventario-extra { grid-template-columns: 1fr; }
+}
+
+/* Experiência própria de aplicativo para celular */
+@media (max-width: 760px) {
+    :root { --forja-raio: 17px; }
+    html { background: #f6f0e8; }
+    body { display: block; width: 100%; padding: 0 0 calc(78px + env(safe-area-inset-bottom)); overflow-x: hidden; background: #f6f0e8; }
+    body::before { opacity: .15; background-size: 24px 24px; }
+    .forja-barra { display: none !important; }
+    .forja-mobile-topo {
+        position: sticky;
+        top: 0;
+        z-index: 80;
+        width: 100%;
+        min-height: calc(62px + env(safe-area-inset-top));
+        padding: calc(9px + env(safe-area-inset-top)) 12px 9px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: #fff;
+        background: rgba(79,16,29,.96);
+        box-shadow: 0 7px 22px rgba(45,17,23,.23);
+        backdrop-filter: blur(16px);
+    }
+    body:not(.modo-hub):has(#ficha-completa[style*="display: block"]:not([hidden])) .forja-mobile-topo,
+    body:not(.modo-hub):has(#ficha-completa[style*="display: block"]:not([hidden])) .forja-mobile-nav { display: flex; }
+    .forja-mobile-topo > div { min-width: 0; flex: 1; }
+    .forja-mobile-topo small { display: block; opacity: .65; font-size: 9px; letter-spacing: .11em; }
+    .forja-mobile-topo strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Cinzel',serif; font-size: 15px; }
+    .forja-mobile-topo button { width: 42px; min-width: 42px; min-height: 42px; padding: 0; border: 1px solid rgba(255,255,255,.14); border-radius: 13px; color: #fff; background: rgba(255,255,255,.08); }
+    .forja-mobile-voltar { font-size: 28px !important; }
+    .forja-mobile-nav {
+        position: fixed;
+        right: 10px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        left: 10px;
+        z-index: 90;
+        min-height: 62px;
+        padding: 6px;
+        gap: 4px;
+        border: 1px solid rgba(255,255,255,.2);
+        border-radius: 20px;
+        background: rgba(52,18,25,.95);
+        box-shadow: 0 16px 38px rgba(42,18,23,.34);
+        backdrop-filter: blur(18px);
+    }
+    .forja-mobile-nav button { flex: 1; min-width: 0; min-height: 50px; padding: 22px 3px 5px; border: 0; border-radius: 14px; color: rgba(255,255,255,.67); font-size: 10px; font-weight: 700; background: transparent; box-shadow: none; position: relative; }
+    .forja-mobile-nav button::before { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); font-size: 16px; }
+    .forja-mobile-nav button:nth-child(1)::before { content: "◈"; }
+    .forja-mobile-nav button:nth-child(2)::before { content: "✎"; }
+    .forja-mobile-nav button:nth-child(3)::before { content: "✦"; }
+    .forja-mobile-nav button:nth-child(4)::before { content: "♟"; }
+    .forja-mobile-nav button.ativo { color: #fff; background: rgba(255,255,255,.12); }
+
+    .painel { width: 100%; max-width: none; margin: 0; padding: 14px 12px 22px; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+    #ficha-completa { padding-bottom: 18px; }
+    .menu-abas { display: none !important; }
+    .cabecalho-ficha { margin-bottom: 12px; padding: 15px; border: 0; border-radius: 18px; color: #fff; background: linear-gradient(145deg,#7f1d2d,#4f101d); box-shadow: 0 10px 24px rgba(79,16,29,.2); }
+    .nome-personagem { color: #fff; font-size: 24px; }
+    .info-personagem { color: rgba(255,255,255,.82); line-height: 1.45; }
+    .acoes-nivel { align-items: center; }
+    .btn-gerenciar-nivel, .btn-notificacoes-nivel { border-color: rgba(255,255,255,.2) !important; color: #fff !important; background: rgba(255,255,255,.1) !important; }
+    #forja-resumo { margin: 0 0 10px; }
+    .dnd-grid-principal { display: flex; flex-direction: column; gap: 12px; }
+    .coluna-meio { order: 1; }
+    .coluna-esquerda { order: 2; }
+    .coluna-direita { order: 3; display: flex; }
+    .coluna-esquerda, .coluna-meio, .coluna-direita { width: 100%; gap: 12px; }
+    .coluna-meio #forja-sessao, .coluna-direita #forja-inventario-extra { gap: 12px; }
+    .forja-card, .caixa-generica, .caixa-hp, .lista-habilidades, .caixa-proficiencias-automaticas, .caixa-percepcao-passiva, .caixa-destaque { border: 0 !important; border-radius: 18px !important; box-shadow: 0 7px 20px rgba(67,40,31,.07); }
+    .forja-card { padding: 15px; }
+    .grid-status-combate { position: sticky; top: calc(63px + env(safe-area-inset-top)); z-index: 20; padding: 7px; border-radius: 17px; background: rgba(246,240,232,.92); backdrop-filter: blur(12px); }
+    .combate-box { min-height: 74px; padding: 10px 5px; border: 0; box-shadow: 0 5px 14px rgba(69,39,29,.07); }
+    .titulo-combate { font-size: 9px; letter-spacing: .06em; }
+    .combate-valor { font-size: 24px; }
+    .grid-modificadores { grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .atributo-box { min-width: 0; padding: 10px 5px; border-radius: 15px; box-shadow: 0 5px 14px rgba(69,39,29,.06); }
+    .titulo-attr { font-size: 9px; }
+    .valor-modificador { font-size: 24px; }
+    .caixa-hp { padding: 16px !important; }
+    .hp-valores { font-size: 30px; }
+    .forja-carteira { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 5px; }
+    .forja-carteira .forja-campo { gap: 4px; margin: 4px 0; font-size: 10px; }
+    .forja-carteira input { min-height: 40px; padding: 7px 4px !important; text-align: center; }
+    .forja-item-detalhe { padding: 12px 0; }
+    .forja-item-detalhe button { flex: 1 1 auto; min-height: 40px; }
+    .item-traco-cabecalho { min-height: 48px; }
+    #forja-evolucao { margin: 0; padding: 15px; }
+    #forja-escolhas { margin-top: 12px; }
+    .forja-checks { grid-template-columns: 1fr; max-height: none; }
+    .forja-checks label { min-height: 46px; border-radius: 11px; }
+    .forja-morte-ponto { width: 42px; min-height: 42px !important; }
+    .forja-dialogo-topo { position: sticky; top: 0; z-index: 2; margin: -4px -4px 12px; padding: 4px 4px 12px; background: #fffdf9; }
+    #forja-dialogo { width: 100%; max-width: none; max-height: 88vh; margin: auto 0 0; padding: 18px 15px calc(20px + env(safe-area-inset-bottom)); border: 0; border-radius: 22px 22px 0 0; }
+    #forja-dialogo[open] { animation: forja-subir .2s ease-out; }
+    .modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+    .modal-conteudo { width: 100% !important; max-width: none !important; max-height: 90vh; margin: 0 !important; padding: 18px 15px calc(20px + env(safe-area-inset-bottom)) !important; border-radius: 22px 22px 0 0 !important; animation: forja-subir .2s ease-out; }
+    .acoes-etapa { position: sticky; bottom: calc(74px + env(safe-area-inset-bottom)); z-index: 12; margin: 18px -4px 0; padding: 9px 4px; background: linear-gradient(transparent,#fffdf9 24%); }
+    .etapa-criacao .acoes-etapa button { flex: 1; }
+    .progresso-criacao { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+    .passo-indicador { flex: 0 0 96px; min-height: 54px; border-radius: 13px; }
+    .titulo-principal { font-size: 25px; }
+    .form-criacao { min-height: 100vh; padding-top: calc(24px + env(safe-area-inset-top)); }
+
+    .modo-hub { padding: 0; }
+    .modo-hub .forja-mobile-topo, .modo-hub .forja-mobile-nav { display: none !important; }
+    .forja-hub { padding: calc(28px + env(safe-area-inset-top)) 14px 30px; }
+    .forja-hub-cabecalho { display: block; margin-bottom: 22px; }
+    .forja-hub-cabecalho h1 { font-size: 34px; }
+    .forja-hub-cabecalho p { font-size: 14px; }
+    .forja-hub-acoes { margin-top: 18px; justify-content: stretch; }
+    .forja-hub-acoes button { flex: 1 1 120px; }
+    .forja-hub-acoes .forja-acao-principal { flex-basis: 100%; }
+    .forja-herois-grade { grid-template-columns: 1fr; gap: 14px; }
+    .forja-heroi-card { display: grid; grid-template-columns: 112px 1fr; border-radius: 19px; }
+    .forja-heroi-card:hover { transform: none; }
+    .forja-heroi-visual { grid-row: 1/3; height: 100%; min-height: 205px; }
+    .forja-heroi-monograma { font-size: 48px; }
+    .forja-heroi-nivel { right: auto; bottom: 10px; left: 8px; font-size: 9px; }
+    .forja-heroi-corpo { padding: 15px 13px 9px; }
+    .forja-heroi-corpo h2 { margin: 5px 0; font-size: 18px; }
+    .forja-heroi-corpo p, .forja-heroi-corpo small { font-size: 11px; }
+    .forja-heroi-status { margin-top: 10px; }
+    .forja-heroi-status span { padding: 7px; font-size: 10px; }
+    .forja-heroi-acoes { grid-column: 2; grid-template-columns: 1fr 1fr 1fr; padding: 0 13px 13px; }
+    .forja-heroi-acoes .forja-acao-principal { grid-column: 1/-1; }
+    .forja-heroi-acoes button { min-width: 0; padding: 7px 3px; font-size: 10px; }
+}
+
+@keyframes forja-subir { from { transform: translateY(28px); opacity: .6; } to { transform: translateY(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }

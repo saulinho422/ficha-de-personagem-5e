@@ -7,11 +7,13 @@ Criador e gerenciador de fichas de D&D 5e em português, executado inteiramente 
 - conduz a criação em nove etapas, com conjunto padrão, compra de pontos ou 4d6 descartando o menor;
 - compõe raça, sub-raça, classe, subclasse, antecedente, talentos, proficiências e escolhas por nível;
 - calcula atributos, perícias, passivos, CA, deslocamento, PV, carga, ataques e conjuração;
-- mantém PV, dados de vida, testes contra a morte, condições, recursos, descansos, espaços e concentração;
+- mantém PV, dados de vida, testes contra a morte por marcadores, condições, recursos, descansos, espaços e concentração;
 - organiza inventário, equipamento em uso, mãos, moedas, compras, vendas, kits, montarias, bens e bugigangas;
 - oferece 12 classes, 41 subclasses/conclaves, 42 talentos e 361 magias com 845 vínculos de listas;
-- preenche as três páginas: ficha principal, história/apresentação e conjuração;
-- mantém vários personagens, lixeira recuperável, backup e importação/exportação JSON validada;
+- reúne características raciais, de antecedente, classe, subclasse e talentos em uma lista automática com filtros;
+- preenche as três páginas: ficha principal, história/apresentação e conjuração, com navegação própria de aplicativo no celular;
+- abre os personagens em um hub com retrato, resumo, duplicação, renomeação, lixeira recuperável e backup;
+- mantém vários personagens e importação/exportação JSON validada;
 - imprime as páginas selecionadas ou permite salvá-las como PDF.
 
 Algumas regras dependem do contexto da mesa. A aplicação registra o recurso, descreve o gatilho e oferece controles, mas não decide por conta própria alvos, terreno, autorização do Mestre ou interpretação narrativa. Veja [a matriz de cobertura](docs/COBERTURA.md).
@@ -39,7 +41,7 @@ yarn playwright install --with-deps chromium
 yarn test:e2e
 ```
 
-A suíte contém 88 testes de regras, persistência e integração DOM, além de 11 cenários reais em Chromium. O GitHub Actions guarda o relatório, as capturas e o PDF de teste.
+A suíte contém 91 testes de regras, persistência e integração DOM, além de 12 cenários reais em Chromium. O GitHub Actions guarda o relatório, as capturas e o PDF de teste.
 
 ## Estrutura
 
@@ -48,7 +50,8 @@ A suíte contém 88 testes de regras, persistência e integração DOM, além de
 - `js/sessao.js`: turno, dano tipado, cura e recursos usados em combate.
 - `js/criaturas.js`: Forma Selvagem, companheiro revisado e criaturas próprias.
 - `js/estado.js` e `js/colecao.js`: validação, migração, backup e coleção.
-- `js/interface.js`: assistente, três páginas, diálogos e impressão.
+- `js/interface.js`: assistente, hub de personagens, três páginas, diálogos e impressão.
+- `app-shell.css`: acabamento visual, componentes personalizados e experiência mobile em formato de aplicativo.
 - `dados/`: classes, escolhas, magias e tabelas extraídas da fonte fornecida.
 - `scripts/`: extrações reproduzíveis; o PDF original não é distribuído no repositório.
 - `tests/`: testes unitários, DOM e navegador.

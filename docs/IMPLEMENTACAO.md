@@ -12,7 +12,8 @@ Esta branch implementa a criação guiada em nove etapas, os cálculos puros, as
 - `js/criaturas.js`: Forma Selvagem, companheiro do Patrulheiro Revisado e criaturas personalizadas.
 - `js/estado.js`: validação estrita, versão 3, migração conservadora da versão 2 e recuperação.
 - `js/colecao.js`: personagens independentes, lixeira e importação sem sobrescrita silenciosa.
-- `js/interface.js`: assistente, ações de sessão, história, magias e impressão.
+- `js/interface.js`: assistente, hub de personagens, ações de sessão, história, magias e impressão.
+- `app-shell.css`: sistema visual, componentes personalizados e navegação mobile em formato de aplicativo.
 - `dados/`: 12 classes e 41 subclasses/conclaves, 42 talentos, 361 magias/845 vínculos, 13 tabelas de antecedentes, 31 criaturas e tabelas de aventura.
 - `scripts/extrair_*.py`: extração reproduzível a partir do PDF fornecido, que não é distribuído no repositório.
 
@@ -38,4 +39,4 @@ yarn playwright install --with-deps chromium
 yarn test:e2e
 ```
 
-Resultados esperados desta revisão: 88 testes de regras/DOM e 11 cenários em Chromium. O workflow publica `playwright-report` e `test-results` por 14 dias, inclusive em falhas. A matriz detalhada está em [COBERTURA.md](COBERTURA.md).
+Resultados esperados desta revisão: 91 testes de regras/DOM e 12 cenários em Chromium. O workflow publica `playwright-report` e `test-results` por 14 dias, inclusive em falhas. A matriz detalhada está em [COBERTURA.md](COBERTURA.md).
