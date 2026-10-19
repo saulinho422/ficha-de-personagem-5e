@@ -7,8 +7,17 @@ let proficienciasAdicionais = [];
 let progressosResolvidos = [];
 let tracosAutomaticosExpandidos = new Set();
 let filtroTracosAtual = 'todos';
-const CHAVE_FICHA = 'forjaPersonagens.ficha.v2';
+const CHAVE_FICHA = ForjaEstado.CHAVE;
 let personagemAtual = { raca: '', classe: '' };
+let periciasManuais = {};
+let especializacoes = [];
+let percepcaoSituacao = 'normal';
+let recursosPersonagem = { pvAtual: null, pvTemporarios: 0 };
+let equipamentoPersonagem = { armadura: null, escudo: null };
+let restaurandoEstado = false;
+let salvamentoBloqueado = false;
+let focoAnteriorPV = null;
+let detalhesFicha = ForjaCampanha.novo();
 
 const NIVEIS_INCREMENTO_POR_CLASSE = {
     'Ladino': [4, 8, 10, 12, 16, 19],
@@ -59,7 +68,7 @@ const RESUMOS_TALENTOS = {
 };
 
 function obterResumoTalento(nome) {
-    return RESUMOS_TALENTOS[nome] || 'Talento com benefícios disponíveis no banco de talentos.';
+    return talentos[nome]?.beneficios || RESUMOS_TALENTOS[nome] || 'Talento com benefícios disponíveis no banco de talentos.';
 }
 
 function obterTalentosDisponiveis() {
@@ -82,6 +91,7 @@ function selecionarCardTalento(nome) {
     document.getElementById('descricao-talento-selecionado').textContent = obterResumoTalento(nome);
     document.getElementById('resumo-talento-selecionado').hidden = false;
     atualizarBonusAtributoTalento(nome);
+    ForjaInterface.prepararTalento(nome);
 }
 
 function renderizarCardsTalentos(filtro = '') {
@@ -155,7 +165,7 @@ const BONUS_ATRIBUTOS_TALENTOS = {
     'Atleta (Athlete)': ['for', 'des'],
     'Ator (Actor)': ['car'],
     'Especialista em Briga (Tavern Brawler)': ['for', 'con'],
-    'Mestre de Armas Pesadas (Heavy Armor Master)': ['for'],
+    'Maestria em Armadura Pesada (Heavy Armor Master)': ['for'],
     'Mente Afiada (Keen Mind)': ['int'],
     'Mestre de Armas (Weapon Master)': ['for', 'des'],
     'Observador (Observant)': ['int', 'sab'],
@@ -184,7 +194,7 @@ function atualizarBonusAtributoTalento(nome) {
 
     opcoes.forEach(sigla => {
         const opcao = document.createElement('option');
-        const valorAtual = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+        const valorAtual = valorAtributoParaMelhoria(sigla);
         opcao.value = sigla;
         opcao.textContent = ATRIBUTOS_PROGRESSAO[sigla];
         opcao.disabled = valorAtual >= 20;
@@ -216,7 +226,7 @@ function renderizarCardsBonusTalento(opcoes) {
     if (!select || !cards) return;
     cards.innerHTML = '';
     opcoes.forEach(sigla => {
-        const valor = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+        const valor = valorAtributoParaMelhoria(sigla);
         cards.appendChild(criarCardAtributo(
             sigla,
             select.value === sigla,
@@ -239,18 +249,12 @@ function obterBonusAtributoTalento(nome) {
         mostrarToast('Escolha o atributo que receberá o bônus do talento.', 'aviso');
         return false;
     }
-    const atual = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+    const atual = valorAtributoParaMelhoria(sigla);
     if (atual >= 20) {
         mostrarToast(ATRIBUTOS_PROGRESSAO[sigla] + ' já está no limite máximo de 20.', 'aviso');
         return false;
     }
     return { sigla, quantidade: 1 };
-}
-
-function aplicarBonusAtributoTalento(bonus) {
-    if (!bonus) return;
-    const campo = document.getElementById('attr-' + bonus.sigla);
-    campo.value = (parseInt(campo.value, 10) || 10) + bonus.quantidade;
 }
 
 const CATALOGO_IDIOMAS = [
@@ -301,12 +305,18 @@ window.onload = function() {
         renderizarPericiasDaClasse();
     });
     document.getElementById('select-antecedente').addEventListener('change', atualizarResumoAntecedente);
-    document.getElementById('nivel-personagem').addEventListener('change', validarNivel);
+    document.getElementById('nivel-personagem').addEventListener('change', () => {
+        validarNivel();
+        carregarSubclasses();
+    });
     renderizarSalvaguardas();
     renderizarPericias();
     renderizarTracos();
     renderizarAtaques();
+    configurarDialogoPV();
+    ForjaInterface.iniciar();
     restaurarEstado();
+    ForjaInterface.renderizar();
 };
 
 function carregarOpcoes() {
@@ -350,89 +360,61 @@ function renderizarSalvaguardas() {
 
 function renderizarPericias() {
     const container = document.getElementById('lista-pericias');
-    for (let nomePericia in bancoDnD.pericias) {
-        let atributoBase = bancoDnD.pericias[nomePericia];
-        container.innerHTML += `
-            <div class="pericia-item">
-                <input type="checkbox" id="prof-${nomePericia}" onchange="calcularTodasPericias()">
-                <span class="pericia-valor" id="valor-${nomePericia}">+0</span>
-                <span>${nomePericia}</span>
-                <span class="pericia-attr">(${atributoBase})</span>
-            </div>
-        `;
-    }
+    container.replaceChildren();
+    Object.entries(bancoDnD.pericias).forEach(([nome, atributo]) => {
+        const item = document.createElement('div');
+        item.className = 'pericia-item';
+        const campo = document.createElement('input');
+        campo.type = 'checkbox'; campo.id = 'prof-' + nome;
+        campo.addEventListener('change', () => alterarPericiaManual(nome, campo.checked));
+        const valor = document.createElement('span');
+        valor.className = 'pericia-valor'; valor.id = 'valor-' + nome; valor.textContent = '+0';
+        const rotulo = document.createElement('label'); rotulo.htmlFor = campo.id; rotulo.textContent = nome;
+        const sigla = document.createElement('span'); sigla.className = 'pericia-attr'; sigla.textContent = '(' + atributo + ')';
+        item.append(campo, valor, rotulo, sigla); container.appendChild(item);
+    });
 }
 
 function iniciarPersonagem(restaurando = false) {
-    const nome = document.getElementById('nome-personagem').value.trim();
-    const nivel = validarNivel();
-    const subraca = document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim'
-        ? document.getElementById('select-subraca').value : '';
-    const raca = document.getElementById('select-raca').value;
-    const classe = document.getElementById('select-classe').value;
-    const subclasse = document.getElementById('select-subclasse').value;
-    const alinhamento = document.getElementById('select-alinhamento').value;
-    const antecedente = document.getElementById('select-antecedente').value;
-
-    if (!nome || !raca || !classe || !subclasse || !alinhamento || !antecedente) {
-        if (!restaurando) mostrarToast("Conclua todas as escolhas antes de gerar a ficha.");
-        return;
+    const contexto = contextoDaFicha();
+    if (!restaurando) {
+        const pendentes = ForjaInterface.pendencias();
+        if (pendentes.length) { mostrarToast(pendentes[0].mensagem); return false; }
     }
+    const { nome, nivel, raca, subraca, classe, subclasse, alinhamento, antecedente } = contexto;
+    const precisaSubclasse = nivel >= ForjaRegras.nivelSubclasse(classe);
+    if (!nome || !raca || !classe || (precisaSubclasse && !subclasse) || !alinhamento || !antecedente) {
+        if (!restaurando) mostrarToast('Conclua todas as escolhas antes de gerar a ficha.');
+        return false;
+    }
+    if (!validarPericiasDaClasse(restaurando)) return false;
     personagemAtual = { nome, nivel, raca, subraca, classe, subclasse, alinhamento, antecedente };
-
     document.getElementById('criacao-rapida').style.display = 'none';
     document.getElementById('ficha-completa').style.display = 'block';
-    document.getElementById('display-nome').innerText = nome;
-    document.getElementById('display-origem').innerText = subraca || raca;
-    document.getElementById('display-classe').innerText = classe;
-    document.getElementById('display-subclasse').innerText = subclasse;
-    document.getElementById('display-alinhamento').innerText = alinhamento;
-    document.getElementById('display-antecedente').innerText = formatarNomeAntecedente(antecedente);
-    document.getElementById('display-nivel').innerText = nivel;
-    document.getElementById('display-proficiencia').innerText = "+" + obterBonusProficiencia();
-    renderizarNotificacoesNivel();
-
-    calcularAtributos(raca, subraca);
-    calcularCombate(raca, classe);
-    calcularSalvaguardas(classe);
-    if (!validarPericiasDaClasse(restaurando)) return;
-    aplicarPericiasDaClasse();
-    calcularTodasPericias();
-    atualizarPercepcaoEProficiencias();
-    renderizarTracos();
-    renderizarAtaques();
-    
-    // Atualiza o limite máximo de peso com base na Força do personagem
-    atualizarInventario(); 
-    
+    document.getElementById('display-nome').textContent = nome;
+    document.getElementById('display-origem').textContent = subraca || raca;
+    document.getElementById('display-classe').textContent = classe;
+    document.getElementById('display-subclasse').textContent = precisaSubclasse ? subclasse : 'Subclasse no nível ' + ForjaRegras.nivelSubclasse(classe);
+    document.getElementById('display-alinhamento').textContent = alinhamento;
+    document.getElementById('display-antecedente').textContent = formatarNomeAntecedente(antecedente);
+    document.getElementById('display-nivel').textContent = nivel;
+    document.getElementById('display-proficiencia').textContent = '+' + obterBonusProficiencia();
+    recalcularFicha();
     mudarAba('pagina-1');
     salvarEstado();
+    return true;
 }
 
 function calcularModificador(valorAtributo) {
-    return Math.floor((valorAtributo - 10) / 2);
+    return ForjaRegras.modificador(valorAtributo);
 }
 
 function calcularAtributos(racaEscolhida, subracaEscolhida = '') {
-    const raca = bancoDnD.racas[racaEscolhida];
-    const bonusRaca = { ...(raca && raca.bonusAtributos ? raca.bonusAtributos : {}) };
-    const dadosSubraca = raca && raca.subracas && raca.subracas[subracaEscolhida];
-    Object.entries(dadosSubraca?.bonusAtributos || {}).forEach(([attr, bonus]) => bonusRaca[attr] = (bonusRaca[attr] || 0) + bonus);
-    const atributosIds = ['for', 'des', 'con', 'int', 'sab', 'car'];
-    
-    atributosIds.forEach(function(attr) {
-        const campo = document.getElementById('attr-' + attr);
-        let valorBase = Math.min(20, Math.max(1, parseInt(campo.value, 10) || 10));
-        campo.value = valorBase;
-        let nomeNoBanco = mapearNomeAtributo(attr);
-        let bonus = bonusRaca[nomeNoBanco] || 0; 
-        
-        let valorFinal = Math.min(20, valorBase + bonus);
-        let modificador = calcularModificador(valorFinal);
-        let stringModificador = modificador >= 0 ? "+" + modificador : modificador;
-        
-        document.getElementById('final-' + attr).innerText = valorFinal;
-        document.getElementById('mod-' + attr).innerText = stringModificador;
+    const calculo = ForjaRegras.atributos({ ...contextoDaFicha(), raca: racaEscolhida, subraca: subracaEscolhida }, bancoDnD);
+    Object.keys(ForjaRegras.ATRIBUTOS).forEach(sigla => {
+        document.getElementById('final-' + sigla).textContent = calculo.valores[sigla];
+        document.getElementById('mod-' + sigla).textContent = formatarBonus(calculo.modificadores[sigla]);
+        document.getElementById('final-' + sigla).title = calculo.origens[sigla].map(parte => parte.origem + ': ' + parte.valor).join(' • ');
     });
 }
 
@@ -462,56 +444,13 @@ function adicionarListaUnica(destino, itens) {
 }
 
 function obterDadosProficienciasAutomaticas() {
-    const racaNome = document.getElementById('select-raca')?.value || personagemAtual.raca;
-    const usarSubraca = document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim';
-    const subracaNome = usarSubraca
-        ? document.getElementById('select-subraca')?.value || personagemAtual.subraca
-        : personagemAtual.subraca;
-    const classeNome = document.getElementById('select-classe')?.value || personagemAtual.classe;
-    const antecedenteNome = document.getElementById('select-antecedente')?.value || personagemAtual.antecedente;
-    const raca = bancoDnD.racas?.[racaNome] || {};
-    const subraca = raca.subracas?.[subracaNome] || {};
-    const classe = bancoDnD.classes?.[classeNome] || {};
-    const antecedente = bancoDnD.antecedentes?.[antecedenteNome] || {};
-
-    const dados = { idioma: [], arma: [], armadura: [], ferramenta: [], limites: { idioma: 0, ferramenta: 0, arma: 0 } };
-    adicionarListaUnica(dados.idioma, raca.idiomas);
-    adicionarListaUnica(dados.idioma, subraca.idiomas);
-    adicionarListaUnica(dados.idioma, antecedente.idiomas);
-    adicionarListaUnica(dados.arma, raca.proficienciasArmas);
-    adicionarListaUnica(dados.arma, subraca.proficienciasArmas);
-    adicionarListaUnica(dados.arma, classe.proficienciasArmas);
-    adicionarListaUnica(dados.armadura, raca.proficienciasArmaduras);
-    adicionarListaUnica(dados.armadura, subraca.proficienciasArmaduras);
-    adicionarListaUnica(dados.armadura, classe.proficienciasArmaduras);
-    adicionarListaUnica(dados.ferramenta, raca.proficienciasFerramentas);
-    adicionarListaUnica(dados.ferramenta, subraca.proficienciasFerramentas);
-    adicionarListaUnica(dados.ferramenta, classe.proficienciasFerramentas);
-    adicionarListaUnica(dados.ferramenta, antecedente.proficienciasFerramentas || antecedente.ferramentas);
-    
-    // Bônus de Talentos
-    if (tracosPersonagem.some(t => t.nome === 'Proteção Leve (Lightly Armored)')) adicionarListaUnica(dados.armadura, ['Armaduras leves']);
-    if (tracosPersonagem.some(t => t.nome === 'Proteção Moderada (Moderately Armored)')) adicionarListaUnica(dados.armadura, ['Armaduras médias', 'Escudos']);
-    if (tracosPersonagem.some(t => t.nome === 'Proteção Pesada (Heavily Armored)')) adicionarListaUnica(dados.armadura, ['Armaduras pesadas']);
-
-    dados.limites.idioma = (Number(raca.idiomasEscolha) || 0) + (Number(subraca.idiomasEscolha) || 0) +
-        (Number(antecedente.idiomasEscolha) || 0) + (tracosPersonagem.some(t => t.nome === 'Poliglota (Linguist)') ? 3 : 0);
-    dados.limites.ferramenta = (Number(raca.ferramentasEscolha) || 0) + (Number(subraca.ferramentasEscolha) || 0) +
-        (Number(classe.ferramentasEscolha) || 0) + (Number(antecedente.ferramentasEscolha) || 0) + (tracosPersonagem.some(t => t.nome === 'Perito (Skilled)') ? 3 : 0);
-    dados.limites.arma = tracosPersonagem.some(t => t.nome === 'Mestre de Armas (Weapon Master)') ? 4 : 0;
+    const contexto = contextoDaFicha();
+    const dados = ForjaRegras.proficiencias({ ...contexto, proficienciasAdicionais: [] }, bancoDnD);
+    dados.limites = { idioma: 0, ferramenta: 0, arma: 0 };
     return dados;
 }
 
-function limitarEscolhasAtuais(dados) {
-    ['idioma', 'ferramenta', 'arma'].forEach(tipo => {
-        let usadas = 0;
-        proficienciasAdicionais = proficienciasAdicionais.filter(item => {
-            if (item.origem !== 'escolha' || item.tipo !== tipo) return true;
-            usadas += 1;
-            return usadas <= dados.limites[tipo];
-        });
-    });
-}
+
 
 function criarChipAdicional(item) {
     const chip = document.createElement('span');
@@ -543,7 +482,7 @@ function criarChipAdicional(item) {
 }
 
 function criarGrupoProficiencias(titulo, icone, tipo, itensAutomaticos, limiteEscolhas = 0) {
-    const adicionais = proficienciasAdicionais.filter(item => item.tipo === tipo);
+    const adicionais = ForjaRegras.adicionaisAtivas(contextoDaFicha(), bancoDnD).filter(item => item.tipo === tipo);
     const escolhasFeitas = adicionais.filter(item => item.origem === 'escolha').length;
     const pendentes = Math.max(0, limiteEscolhas - escolhasFeitas);
     if (!itensAutomaticos.length && !adicionais.length && !pendentes) return null;
@@ -586,38 +525,22 @@ function criarGrupoProficiencias(titulo, icone, tipo, itensAutomaticos, limiteEs
 }
 
 function atualizarPercepcaoEProficiencias() {
-    const modificadorSabedoria = parseInt(document.getElementById('mod-sab')?.innerText, 10) || 0;
-    let percepcaoPassiva = 10 + modificadorSabedoria;
-    let textoCalculo = '10 ' + (modificadorSabedoria >= 0 ? '+ ' : '- ') + Math.abs(modificadorSabedoria) + ' de Sabedoria';
-    
-    if (tracosPersonagem.some(t => t.nome === 'Observador (Observant)')) {
-        percepcaoPassiva += 5;
-        textoCalculo += ' + 5 (Observador)';
-    }
-
-    const displayPercepcao = document.getElementById('display-percepcao-passiva');
-    const calculoPercepcao = document.getElementById('calculo-percepcao-passiva');
-    if (displayPercepcao) displayPercepcao.textContent = percepcaoPassiva;
-    if (calculoPercepcao) {
-        calculoPercepcao.textContent = textoCalculo;
-    }
-
+    const calculo = ForjaRegras.percepcaoPassiva(contextoDaFicha(), bancoDnD);
+    document.getElementById('display-percepcao-passiva').textContent = calculo.valor;
+    document.getElementById('calculo-percepcao-passiva').textContent = '10 ' + formatarBonus(calculo.teste.valor) + ' do teste de Percepção' +
+        (calculo.observador ? ' + 5 Observador' : '') + (calculo.situacao ? ' ' + formatarBonus(calculo.situacao) + ' pela situação' : '');
+    document.getElementById('situacao-percepcao').value = percepcaoSituacao;
     const dados = obterDadosProficienciasAutomaticas();
-    limitarEscolhasAtuais(dados);
     const container = document.getElementById('lista-proficiencias-automaticas');
-    if (!container) return;
-    container.innerHTML = '';
+    container.replaceChildren();
     const grupos = [
         criarGrupoProficiencias('Idiomas', '文', 'idioma', dados.idioma, dados.limites.idioma),
         criarGrupoProficiencias('Armas', '⚔', 'arma', dados.arma, dados.limites.arma),
         criarGrupoProficiencias('Armaduras e escudos', '◆', 'armadura', dados.armadura),
         criarGrupoProficiencias('Ferramentas e veículos', '⚒', 'ferramenta', dados.ferramenta, dados.limites.ferramenta)
     ].filter(Boolean);
-    if (!grupos.length) {
-        container.innerHTML = '<em class="texto-vazio">Nenhum idioma ou proficiência informado.</em>';
-        return;
-    }
-    grupos.forEach(grupo => container.appendChild(grupo));
+    if (!grupos.length) container.innerHTML = '<em class="texto-vazio">Nenhum idioma ou proficiência informado.</em>';
+    else grupos.forEach(grupo => container.appendChild(grupo));
 }
 
 function catalogoPorTipoProficiencia(tipo) {
@@ -722,7 +645,9 @@ function salvarProficiencia(evento) {
             origem
         });
     }
-    atualizarPercepcaoEProficiencias();
+    calcularTodasPericias();
+    atualizarClasseArmadura();
+    renderizarAtaques();
     salvarEstado();
     fecharModalProficiencia();
     mostrarToast(idEdicao ? 'Informação atualizada.' : 'Informação adicionada à ficha.', 'sucesso');
@@ -730,72 +655,49 @@ function salvarProficiencia(evento) {
 
 function removerProficienciaAdicional(id) {
     proficienciasAdicionais = proficienciasAdicionais.filter(item => item.id !== id);
-    atualizarPercepcaoEProficiencias();
+    calcularTodasPericias();
+    atualizarClasseArmadura();
+    renderizarAtaques();
     salvarEstado();
     mostrarToast('Informação removida da ficha.', 'sucesso');
 }
 
 function calcularCombate(racaEscolhida, classeEscolhida) {
-    const modDes = parseInt(document.getElementById('mod-des').innerText) || 0;
-    const modCon = parseInt(document.getElementById('mod-con').innerText) || 0;
-
+    const contexto = { ...contextoDaFicha(), raca: racaEscolhida, classe: classeEscolhida };
+    const atributos = ForjaRegras.atributos(contexto, bancoDnD);
+    const iniciativa = atributos.modificadores.des + (ForjaRegras.temTalento(contexto, 'alert') ? 5 : 0) +
+        (classeEscolhida === 'Bardo' && contexto.nivel >= 2 ? Math.floor(obterBonusProficiencia() / 2) : 0);
+    document.getElementById('display-iniciativa').textContent = formatarBonus(iniciativa + ForjaCampanha.ajuste(contexto, 'iniciativa'));
+    const { armadura, escudo } = equipamentoAtivo();
+    document.getElementById('display-deslocamento').textContent = ForjaRegras.deslocamento(contexto, bancoDnD, armadura, escudo);
+    const maximo = ForjaCampanha.pvMaximos(contexto, bancoDnD);
+    recursosPersonagem = ForjaRegras.pontosVidaAtuais(recursosPersonagem, maximo);
+    document.getElementById('display-hp-max').textContent = maximo;
+    atualizarDisplayPV();
     atualizarClasseArmadura();
-    
-    let iniciativaBase = modDes;
-    if (tracosPersonagem.some(t => t.nome === 'Alerta (Alert)')) iniciativaBase += 5;
-    document.getElementById('display-iniciativa').innerText = iniciativaBase >= 0 ? "+" + iniciativaBase : iniciativaBase;
-    
-    const raca = bancoDnD.racas[racaEscolhida];
-    let deslocamento = raca && raca.deslocamento ? raca.deslocamento : 9;
-    if (tracosPersonagem.some(t => t.nome === 'Mobilidade (Mobile)')) deslocamento += 3;
-    document.getElementById('display-deslocamento').innerText = deslocamento;
-
-    const classe = bancoDnD.classes[classeEscolhida];
-    const dadoVidaClasse = classe && classe.dadoVida ? classe.dadoVida : 8;
-    const nivel = validarNivel();
-    const ganhoMedio = Math.floor(dadoVidaClasse / 2) + 1;
-    let hpMax = Math.max(1, dadoVidaClasse + modCon + (nivel - 1) * Math.max(1, ganhoMedio + modCon));
-    
-    if (tracosPersonagem.some(t => t.nome === 'Robusto (Tough)')) hpMax += (nivel * 2);
-    
-    document.getElementById('display-hp-max').innerText = hpMax;
-    document.getElementById('display-hp-atual').innerText = hpMax;
 }
 
 function calcularSalvaguardas(classeEscolhida) {
-    const classe = bancoDnD.classes[classeEscolhida];
-    const proficienciasDaClasse = classe && classe.proficienciasSalvaguarda ? classe.proficienciasSalvaguarda : []; 
-    const bonusProficiencia = obterBonusProficiencia(); 
-    const atributosIds = ['for', 'des', 'con', 'int', 'sab', 'car'];
-
-    const talentoResiliente = tracosPersonagem.find(t => t.nome === 'Resiliente (Resilient)');
-
-    atributosIds.forEach(function(sigla) {
-        let nomeNoBanco = mapearNomeAtributo(sigla); 
-        let temProficiencia = proficienciasDaClasse.includes(nomeNoBanco);
-        
-        if (talentoResiliente && talentoResiliente.bonusAtributo && talentoResiliente.bonusAtributo.sigla === sigla) {
-            temProficiencia = true;
-        }
-
-        document.getElementById('salva-' + sigla).checked = temProficiencia;
-        let modificadorAtributo = parseInt(document.getElementById('mod-' + sigla).innerText);
-        
-        let valorFinal = modificadorAtributo + (temProficiencia ? bonusProficiencia : 0);
-        document.getElementById('valor-salva-' + sigla).innerText = valorFinal >= 0 ? "+" + valorFinal : valorFinal;
+    const contexto = { ...contextoDaFicha(), classe: classeEscolhida };
+    const lista = bancoDnD.classes[classeEscolhida]?.proficienciasSalvaguarda || [];
+    const atributos = ForjaRegras.atributos(contexto, bancoDnD);
+    const resilientes = ForjaRegras.talentosAtivos(contexto).filter(traco => ForjaRegras.talentoId(traco) === 'resilient');
+    Object.entries(ForjaRegras.ATRIBUTOS).forEach(([sigla, nome]) => {
+        const treinado = lista.includes(nome) || resilientes.some(traco => traco.bonusAtributo?.sigla === sigla);
+        document.getElementById('salva-' + sigla).checked = treinado;
+        document.getElementById('valor-salva-' + sigla).textContent = formatarBonus(atributos.modificadores[sigla] + (treinado ? obterBonusProficiencia() : 0));
     });
 }
 
 function calcularTodasPericias() {
-    const bonusProficiencia = obterBonusProficiencia(); 
-    for (let nomePericia in bancoDnD.pericias) {
-        let atributoBase = bancoDnD.pericias[nomePericia];
-        let modificadorAtributo = parseInt(document.getElementById('mod-' + atributoBase).innerText);
-        let estaProficiente = document.getElementById('prof-' + nomePericia).checked;
-        
-        let valorFinal = modificadorAtributo + (estaProficiente ? bonusProficiencia : 0);
-        document.getElementById('valor-' + nomePericia).innerText = valorFinal >= 0 ? "+" + valorFinal : valorFinal;
-    }
+    aplicarPericiasDaClasse();
+    const contexto = contextoDaFicha(), atributos = ForjaRegras.atributos(contexto, bancoDnD);
+    Object.keys(bancoDnD.pericias).forEach(nome => {
+        const calculo = ForjaRegras.testePericia(contexto, bancoDnD, nome, atributos);
+        document.getElementById('valor-' + nome).textContent = formatarBonus(calculo.valor + ForjaCampanha.ajuste(contexto, 'pericia:' + nome));
+        document.getElementById('prof-' + nome).title = calculo.fontes.length ? 'Proficiência: ' + calculo.fontes.join(', ') : 'Adicionar proficiência manual';
+    });
+    atualizarPercepcaoEProficiencias();
     salvarEstado();
 }
 
@@ -922,6 +824,9 @@ function carregarItensCatalogo(categoria) {
 }
 
 function adicionarAoInventario(nome, pesoStr) {
+    if (Object.keys(ForjaOpcoes.pacotes).some(x => ForjaRegras.normalizar(x) === ForjaRegras.normalizar(nome))) {
+        ForjaInterface.adicionarItem(nome); atualizarInventario(); ForjaInterface.renderizar(); return;
+    }
     let pesoNum = 0;
     if (pesoStr && pesoStr !== "-" && pesoStr !== "Variado") {
         let limpo = pesoStr.replace(" kg", "").replace(",", ".");
@@ -932,7 +837,7 @@ function adicionarAoInventario(nome, pesoStr) {
     if (existente) {
         existente.quantidade = (existente.quantidade || 1) + 1;
     } else {
-        inventarioPersonagem.push({ nome: nome, peso: pesoNum, pesoOriginal: pesoStr, quantidade: 1 });
+        inventarioPersonagem.push({ id: novoId('item'), nome: nome, peso: pesoNum, pesoOriginal: pesoStr, quantidade: 1 });
     }
     atualizarInventario();
     mostrarToast(nome + ' foi adicionado ao inventário.', 'sucesso');
@@ -1039,6 +944,7 @@ function salvarItemPersonalizado(evento) {
     }
 
     const item = {
+        id: novoId('item'),
         nome,
         peso,
         pesoOriginal: peso.toFixed(2).replace('.', ',') + ' kg',
@@ -1107,6 +1013,7 @@ function removerDoInventario(index) {
         item.quantidade -= 1;
     } else {
         const nomeRemovido = item?.nome;
+        Object.keys(equipamentoPersonagem).forEach(tipo => { if (equipamentoPersonagem[tipo] === item?.id) equipamentoPersonagem[tipo] = null; });
         inventarioPersonagem.splice(index, 1);
         if (nomeRemovido && !inventarioPersonagem.some(outro => outro.nome === nomeRemovido)) {
             ataquesPersonagem = ataquesPersonagem.filter(ataque => ataque.nomeArma !== nomeRemovido);
@@ -1134,8 +1041,9 @@ function atualizarInventario() {
         spanPesoTotal.innerText = "0,0";
         barraPreenchimento.style.width = "0%";
         barraPreenchimento.style.backgroundColor = "#4caf50";
-        atualizarClasseArmadura();
-        salvarEstado();
+        calcularCombate(contextoDaFicha().raca, contextoDaFicha().classe);
+        if (!restaurandoEstado) ForjaInterface.renderizar();
+    salvarEstado();
         return;
     }
 
@@ -1152,7 +1060,7 @@ function atualizarInventario() {
                 <b>${item.quantidade}× ${escaparHtml(item.nome)}</b>
                 <small>${escaparHtml(item.pesoOriginal || (item.peso + ' kg'))}${detalhes ? ' · ' + escaparHtml(detalhes) : ''}</small>
             </span>
-            <button class="btn-remover" onclick="removerDoInventario(${index})" title="Remover">&times;</button>
+            <span class="item-inventario-acoes">${botaoEquipamento(item, index)}<button class="btn-remover" onclick="removerDoInventario(${index})" title="Remover" aria-label="Remover ${escaparHtml(item.nome)}">&times;</button></span>
         `;
         container.appendChild(div);
     });
@@ -1176,7 +1084,8 @@ function atualizarInventario() {
     } else {
         barraPreenchimento.style.backgroundColor = "#d32f2f"; // Vermelho (Sobrecarregado / Limite Máximo atingido)
     }
-    atualizarClasseArmadura();
+    calcularCombate(contextoDaFicha().raca, contextoDaFicha().classe);
+    if (!restaurandoEstado) ForjaInterface.renderizar();
     salvarEstado();
 }
 
@@ -1204,114 +1113,94 @@ function localizarArmadura(nome) {
 }
 
 function atualizarClasseArmadura() {
-    const display = document.getElementById('display-ca');
-    const campoDes = document.getElementById('mod-des');
-    if (!display || !campoDes) return;
-    const modDes = parseInt(campoDes.innerText, 10) || 0;
-    let ca = 10 + modDes;
-    let bonusEscudo = 0;
-
-    inventarioPersonagem.forEach(itemInventario => {
-        const armadura = localizarArmadura(itemInventario.nome);
-        if (!armadura) return;
-        if (armadura.subtipo === 'escudo') {
-            bonusEscudo = 2;
-            return;
-        }
-        const base = parseInt(armadura.ca, 10);
-        if (!Number.isFinite(base)) return;
-        let caArmadura = base;
-        if (armadura.subtipo === 'leve' || armadura.subtipo === 'personalizada-destreza') caArmadura += modDes;
-        if (armadura.subtipo === 'media') caArmadura += Math.min(2, modDes);
-        ca = Math.max(ca, caArmadura);
-    });
-    display.innerText = ca + bonusEscudo;
+    const { armadura, escudo } = equipamentoAtivo();
+    const calculo = ForjaCampanha.defesa(contextoDaFicha(), bancoDnD, armadura, escudo, inventarioPersonagem);
+    document.getElementById('display-ca').textContent = calculo.valor;
+    document.getElementById('calculo-ca').textContent = calculo.origem + ': ' + calculo.formula;
+    const aviso = document.getElementById('aviso-armadura');
+    aviso.hidden = calculo.semProficiencia.length === 0;
+    aviso.textContent = calculo.semProficiencia.length ? 'Sem proficiência com ' + calculo.semProficiencia.map(item => item.nome).join(' e ') +
+        ': desvantagem em testes, salvaguardas e ataques que envolvam Força ou Destreza. Não pode conjurar magias usando esse equipamento.' : '';
 }
 
 function salvarEstado() {
-    if (typeof localStorage === 'undefined' || typeof bancoDnD === 'undefined') return;
-    const atributos = {};
-    ['for', 'des', 'con', 'int', 'sab', 'car'].forEach(attr => {
-        atributos[attr] = document.getElementById('attr-' + attr)?.value || 10;
-    });
-    const pericias = {};
-    Object.keys(bancoDnD.pericias).forEach(nome => {
-        pericias[nome] = Boolean(document.getElementById('prof-' + nome)?.checked);
-    });
-    localStorage.setItem(CHAVE_FICHA, JSON.stringify({
-        nome: document.getElementById('nome-personagem')?.value || personagemAtual.nome,
-        nivel: validarNivel(),
-        subraca: document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim' ? (document.getElementById('select-subraca')?.value || '') : '',
-        usarSubraca: document.querySelector('input[name="usar-subraca"]:checked')?.value || '',
-        raca: document.getElementById('select-raca')?.value || personagemAtual.raca,
-        classe: document.getElementById('select-classe')?.value || personagemAtual.classe,
-        subclasse: document.getElementById('select-subclasse')?.value || personagemAtual.subclasse,
-        alinhamento: document.getElementById('select-alinhamento')?.value || personagemAtual.alinhamento,
-        antecedente: document.getElementById('select-antecedente')?.value || personagemAtual.antecedente,
-        atributos,
-        pericias,
-        periciasClasse: obterPericiasSelecionadas(),
-        inventario: inventarioPersonagem,
-        ataques: ataquesPersonagem,
-        tracos: tracosPersonagem,
-        proficienciasAdicionais,
-        progressosResolvidos,
-        fichaGerada: document.getElementById('ficha-completa')?.style.display === 'block'
-    }));
+    if (restaurandoEstado || salvamentoBloqueado) return;
+    try {
+        const storage = window.localStorage;
+        ForjaEstado.salvar(storage, capturarEstado());
+        document.getElementById('alerta-salvamento').hidden = true;
+    } catch (erro) {
+        salvamentoBloqueado = true;
+        avisarFalhaSalvamento('Não foi possível salvar. As alterações continuam nesta tela. Baixe uma cópia antes de fechar a página. ' + erro.message);
+    }
 }
 
 function restaurarEstado() {
-    if (typeof localStorage === 'undefined') return;
-    let estado;
-    try {
-        estado = JSON.parse(localStorage.getItem(CHAVE_FICHA));
-    } catch (_) {
-        localStorage.removeItem(CHAVE_FICHA);
+    let resultado;
+    try { resultado = ForjaEstado.carregar(window.localStorage, bancoDnD); }
+    catch (erro) { resultado = { bloqueado: true, erro: erro.message }; }
+    if (resultado.bloqueado) {
+        salvamentoBloqueado = true;
+        avisarFalhaSalvamento('Não foi possível abrir a ficha salva. Os dados originais foram conservados. Baixe uma cópia ou tente recuperar a anterior. ' + resultado.erro);
         return;
     }
-    if (!estado) return;
-    document.getElementById('nome-personagem').value = estado.nome || '';
-    document.getElementById('nivel-personagem').value = estado.nivel || 1;
-    document.getElementById('select-raca').value = estado.raca || '';
-    carregarSubracas();
-    const escolhaSubraca = estado.usarSubraca || (estado.subraca ? 'sim' : 'nao');
-    const radioSubraca = document.querySelector('input[name="usar-subraca"][value="' + escolhaSubraca + '"]');
-    if (radioSubraca) radioSubraca.checked = true;
-    alternarEscolhaSubraca();
-    document.getElementById('select-subraca').value = estado.subraca || '';
-    document.getElementById('select-classe').value = estado.classe || '';
-    carregarSubclasses();
-    document.getElementById('select-subclasse').value = estado.subclasse || '';
-    document.getElementById('select-alinhamento').value = estado.alinhamento || '';
-    const nomesAntecedentesMigrados = { 'Artisao da Guilda': 'Artesão da Guilda', 'Orfao': 'Órfão' };
-    const nomeOriginalAntecedente = estado.antecedente || '';
-    const nomeCorrigidoAntecedente = nomesAntecedentesMigrados[nomeOriginalAntecedente] || nomeOriginalAntecedente;
-    estado.antecedente = bancoDnD.antecedentes?.[nomeCorrigidoAntecedente]
-        ? nomeCorrigidoAntecedente : nomeOriginalAntecedente;
-    document.getElementById('select-antecedente').value = estado.antecedente;
-    atualizarResumoAntecedente();
-    Object.entries(estado.atributos || {}).forEach(([attr, valor]) => {
-        const campo = document.getElementById('attr-' + attr);
-        if (campo) campo.value = valor;
-    });
-    inventarioPersonagem = Array.isArray(estado.inventario) ? estado.inventario : [];
-    ataquesPersonagem = Array.isArray(estado.ataques) ? estado.ataques : [];
-    tracosPersonagem = Array.isArray(estado.tracos) ? estado.tracos : [];
-    proficienciasAdicionais = Array.isArray(estado.proficienciasAdicionais) ? estado.proficienciasAdicionais : [];
-    progressosResolvidos = Array.isArray(estado.progressosResolvidos) ? estado.progressosResolvidos : [];
-    renderizarTracos();
-    renderizarAtaques();
-    renderizarPericiasDaClasse();
-    (estado.periciasClasse || []).forEach(nome => {
-        const campo = document.querySelector('#lista-pericias-criacao input[value="' + CSS.escape(nome) + '"]');
-        if (campo) campo.checked = true;
-    });
-    atualizarContadorPericias();
-    Object.entries(estado.pericias || {}).forEach(([nome, marcado]) => {
-        const campo = document.getElementById('prof-' + nome);
-        if (campo) campo.checked = Boolean(marcado);
-    });
-    if (estado.fichaGerada && estado.raca && estado.classe) iniciarPersonagem(true);
+    if (!resultado.estado) return;
+    const estado = resultado.estado;
+    detalhesFicha = ForjaCampanha.completar(estado.detalhes);
+    restaurandoEstado = true;
+    try {
+        document.getElementById('nome-personagem').value = estado.nome;
+        document.getElementById('nivel-personagem').value = estado.nivel;
+        document.getElementById('select-raca').value = estado.raca;
+        carregarSubracas();
+        const escolha = estado.usarSubraca || (estado.subraca ? 'sim' : 'nao');
+        const radio = document.querySelector('input[name="usar-subraca"][value="' + (escolha === 'sim' ? 'sim' : 'nao') + '"]');
+        if (radio) radio.checked = true;
+        alternarEscolhaSubraca();
+        document.getElementById('select-subraca').value = estado.subraca;
+        document.getElementById('select-classe').value = estado.classe;
+        carregarSubclasses();
+        document.getElementById('select-subclasse').value = estado.subclasse;
+        document.getElementById('select-alinhamento').value = estado.alinhamento;
+        const aliases = { 'Artisao da Guilda': 'Artesão da Guilda', 'Orfao': 'Órfão' };
+        const candidato = aliases[estado.antecedente] || estado.antecedente;
+        document.getElementById('select-antecedente').value = bancoDnD.antecedentes[candidato] ? candidato : estado.antecedente;
+        Object.entries(estado.atributos).forEach(([sigla, valor]) => document.getElementById('attr-' + sigla).value = valor);
+        inventarioPersonagem = estado.inventario;
+        ataquesPersonagem = estado.ataques;
+        tracosPersonagem = estado.tracos;
+        proficienciasAdicionais = estado.proficienciasAdicionais;
+        progressosResolvidos = estado.progressosResolvidos;
+        periciasManuais = estado.periciasManuais;
+        especializacoes = estado.especializacoes || [];
+        percepcaoSituacao = estado.percepcaoSituacao || 'normal';
+        recursosPersonagem = estado.recursos;
+        equipamentoPersonagem = estado.equipamento;
+        tracosAutomaticosExpandidos = new Set(estado.tracosAutomaticosExpandidos || []);
+        renderizarPericiasDaClasse();
+        estado.periciasClasse.forEach(nome => {
+            const campo = document.querySelector('#lista-pericias-criacao input[value="' + CSS.escape(nome) + '"]');
+            if (campo) campo.checked = true;
+        });
+        atualizarContadorPericias();
+        atualizarResumoAntecedente();
+        for (const [campo, original] of [['select-raca', estado.raca], ['select-classe', estado.classe], ['select-antecedente', candidato]]) {
+            if (original && document.getElementById(campo).value !== original) throw new Error('Registro não reconhecido: ' + original);
+        }
+        if (estado.fichaGerada && !iniciarPersonagem(true)) {
+            salvamentoBloqueado = true;
+            avisarFalhaSalvamento('A ficha antiga tem escolhas pendentes. Baixe uma cópia antes de concluir a revisão. Os dados originais permanecem salvos.');
+            mostrarEtapa(2);
+            mostrarToast('Complete as escolhas de origem para abrir sua ficha. Seus itens e anotações continuam salvos.', 'aviso');
+        }
+    } catch (erro) {
+        salvamentoBloqueado = true;
+        avisarFalhaSalvamento('A ficha precisa de revisão e não foi sobrescrita. Baixe os dados para recuperação. ' + erro.message);
+    } finally {
+        restaurandoEstado = false;
+    }
+    if (!salvamentoBloqueado) salvarEstado();
+    if (resultado.migrado && estado.inventario.some(item => localizarArmadura(item.nome))) mostrarToast('Sua ficha foi recuperada. Use Vestir ou Empunhar no inventário para indicar a armadura e o escudo em uso.');
 }
 
 
@@ -1344,7 +1233,7 @@ function proximaEtapa(numero) {
             mostrarToast('Escolha uma sub-raça para continuar.');
             return;
         }
-        if (!subclasse) {
+        if (validarNivel() >= ForjaRegras.nivelSubclasse(classe) && !subclasse) {
             mostrarToast('Escolha uma subclasse para continuar.');
             return;
         }
@@ -1385,15 +1274,17 @@ function alternarEscolhaSubraca() {
 function carregarSubclasses() {
     const classe = document.getElementById('select-classe').value;
     const select = document.getElementById('select-subclasse');
-    const subclasses = bancoDnD.classes[classe]?.subclasses || [];
-    select.innerHTML = '<option value="">-- Escolha uma Subclasse --</option>';
-    subclasses.forEach(nome => {
-        const opcao = document.createElement('option');
-        opcao.value = nome;
-        opcao.textContent = nome;
-        select.appendChild(opcao);
+    const anterior = select.value;
+    const liberada = validarNivel() >= ForjaRegras.nivelSubclasse(classe);
+    select.innerHTML = '';
+    const vazio = document.createElement('option'); vazio.value = '';
+    vazio.textContent = liberada ? '-- Escolha uma Subclasse --' : 'Escolha no nível ' + ForjaRegras.nivelSubclasse(classe);
+    select.appendChild(vazio);
+    (bancoDnD.classes[classe]?.subclasses || []).forEach(nome => {
+        const opcao = document.createElement('option'); opcao.value = nome; opcao.textContent = nome; select.appendChild(opcao);
     });
-    select.disabled = subclasses.length === 0;
+    if ([...select.options].some(opcao => opcao.value === anterior)) select.value = anterior;
+    select.disabled = !classe || !liberada;
 }
 
 function atualizarResumoAntecedente() {
@@ -1493,7 +1384,9 @@ function alternarNotificacoesNivel() {
 }
 
 function abrirModalNivel() {
+    if (detalhesFicha.opcoes.multiclasse) { ForjaInterface.editar(6); return; }
     document.getElementById('novo-nivel-personagem').value = validarNivel();
+    atualizarSubclasseNivelModal();
     document.getElementById('modal-nivel').style.display = 'flex';
 }
 
@@ -1503,17 +1396,24 @@ function fecharModalNivel() {
 
 function ajustarNivelModal(delta) {
     const campo = document.getElementById('novo-nivel-personagem');
-    campo.value = Math.min(20, Math.max(1, (parseInt(campo.value, 10) || 1) + delta));
+    campo.value = ForjaRegras.nivel((parseInt(campo.value, 10) || 1) + delta);
+    atualizarSubclasseNivelModal();
 }
 
 function salvarNovoNivel(evento) {
     evento.preventDefault();
-    const novoNivel = Math.min(20, Math.max(1, parseInt(document.getElementById('novo-nivel-personagem').value, 10) || 1));
+    const novoNivel = ForjaRegras.nivel(document.getElementById('novo-nivel-personagem').value);
+    const classe = document.getElementById('select-classe').value;
+    const subclasse = document.getElementById('nova-subclasse-personagem').value;
+    if (novoNivel >= ForjaRegras.nivelSubclasse(classe) && !subclasse) {
+        mostrarToast('Escolha a subclasse para este nível.');
+        return;
+    }
     document.getElementById('nivel-personagem').value = novoNivel;
-    personagemAtual.nivel = novoNivel;
+    carregarSubclasses();
+    document.getElementById('select-subclasse').value = subclasse;
     fecharModalNivel();
     iniciarPersonagem(true);
-    renderizarNotificacoesNivel();
     mostrarToast('Personagem atualizado para o nível ' + novoNivel + '.', 'sucesso');
 }
 
@@ -1523,7 +1423,7 @@ function preencherSelectAtributosProgressao() {
         const anterior = select.value;
         select.innerHTML = '';
         Object.entries(ATRIBUTOS_PROGRESSAO).forEach(([sigla, nome]) => {
-            const valor = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+            const valor = valorAtributoParaMelhoria(sigla);
             const opcao = document.createElement('option');
             opcao.value = sigla;
             opcao.textContent = nome + ' (' + valor + ')';
@@ -1539,7 +1439,7 @@ function preencherSelectAtributosProgressao() {
 }
 
 function criarCardAtributo(sigla, selecionado, desabilitado, aoSelecionar) {
-    const valor = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+    const valor = valorAtributoParaMelhoria(sigla);
     const card = document.createElement('button');
     card.type = 'button';
     card.className = 'card-atributo' + (selecionado ? ' selecionado' : '');
@@ -1560,20 +1460,20 @@ function renderizarCardsAtributosProgressao() {
     const segundo = document.getElementById('incremento-atributo-2');
 
     const quantidadePrimeiro = modo === 'dois' ? 2 : 1;
-    const valorPrimeiro = parseInt(document.getElementById('final-' + primeiro.value)?.innerText, 10) || 10;
+    const valorPrimeiro = valorAtributoParaMelhoria(primeiro.value);
     if (valorPrimeiro + quantidadePrimeiro > 20) {
         const alternativa = Array.from(primeiro.options).find(opcao => {
-            const valor = parseInt(document.getElementById('final-' + opcao.value)?.innerText, 10) || 10;
+            const valor = valorAtributoParaMelhoria(opcao.value);
             return valor + quantidadePrimeiro <= 20;
         });
         if (alternativa) primeiro.value = alternativa.value;
     }
 
     if (modo === 'um-um') {
-        const valorSegundo = parseInt(document.getElementById('final-' + segundo.value)?.innerText, 10) || 10;
+        const valorSegundo = valorAtributoParaMelhoria(segundo.value);
         if (primeiro.value === segundo.value || valorSegundo >= 20) {
             const alternativa = Array.from(segundo.options).find(opcao => {
-                const valor = parseInt(document.getElementById('final-' + opcao.value)?.innerText, 10) || 10;
+                const valor = valorAtributoParaMelhoria(opcao.value);
                 return opcao.value !== primeiro.value && valor < 20;
             });
             if (alternativa) segundo.value = alternativa.value;
@@ -1587,7 +1487,7 @@ function renderizarCardsAtributosProgressao() {
         if (!grupo.container) return;
         grupo.container.innerHTML = '';
         Object.keys(ATRIBUTOS_PROGRESSAO).forEach(sigla => {
-            const valor = parseInt(document.getElementById('final-' + sigla)?.innerText, 10) || 10;
+            const valor = valorAtributoParaMelhoria(sigla);
             const quantidade = modo === 'dois' && !grupo.segundo ? 2 : 1;
             const repetido = modo === 'um-um' && grupo.segundo && sigla === primeiro.value;
             const desabilitado = valor + quantidade > 20 || repetido;
@@ -1612,9 +1512,9 @@ function selecionarAtributoProgressao(idSelect, sigla) {
 function abrirModalProgressao(nivel) {
     document.getElementById('painel-notificacoes-nivel').hidden = true;
     document.getElementById('btn-notificacoes-nivel').setAttribute('aria-expanded', 'false');
-    document.getElementById('nivel-progressao-atual').value = nivel;
     document.getElementById('subtitulo-modal-progressao').textContent = 'Melhoria disponível no ' + nivel + 'º nível.';
     document.getElementById('form-progressao').reset();
+    document.getElementById('nivel-progressao-atual').value = nivel;
     document.getElementById('tipo-progressao').value = 'atributos';
     document.querySelectorAll('.card-escolha-progressao').forEach(card =>
         card.classList.toggle('selecionado', card.dataset.escolha === 'atributos')
@@ -1670,16 +1570,12 @@ function aplicarIncrementosAtributos() {
         return null;
     }
     for (const [sigla, quantidade] of Object.entries(incrementos)) {
-        const atual = parseInt(document.getElementById('final-' + sigla).innerText, 10) || 10;
+        const atual = valorAtributoParaMelhoria(sigla);
         if (atual + quantidade > 20) {
             mostrarToast(ATRIBUTOS_PROGRESSAO[sigla] + ' não pode ultrapassar 20.', 'aviso');
             return null;
         }
     }
-    Object.entries(incrementos).forEach(([sigla, quantidade]) => {
-        const campo = document.getElementById('attr-' + sigla);
-        campo.value = (parseInt(campo.value, 10) || 10) + quantidade;
-    });
     return incrementos;
 }
 
@@ -1710,27 +1606,32 @@ function salvarProgressao(evento) {
         mostrarToast('Não foi possível carregar esse talento do banco de talentos.', 'aviso');
         return;
     }
-    if (tracosPersonagem.some(item => item.tipo === 'talento' && normalizarTextoProficiencia(item.nome) === normalizarTextoProficiencia(talento))) {
+    if (!ForjaInterface.podeRepetirTalento(talento)) {
         mostrarToast('Este talento já foi escolhido.', 'aviso');
         return;
     }
     const bonusAtributo = obterBonusAtributoTalento(talento);
     if (bonusAtributo === false) return;
-    aplicarBonusAtributoTalento(bonusAtributo);
+    let escolhas;
+    try { escolhas = ForjaInterface.obterEscolhasTalento(talento); }
+    catch (erro) { mostrarToast(erro.message); return; }
     const descricaoBonus = bonusAtributo
         ? ' Bônus aplicado: +' + bonusAtributo.quantidade + ' em ' + ATRIBUTOS_PROGRESSAO[bonusAtributo.sigla] + '.'
         : '';
     tracosPersonagem.push({
         id: 'talento-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
         nome: talento,
+        talentoId: ForjaRegras.talentoId({ nome: talento }),
         tipo: 'talento',
         descricao: obterResumoTalento(talento) + descricaoBonus + ' Escolhido como melhoria do ' + nivel + 'º nível.' +
             (dadosTalento.preRequisitos ? ' Possui pré-requisitos que devem ser conferidos.' : ''),
         bonusAtributo,
+        escolhas,
         fonteTalento: 'talentos_phb.js',
         bloqueado: false,
         expandido: false,
-        progressaoNivel: nivel
+        progressaoNivel: nivel,
+        progressaoClasse: classe
     });
     progressosResolvidos.push({ nivel, classe, tipo: 'talento', talento, bonusAtributo });
     fecharModalProgressao();
@@ -1808,20 +1709,18 @@ function validarPericiasDaClasse(restaurando = false) {
 }
 
 function aplicarPericiasDaClasse() {
-    const escolhidas = new Set(obterPericiasSelecionadas());
-    const antecedenteNome = document.getElementById('select-antecedente').value;
-    const periciasAntecedente = bancoDnD.antecedentes?.[antecedenteNome]?.pericias || [];
-    periciasAntecedente.forEach(nome => escolhidas.add(nome));
+    const fontes = ForjaRegras.fontesPericias(contextoDaFicha(), bancoDnD);
     Object.keys(bancoDnD.pericias).forEach(nome => {
         const campo = document.getElementById('prof-' + nome);
-        if (campo) campo.checked = escolhidas.has(nome);
+        campo.checked = fontes[nome].length > 0;
+        campo.disabled = fontes[nome].some(origem => origem !== 'Manual');
     });
 }
 
 
 
 function listarArmasBanco(incluirPersonalizadas = true) {
-    const armas = [];
+    const armas = [{nome:'Ataque Desarmado',dano:'1 concussão',tipoDano:'concussão',atributoPadrao:'forca',categoria:'simples',tipo:'corpo-a-corpo',alcance:'1,5 m'}];
     Object.values(bancoDnD.equipamentos?.armas || {}).forEach(lista => lista.forEach(arma => armas.push(arma)));
     if (incluirPersonalizadas) {
         inventarioPersonagem
@@ -1838,7 +1737,7 @@ function obterArmaBanco(nome) {
 function abrirModalAtaque() {
     const modal = document.getElementById('modal-ataque');
     const select = document.getElementById('ataque-arma');
-    const nomesInventario = [...new Set(inventarioPersonagem.map(item => item.nome))];
+    const nomesInventario = ['Ataque Desarmado', ...new Set(inventarioPersonagem.map(item => item.nome))];
     const armasDisponiveis = listarArmasBanco().filter(arma => nomesInventario.includes(arma.nome));
 
     document.getElementById('form-ataque').reset();
@@ -1892,34 +1791,22 @@ function obterModificadorAtaque(atributo) {
     return parseInt(document.getElementById('mod-' + ids[atributo])?.innerText, 10) || 0;
 }
 
-function singularizarProficiencia(valor) {
-    const normalizado = String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const alias = { 'bastoes': 'bordao', 'bordoes': 'bordao' };
-    if (alias[normalizado]) return alias[normalizado];
-    return normalizado.split(/\s+/).map(palavra => palavra.endsWith('s') ? palavra.slice(0, -1) : palavra).join(' ');
-}
+
 
 function personagemProficienteNaArma(arma) {
-    const classeNome = document.getElementById('select-classe')?.value || personagemAtual.classe;
-    const proficiencias = bancoDnD.classes?.[classeNome]?.proficienciasArmasArmaduras || [];
-    if (proficiencias.includes(arma.categoria === 'simples' ? 'Armas simples' : 'Armas marciais')) return true;
-    const nomeArma = singularizarProficiencia(arma.nome);
-    return proficiencias.some(item => singularizarProficiencia(item) === nomeArma);
+    return ForjaRegras.proficienteNaArma(arma, ForjaRegras.proficiencias(contextoDaFicha(), bancoDnD).arma);
 }
 
 function calcularDadosAtaque(configuracao) {
     const arma = obterArmaBanco(configuracao.nomeArma);
     if (!arma) return null;
     const atributo = arma.acuidade ? configuracao.atributo : arma.atributoPadrao;
-    const modificador = obterModificadorAtaque(atributo);
-    const proficiente = personagemProficienteNaArma(arma);
-    const bonusAtaque = modificador + (proficiente ? obterBonusProficiencia() : 0);
-    const duasMaos = arma.versatil && configuracao.duasMaos;
-    const dadoBase = duasMaos ? arma.danoVersatil : (String(arma.dano || '').match(/\d+d\d+/)?.[0] || null);
-    const dano = dadoBase && arma.tipoDano
-        ? dadoBase + (modificador >= 0 ? ' + ' + modificador : ' - ' + Math.abs(modificador)) + ' ' + arma.tipoDano
-        : '—';
-    return { arma, atributo, modificador, proficiente, bonusAtaque, dano, duasMaos };
+    const contexto = { ...contextoDaFicha(), inventario: inventarioPersonagem };
+    const eq = equipamentoAtivo();
+    const calc = ForjaCampanha.ataque(contexto, bancoDnD, { ...arma, modalidade: arma.tipo === 'distancia' ? 'distancia' : 'corpo', pesada: /pesada/i.test(arma.propriedades || '') },
+        { ...configuracao, atributo: ({ forca:'for',destreza:'des' })[atributo] || 'auto', furia: detalhesFicha.sessao.furia && eq.armadura?.subtipo !== 'pesada', armadura: eq.armadura, escudo: eq.escudo });
+    return { arma, atributo, modificador: calc.bonus, proficiente: calc.proficiente, bonusAtaque: calc.ataque,
+        dano: calc.dano + ' ' + (arma.tipoDano || '') + (calc.furtivo ? ' + ' + calc.furtivo : ''), duasMaos: configuracao.duasMaos };
 }
 
 function atualizarPreviaAtaque() {
@@ -1971,7 +1858,7 @@ function renderizarAtaques() {
     const lista = document.getElementById('lista-ataques');
     if (!lista) return;
     lista.innerHTML = '';
-    ataquesPersonagem = ataquesPersonagem.filter(ataque => obterArmaBanco(ataque.nomeArma) && inventarioPersonagem.some(item => item.nome === ataque.nomeArma));
+    // Ataques antigos continuam registrados mesmo se o item sair da mochila.
 
     if (!ataquesPersonagem.length) {
         lista.innerHTML = '<em class="texto-vazio">Nenhum ataque adicionado.</em>';
@@ -1999,6 +1886,7 @@ function renderizarAtaques() {
         remover.setAttribute('aria-label', 'Remover ataque ' + ataque.nomeArma);
         remover.textContent = '×';
         remover.addEventListener('click', () => removerAtaque(indice));
+        if (!inventarioPersonagem.some(x => x.nome === ataque.nomeArma) && ataque.nomeArma !== 'Ataque Desarmado') { nome.textContent += ' (item indisponível)'; }
         linha.append(nome, bonus, dano, remover);
         lista.appendChild(linha);
     });
@@ -2033,6 +1921,7 @@ function abrirModalTraco(id = '') {
     campoId.value = traco?.id || '';
     document.getElementById('traco-nome').value = traco?.nome || '';
     document.getElementById('traco-tipo').value = traco?.tipo || '';
+    document.getElementById('traco-tipo').disabled = !!traco?.talentoId;
     document.getElementById('traco-descricao').value = traco?.descricao || '';
     titulo.textContent = traco ? 'Editar traço ou característica' : 'Adicionar traço ou característica';
     const botaoExcluir = document.getElementById('btn-excluir-traco-modal');
@@ -2047,6 +1936,7 @@ function abrirModalTraco(id = '') {
 function fecharModalTraco() {
     document.getElementById('modal-traco').style.display = 'none';
     document.getElementById('form-traco').reset();
+    document.getElementById('traco-tipo').disabled = false;
     document.getElementById('traco-id').value = '';
     const botaoExcluir = document.getElementById('btn-excluir-traco-modal');
     if (botaoExcluir) {
@@ -2078,8 +1968,7 @@ function excluirTracoAtual() {
         );
     }
     fecharModalTraco();
-    renderizarTracos();
-    renderizarNotificacoesNivel();
+    recalcularFicha();
     salvarEstado();
     mostrarToast('Traço excluído.', 'sucesso');
 }
@@ -2118,7 +2007,7 @@ function salvarTraco(evento) {
     }
 
     fecharModalTraco();
-    renderizarTracos();
+    recalcularFicha();
     salvarEstado();
 }
 
@@ -2335,4 +2224,218 @@ function fecharToast() {
     if (!toast) return;
     clearTimeout(temporizadorToast);
     toast.classList.remove('visivel');
+}
+
+// A interface fornece entradas; o motor não consulta nem modifica elementos HTML.
+function contextoDaFicha() {
+    const valor = id => document.getElementById(id)?.value || '';
+    const atributos = Object.fromEntries(Object.keys(ForjaRegras.ATRIBUTOS).map(sigla =>
+        [sigla, Math.min(20, Math.max(1, ForjaRegras.inteiro(valor('attr-' + sigla), 10)))]));
+    return {
+        nome: valor('nome-personagem').trim(), nivel: ForjaRegras.nivel(valor('nivel-personagem')),
+        raca: valor('select-raca'),
+        subraca: document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim' ? valor('select-subraca') : '',
+        classe: valor('select-classe'), subclasse: valor('select-subclasse'),
+        alinhamento: valor('select-alinhamento'), antecedente: valor('select-antecedente'),
+        atributos, detalhes: detalhesFicha, tracos: tracosPersonagem, progressosResolvidos,
+        periciasClasse: obterPericiasSelecionadas(), periciasManuais, especializacoes,
+        proficienciasAdicionais, percepcaoSituacao
+    };
+}
+
+function capturarEstado() {
+    const contexto = contextoDaFicha();
+    return {
+        ...contexto, schemaVersion: ForjaEstado.VERSION, ruleset: 'ldj-2014-patrulheiro-revisado',
+        usarSubraca: document.querySelector('input[name="usar-subraca"]:checked')?.value || '',
+        inventario: inventarioPersonagem, ataques: ataquesPersonagem,
+        recursos: recursosPersonagem, equipamento: equipamentoPersonagem,
+        tracosAutomaticosExpandidos: [...tracosAutomaticosExpandidos],
+        fichaGerada: document.getElementById('ficha-completa').style.display === 'block'
+    };
+}
+
+function recalcularFicha() {
+    const suspensoAntes = restaurandoEstado;
+    restaurandoEstado = true;
+    try {
+        const contexto = contextoDaFicha();
+        Object.entries(contexto.atributos).forEach(([sigla, valor]) => document.getElementById('attr-' + sigla).value = valor);
+        calcularAtributos(contexto.raca, contexto.subraca);
+        calcularCombate(contexto.raca, contexto.classe);
+        calcularSalvaguardas(contexto.classe);
+        calcularTodasPericias();
+        atualizarInventario();
+        renderizarAtaques();
+        renderizarTracos();
+        renderizarNotificacoesNivel();
+        ForjaInterface.renderizar();
+    } finally { restaurandoEstado = suspensoAntes; }
+    salvarEstado();
+}
+
+function alterarPericiaManual(nome, marcada) {
+    if (marcada) periciasManuais[nome] = true;
+    else delete periciasManuais[nome];
+    calcularTodasPericias();
+}
+
+function alterarSituacaoPercepcao(situacao) {
+    percepcaoSituacao = ['normal', 'vantagem', 'desvantagem'].includes(situacao) ? situacao : 'normal';
+    atualizarPercepcaoEProficiencias();
+    salvarEstado();
+}
+
+function novoId(prefixo) {
+    return prefixo + '-' + (typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
+}
+
+function equipamentoAtivo() {
+    const localizar = id => {
+        const item = inventarioPersonagem.find(item => item.id === id);
+        return item ? localizarArmadura(item.nome) : null;
+    };
+    return { armadura: localizar(equipamentoPersonagem.armadura), escudo: localizar(equipamentoPersonagem.escudo) };
+}
+
+function botaoEquipamento(item, indice) {
+    const armadura = localizarArmadura(item.nome);
+    if (!armadura) return '';
+    const tipo = armadura.subtipo === 'escudo' ? 'escudo' : 'armadura';
+    const usando = equipamentoPersonagem[tipo] === item.id;
+    const acao = usando ? (tipo === 'escudo' ? 'Guardar' : 'Tirar') : (tipo === 'escudo' ? 'Empunhar' : 'Vestir');
+    return '<button class="btn-equipar" type="button" aria-pressed="' + usando + '" aria-label="' + acao + ' ' + escaparHtml(item.nome) +
+        '" onclick="alternarEquipamento(' + indice + ')">' + acao + '</button>';
+}
+
+function alternarEquipamento(indice) {
+    const item = inventarioPersonagem[indice];
+    const armadura = item && localizarArmadura(item.nome);
+    if (!armadura) return;
+    const tipo = armadura.subtipo === 'escudo' ? 'escudo' : 'armadura';
+    equipamentoPersonagem[tipo] = equipamentoPersonagem[tipo] === item.id ? null : item.id;
+    atualizarInventario();
+}
+
+function valorAtributoParaMelhoria(sigla) {
+    const contexto = contextoDaFicha();
+    const valor = ForjaRegras.atributos(contexto, bancoDnD).valores[sigla];
+    return valor - (contexto.classe === 'Bárbaro' && contexto.nivel === 20 && ['for', 'con'].includes(sigla) ? 4 : 0);
+}
+
+function atualizarSubclasseNivelModal() {
+    const classe = document.getElementById('select-classe').value;
+    const n = ForjaRegras.nivel(document.getElementById('novo-nivel-personagem').value);
+    const select = document.getElementById('nova-subclasse-personagem');
+    const anterior = select.value || document.getElementById('select-subclasse').value;
+    select.innerHTML = '<option value="">-- Escolha uma Subclasse --</option>';
+    (bancoDnD.classes[classe]?.subclasses || []).forEach(nome => {
+        const opcao = document.createElement('option'); opcao.value = nome; opcao.textContent = nome; select.appendChild(opcao);
+    });
+    if ([...select.options].some(opcao => opcao.value === anterior)) select.value = anterior;
+    select.disabled = n < ForjaRegras.nivelSubclasse(classe);
+    document.getElementById('ajuda-subclasse-nivel').textContent = select.disabled
+        ? 'A escolha fica disponível no nível ' + ForjaRegras.nivelSubclasse(classe) + '.'
+        : 'Escolha a subclasse para continuar.';
+}
+
+function atualizarDisplayPV() {
+    document.getElementById('display-hp-atual').textContent = recursosPersonagem.pvAtual;
+    document.getElementById('display-hp-temporarios').textContent = recursosPersonagem.pvTemporarios;
+}
+
+function preencherEdicaoPV() {
+    document.getElementById('pv-atual-edicao').value = recursosPersonagem.pvAtual;
+    document.getElementById('pv-atual-edicao').max = document.getElementById('display-hp-max').textContent;
+    document.getElementById('pv-temporario-edicao').value = recursosPersonagem.pvTemporarios;
+}
+
+function abrirModalPV() {
+    focoAnteriorPV = document.activeElement;
+    preencherEdicaoPV();
+    document.getElementById('quantidade-pv').value = 1;
+    document.getElementById('modal-pv').style.display = 'flex';
+    document.getElementById('pv-atual-edicao').focus();
+}
+
+function fecharModalPV() {
+    document.getElementById('modal-pv').style.display = 'none';
+    focoAnteriorPV?.focus();
+}
+
+function lerEdicaoPV() {
+    const atual = Number(document.getElementById('pv-atual-edicao').value);
+    const temporarios = Number(document.getElementById('pv-temporario-edicao').value);
+    const maximo = Number(document.getElementById('display-hp-max').textContent);
+    if (!Number.isInteger(atual) || atual < 0 || atual > maximo || !Number.isInteger(temporarios) || temporarios < 0 || temporarios > 1000000) {
+        mostrarToast('Informe PV atuais entre 0 e o máximo e PV temporários não negativos.');
+        return null;
+    }
+    return { ...recursosPersonagem, pvAtual: atual, pvTemporarios: temporarios };
+}
+
+function salvarPV(evento) {
+    evento.preventDefault();
+    const recursos = lerEdicaoPV();
+    if (!recursos) return;
+    recursosPersonagem = recursos;
+    ForjaInterface.aposPV();
+    atualizarDisplayPV(); salvarEstado(); fecharModalPV();
+}
+
+function alterarPV(tipo) {
+    if (tipo === 'cura' && detalhesFicha.sessao.morte.morto) { mostrarToast('Cura comum não revive um personagem morto.'); return; }
+    const recursos = lerEdicaoPV();
+    const quantidade = Number(document.getElementById('quantidade-pv').value);
+    if (!recursos || !Number.isInteger(quantidade) || quantidade < 1 || quantidade > 1000000) {
+        mostrarToast('Informe uma quantidade inteira e positiva de dano ou cura.');
+        return;
+    }
+    if (tipo === 'dano') ForjaInterface.aoSofrerDano(quantidade, recursos);
+    recursosPersonagem = tipo === 'dano' ? ForjaRegras.aplicarDano(recursos, quantidade)
+        : ForjaInterface.registrarCura(quantidade, recursos);
+    ForjaInterface.aposPV();
+    atualizarDisplayPV(); preencherEdicaoPV(); salvarEstado();
+}
+
+function configurarDialogoPV() {
+    const modal = document.getElementById('modal-pv');
+    modal.addEventListener('keydown', evento => {
+        if (evento.key === 'Escape') { evento.preventDefault(); fecharModalPV(); }
+        if (evento.key !== 'Tab') return;
+        const campos = [...modal.querySelectorAll('button, input, select, textarea, summary')].filter(campo => !campo.disabled);
+        const primeiro = campos[0], ultimo = campos[campos.length - 1];
+        if (evento.shiftKey && document.activeElement === primeiro) { evento.preventDefault(); ultimo.focus(); }
+        else if (!evento.shiftKey && document.activeElement === ultimo) { evento.preventDefault(); primeiro.focus(); }
+    });
+}
+
+function avisarFalhaSalvamento(mensagem) {
+    document.getElementById('mensagem-salvamento').textContent = mensagem;
+    document.getElementById('alerta-salvamento').hidden = false;
+}
+
+function tentarSalvarNovamente() {
+    salvamentoBloqueado = false;
+    salvarEstado();
+}
+
+function baixarCopiaDaFicha() {
+    const copia = { estadoDaTela: capturarEstado(), dadosSalvos: {} };
+    try {
+        [ForjaEstado.CHAVE, ForjaEstado.LEGADO, ForjaEstado.BACKUP].forEach(chave => copia.dadosSalvos[chave] = window.localStorage.getItem(chave));
+    } catch (_) { copia.armazenamentoIndisponivel = true; }
+    const url = URL.createObjectURL(new Blob([JSON.stringify(copia, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'forja-copia-de-recuperacao.json';
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function recuperarCopiaDaFicha() {
+    try {
+        const storage = window.localStorage;
+        storage.setItem(ForjaEstado.CHAVE + '.sessao.' + Date.now(), JSON.stringify(capturarEstado()));
+        ForjaEstado.recuperar(storage, bancoDnD);
+        window.location.reload();
+    } catch (erro) { avisarFalhaSalvamento('Não foi possível recuperar a ficha. ' + erro.message); }
 }

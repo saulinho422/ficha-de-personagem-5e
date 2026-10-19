@@ -63,6 +63,7 @@ racas: {
     },
 
     "Elfo": {
+      proficienciasPericias: ["Percepção"],
         descricao: "Elfos são um povo mágico de graça sobrenatural, vivendo no mundo sem pertencer inteiramente a ele.",
         bonusAtributos: { destreza: 2 },
         deslocamento: 9,
@@ -316,6 +317,7 @@ racas: {
     },
 
     "Meio-Orc": {
+      proficienciasPericias: ["Intimidação"],
         descricao: "Marcados por sua herança orc, ostentam cicatrizes de batalha com orgulho.",
         bonusAtributos: { forca: 2, constituicao: 1 },
         deslocamento: 9,
@@ -757,7 +759,7 @@ antecedentes: {
     },
 
     "Herói do Povo": {
-        pericias: ["Adestrar Animais", "Sobrevivência"],
+        pericias: ["Lidar com Animais", "Sobrevivência"],
         ferramentas: [
             "Ferramentas de artesão (um tipo)",
             "Veículos (terrestres)"
@@ -1566,7 +1568,7 @@ antecedentes: {
             descricaoHabilidade: "Você memoriza mapas e geografia e encontra comida e água para si e até cinco outras pessoas por dia, se o ambiente oferecer recursos."
         },
         "Herói do Povo": {
-            pericias: ["Adestrar Animais", "Sobrevivência"],
+            pericias: ["Lidar com Animais", "Sobrevivência"],
             ferramentas: ["Ferramentas de artesão (um tipo)", "Veículos (terrestres)"],
             habilidade: "Hospitalidade Rústica",
             descricaoHabilidade: "Camponeses e pessoas comuns oferecem abrigo, descanso e esconderijo, desde que ajudá-lo não coloque suas vidas em risco."
