@@ -23,7 +23,83 @@ const manobras=['Aparar','Ataque Ameaçador','Ataque de Empurrão','Ataque de Fi
 const metamagias=['Magia Acelerada','Magia Aumentada','Magia Cuidadosa','Magia Distante','Magia Duplicada','Magia Estendida','Magia Potencializada','Magia Sutil'];
 const disciplinas=['Sintonia Elemental','Punho dos Quatro Trovões','Punho do Ar Ininterrupto','Chicote de Água','Presas da Serpente de Fogo','Garras do Vento Norte','Postura da Névoa','Cavalgar o Vento','Defesa da Montanha Eterna','Onda da Terra Corrente','Rio da Chama Faminta','Sopro do Inverno','Chamas da Fênix','Punho da Montanha','Esfera de Equilíbrio Elemental','Chamas do Vulcão','Forma do Rio Fluente'];
 const xp=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
-const condicoes={Agarrado:'Deslocamento 0; termina se quem agarra ficar incapacitado ou se o efeito separar as criaturas.',Amedrontado:'Desvantagem em testes e ataques enquanto a fonte do medo estiver visível; não pode se aproximar voluntariamente.',Atordoado:'Incapacitado, não pode se mover, fala vacilante; falha em FOR/DES; ataques contra você têm vantagem.',Caído:'Só rasteja até se levantar; ataques próprios têm desvantagem; ataques a 1,5 m têm vantagem, demais desvantagem.',Cego:'Falha em testes que exigem visão. Ataques próprios com desvantagem; ataques contra você com vantagem.',Enfeitiçado:'Não pode atacar o encantador; ele tem vantagem social contra você.',Envenenado:'Desvantagem em ataques e testes de habilidade.',Impedido:'Deslocamento 0; ataques próprios e salvaguardas de DES com desvantagem; ataques contra você com vantagem.',Incapacitado:'Não pode realizar ações nem reações; perde concentração.',Inconsciente:'Incapacitado, caído, larga o que segura; falha em FOR/DES; ataques têm vantagem e acertos a 1,5 m são críticos.',Invisível:'Pode tentar esconder-se; ataques com vantagem e ataques contra você com desvantagem, se não houver meios de ver você.',Paralisado:'Incapacitado, imóvel e sem fala; falha em FOR/DES; ataques com vantagem; acertos a 1,5 m são críticos.',Petrificado:'Incapacitado e imóvel; resistência a todos os danos, imunidade a veneno e doença; peso ×10; falha FOR/DES.',Surdo:'Falha em testes que exijam audição.'};
-const dados={ferramentas,veiculos,pacotes,extras,dragoes,prioridades,estilos,manobras,metamagias,disciplinas,xp,condicoes};
+const condicoes={Agarrado:'Deslocamento 0; termina se quem agarra ficar incapacitado ou se o efeito separar as criaturas.',Amedrontado:'Desvantagem em testes e ataques enquanto a fonte do medo estiver visível; não pode se aproximar voluntariamente.',Atordoado:'Incapacitado, não pode se mover, fala vacilante; falha em FOR/DES; ataques contra você têm vantagem.',Caído:'Só rasteja até se levantar; ataques próprios têm desvantagem; ataques a 1,5 m têm vantagem, demais desvantagem.',Cego:'Falha em testes que exigem visão. Ataques próprios com desvantagem; ataques contra você com vantagem.',Enfeitiçado:'Não pode atacar o encantador; ele tem vantagem social contra você.',Envenenado:'Desvantagem em ataques e testes de habilidade.',Impedido:'Deslocamento 0; ataques próprios e salvaguardas de DES com desvantagem; ataques contra você com vantagem.',Incapacitado:'Não pode realizar ações nem reações; perde concentração.',Inconsciente:'Incapacitado, caído, larga o que segura; falha em FOR/DES; ataques têm vantagem e acertos a 1,5 m são críticos.',Invisível:'Pode tentar esconder-se; ataques com vantagem e ataques contra você com desvantagem, se não houver meios de ver você.',Paralisado:'Incapacitado e imóvel e sem fala; falha em FOR/DES; ataques com vantagem; acertos a 1,5 m são críticos.',Petrificado:'Incapacitado e imóvel; resistência a todos os danos, imunidade a veneno e doença; peso ×10; falha FOR/DES.',Surdo:'Falha em testes que exijam audição.'};
+const descricoesClasses={
+'Bárbaro':'Combatente feroz guiado pela fúria primal e resistência implacável no campo de batalha.',
+'Bardo':'Artista e conjurador versátil que tece música, eloquência e magia para inspirar aliados.',
+'Bruxo':'Conjurador que firmou um pacto místico com uma entidade extraplanar em troca de segredos arcanos.',
+'Clérigo':'Campeão sacerdotal que canaliza milagres divinos para proteger aliados e punir inimigos.',
+'Druida':'Guardião das forças da natureza capaz de invocar magias elementais e assumir formas de feras.',
+'Feiticeiro':'Conjurador cuja magia flui diretamente do sangue, de uma linhagem exótica ou de forças caóticas.',
+'Guerreiro':'Mestre absoluto das armas, armaduras e táticas de combate em qualquer estilo marcial.',
+'Ladino':'Especialista furtivo em precisão, infiltração, perícias técnicas e golpes certeiros nos pontos fracos.',
+'Mago':'Estudioso supremo das artes arcanas que registra e domina feitiços em seu grimório.',
+'Monge':'Artista marcial disciplinado que canaliza a energia mística do Ki através do próprio corpo.',
+'Paladino':'Cavaleiro sagrado vinculado a um juramento solene de justiça, proteção e destruição do mal.',
+'Patrulheiro':'Caçador e batedor implacável das fronteiras selvagens, mestre em rastreamento e combate tático.'
+};
+const descricoesSubracas={
+'Anão da Colina':'Dotados de percepção aguçada, profunda intuição e extraordinária tenacidade física.',
+'Anão da Montanha':'Fortes e robustos, acostumados à vida rigorosa nos picos e ao combate com armaduras.',
+'Alto Elfo':'Linhagem élfica erudita com afinidade natural pelas artes arcanas e pelos idiomas antigos.',
+'Elfo da Floresta':'Ágeis e furtivos guardiões das matas, em perfeita harmonia com o ambiente selvagem.',
+'Drow (Elfo Negro)':'Herdeiros do Subterrâneo adaptados à escuridão profunda e à magia inata das sombras.',
+'Pés-Leves':'Mestres em passar despercebidos, ágeis e sociáveis ao viajar ao lado de outros povos.',
+'Robusto':'Mais resistentes que os demais halflings, com sangue forte capaz de suportar venenos.',
+'Gnomo da Floresta':'Reservados e engenhosos, com talento nato para ilusões e comunicação com pequenos animais.',
+'Gnomo das Rochas':'Inventores curiosos, artesãos incansáveis e especialistas em mecanismos e engenhocas.'
+};
+const descricoesSubclasses={
+'Caminho do Furioso':'Transforma a fúria em violência implacável e ataques frenéticos sem trégua.',
+'Caminho do Guerreiro Totêmico':'Forja um elo espiritual com feras totêmicas para guiar e proteger sua fúria.',
+'Colégio do Conhecimento':'Reúne segredos, saberes acadêmicos e magias de todas as tradições.',
+'Colégio da Bravura':'Inspira feitos heroicos na linha de frente, unindo aço e magia bardica.',
+'A Arquifada':'Pacto firmado com um senhor ou dama feérica de encanto, ilusão e mistério.',
+'O Corruptor':'Pacto forjado com habitantes dos Planos Inferiores, focado em destruição e resiliência.',
+'O Grande Antigo':'Pacto com uma entidade ancestral insondável, dominando telepatia e loucura.',
+'Domínio do Conhecimento':'Valoriza a erudição, a revelação de segredos e a maestria intelectual.',
+'Domínio da Enganação':'Emprega ilusões, furtividade e subterfúgio como bênçãos divinas.',
+'Domínio da Guerra':'Canaliza o vigor marcial divino para liderar ataques decisivos em combate.',
+'Domínio da Luz':'Empunha o fogo sagrado e a radiância solar para dissipar as trevas.',
+'Domínio da Natureza':'Une a devoção divina ao poder das matas, feras e elementos naturais.',
+'Domínio da Tempestade':'Desfere a fúria dos raios, trovões e vendavais em nome das divindades.',
+'Domínio da Vida':'Dedica-se à cura suprema, restauração e preservação da vitalidade.',
+'Círculo da Terra':'Guardiões dos antigos ritos ligados a terrenos sagrados e à recuperação arcana.',
+'Círculo da Lua':'Mestres metamorfos que assumem formas selvagens ferozes e elementais em combate.',
+'Linhagem Dracônica':'Herda a resistência das escamas e o poder elemental dos dragões ancestrais.',
+'Magia Selvagem':'Canaliza o caos puro da criação em surtos mágicos imprevisíveis e poderosos.',
+'Campeão':'Aprimora o vigor físico puro e a precisão mortal de seus golpes críticos.',
+'Cavaleiro Arcano':'Une a maestria marcial às magias de abjuração e evocação em batalha.',
+'Mestre de Batalha':'Domina o combate tático através de manobras superiores e leitura do inimigo.',
+'Assassino':'Especialista em infiltração, disfarces e golpes letais contra alvos surpreendidos.',
+'Ladrão':'Acrobata ágil, mestre em mãos rápidas, escalada e uso versátil de objetos.',
+'Trapaceiro Arcano':'Potencializa a furtividade ladina com ilusões e encantamentos arcanos.',
+'Escola de Abjuração':'Especializa-se em barreiras protetoras, banimentos e anulação de feitiços.',
+'Escola de Adivinhação':'Desvenda os fios do destino, presságios e segredos ocultos no tempo.',
+'Escola de Conjuração':'Invoca criaturas, objetos e teletransportes através do espaço planar.',
+'Escola de Encantamento':'Subjuga e cativa a mente de aliados e adversários com charme arcano.',
+'Escola de Evocação':'Canaliza energia elemental bruta em explosões devastadoras e esculpidas.',
+'Escola de Ilusão':'Engana os sentidos com miragens complexas, sombras e duplos ilusórios.',
+'Escola de Necromancia':'Manipula as forças da vida, da morte e das reservas vitais.',
+'Escola de Transmutação':'Altera a matéria, a energia e as propriedades físicas das criaturas.',
+'Caminho da Mão Aberta':'Mestre supremo do combate desarmado, controle de impacto e cura pelo Ki.',
+'Caminho da Sombra':'Arte ninja furtiva que utiliza as sombras para teletransporte e emboscadas.',
+'Caminho dos Quatro Elementos':'Moldador de Ki que desencadeia fogo, água, ar e terra em combate.',
+'Juramento de Devoção':'O ideal do cavaleiro radiante: honra, verdade, dever e proteção dos fracos.',
+'Juramento dos Anciões':'Defensor da luz primordial, da alegria e da beleza natural contra a escuridão.',
+'Juramento de Vingança':'Punição implacável contra os grandes males, sem piedade para os inimigos.',
+'Caçador':'Mestre em técnicas letais para abater gigantes, hordas ou predadores colossais.',
+'Mestre das Feras':'Atua em perfeita sintonia tática com um companheiro animal leal.',
+'Conclave do Caçador':'Patrulheiro Revisado focado em abater presas colossais e hordas com precisão letal.',
+'Conclave da Besta':'Patrulheiro Revisado que compartilha um vínculo espiritual profundo com uma fera companheira.',
+'Conclave do Perseguidor Subterrâneo':'Patrulheiro Revisado especialista em emboscadas nas profundezas e escuridão.'
+};
+const imagensOrigem={
+ racas:{'Anão':'','Elfo':'','Halfling':'','Humano':'','Humano Variante':'','Draconato':'','Gnomo':'','Meio-Elfo':'','Meio-Orc':'','Tiefling':''},
+ subracas:{'Anão da Colina':'','Anão da Montanha':'','Alto Elfo':'','Elfo da Floresta':'','Drow (Elfo Negro)':'','Pés-Leves':'','Robusto':'','Gnomo da Floresta':'','Gnomo das Rochas':''},
+ classes:{'Bárbaro':'','Bardo':'','Bruxo':'','Clérigo':'','Druida':'','Feiticeiro':'','Guerreiro':'','Ladino':'','Mago':'','Monge':'','Paladino':'','Patrulheiro':''},
+ subclasses:{}
+};
+const dados={ferramentas,veiculos,pacotes,extras,dragoes,prioridades,estilos,manobras,metamagias,disciplinas,xp,condicoes,descricoesClasses,descricoesSubracas,descricoesSubclasses,imagensOrigem};
 if(typeof module!=='undefined'&&module.exports)module.exports=dados;else r.ForjaOpcoes=dados;
 })(globalThis);

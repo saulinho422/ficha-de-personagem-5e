@@ -1,35 +1,47 @@
+/* Limita apenas as superfícies animadas; diálogos permanecem na camada superior. */
+#ficha-completa, #criacao-rapida, #forja-hub { overflow-x: clip; }
 :root {
     --forja-vinho: #7f1d2d;
     --forja-vinho-escuro: #4f101d;
     --forja-vinho-claro: #a73d4e;
     --forja-ouro: #c7943e;
     --forja-tinta: #241f1d;
-    --forja-muted: #756b65;
+    --forja-muted: #665c55;
     --forja-papel: #fffdf9;
     --forja-fundo: #f4efe8;
     --forja-linha: #e5dbcf;
-    --forja-sombra: 0 12px 32px rgba(62, 36, 28, .09);
-    --forja-raio: 18px;
+    --forja-sombra: 0 8px 24px rgba(62, 36, 28, .06);
+    --forja-raio: 12px;
+    --forja-espaco-campo: 8px;
+    --forja-espaco-grupo: 16px;
+    --forja-espaco-secao: 32px;
+    --forja-largura: 1320px;
+    --cor-primaria: var(--forja-vinho);
+    --cor-primaria-hover: var(--forja-vinho-escuro);
+    --cor-texto: var(--forja-tinta);
+    --cor-secundaria: var(--forja-linha);
+    --borda-suave: 1px solid var(--forja-linha);
 }
 
 html { scroll-behavior: smooth; }
 body {
     min-height: 100vh;
     color: var(--forja-tinta);
-    background:
-        radial-gradient(circle at 10% 0%, rgba(199, 148, 62, .11), transparent 28rem),
-        linear-gradient(180deg, #fbf8f3 0, var(--forja-fundo) 100%);
+    justify-content: flex-start;
+    padding: 24px;
+    background: var(--forja-fundo);
 }
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    opacity: .27;
-    background-image: linear-gradient(rgba(127, 29, 45, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(127, 29, 45, .025) 1px, transparent 1px);
-    background-size: 30px 30px;
-}
+*, *::before, *::after { box-sizing: border-box; }
+::selection { color: #fff; background: var(--forja-vinho); }
+input, textarea { caret-color: var(--forja-vinho); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--forja-vinho); }
+:focus-visible { outline: 2px solid var(--forja-vinho); outline-offset: 4px; }
+button, summary, input, select, textarea { scroll-margin-block: 100px; }
+button { font-family: 'Roboto', sans-serif !important; }
+.forja-nota, .forja-item-detalhe small, .titulo-attr, .titulo-combate, .pericia-attr,
+.forja-barra small { color: var(--forja-muted); }
+.valor-modificador, .combate-valor, .hp-valores, .pericia-valor, .forja-heroi-status { font-variant-numeric: tabular-nums; }
+.nome-personagem, .forja-heroi-corpo h2, .forja-dialogo-topo h2 { overflow-wrap: anywhere; }
 
 [hidden] { display: none !important; }
 button, input, select, textarea { font: inherit; }
@@ -38,13 +50,14 @@ button:not(:disabled):active { transform: translateY(1px) scale(.99); }
 .btn-primario, .forja-acao-principal {
     color: #fff !important;
     border: 1px solid var(--forja-vinho) !important;
-    background: linear-gradient(135deg, var(--forja-vinho-claro), var(--forja-vinho-escuro)) !important;
-    box-shadow: 0 8px 18px rgba(127, 29, 45, .18);
+    background: var(--forja-vinho) !important;
+    box-shadow: none;
 }
+.btn-primario:not(:disabled):hover, .forja-acao-principal:not(:disabled):hover { background: var(--forja-vinho-escuro) !important; }
 .btn-secundario {
     color: #4d2926;
     border: 1px solid #d8c9bc;
-    border-radius: 10px;
+    border-radius: 8px;
     background: rgba(255, 253, 249, .94);
 }
 .btn-secundario:not(:disabled):hover { border-color: #b69175; background: #fff8ed; box-shadow: 0 5px 14px rgba(83, 48, 35, .08); }
@@ -58,10 +71,11 @@ button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none !important
 .grupo-input select,
 input[type="search"] {
     border: 1px solid #d5c8bb !important;
-    border-radius: 12px !important;
+    border-radius: 8px !important;
     color: var(--forja-tinta) !important;
     background-color: #fffdfa !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 2px 6px rgba(74, 44, 33, .035);
+    box-shadow: none;
+    min-height: 44px;
     transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
 }
 .input-elegante:focus,
@@ -75,7 +89,9 @@ input[type="search"]:focus {
     background-color: #fff !important;
     box-shadow: 0 0 0 4px rgba(167, 61, 78, .11) !important;
     outline: none !important;
+    transform: none;
 }
+input::placeholder, textarea::placeholder { color: var(--forja-muted); opacity: 1; }
 select.input-elegante,
 .forja-campo select,
 .grupo-input select,
@@ -96,55 +112,76 @@ select.input-elegante,
 }
 
 .forja-barra {
-    border-color: rgba(127, 29, 45, .12);
-    border-radius: var(--forja-raio);
-    background: rgba(255, 253, 249, .88);
-    box-shadow: var(--forja-sombra);
-    backdrop-filter: blur(14px);
+    max-width: var(--forja-largura);
+    margin-bottom: 24px;
+    padding: 0 0 20px;
+    border: 0;
+    border-bottom: 1px solid #d9cbbb;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
 }
 .forja-barra strong { color: var(--forja-vinho); font-size: 17px; }
-.forja-barra nav button { border-radius: 999px; }
+.forja-barra nav button { border-radius: 8px; min-height: 44px; }
 .painel {
-    max-width: 1240px;
-    border: 1px solid rgba(127, 29, 45, .1);
-    border-radius: 24px;
-    background: rgba(255, 253, 249, .95);
-    box-shadow: var(--forja-sombra);
+    max-width: var(--forja-largura);
+    padding: 32px;
+    border: 0;
+    border-radius: var(--forja-raio);
+    background: var(--forja-papel);
+    box-shadow: none;
+    backdrop-filter: none;
 }
-.cabecalho-ficha { padding: 22px; border: 1px solid var(--forja-linha); border-radius: 18px; background: linear-gradient(135deg, #fffaf2, #fff); }
-.nome-personagem { color: var(--forja-vinho-escuro); letter-spacing: -.02em; }
-.menu-abas { gap: 8px; padding: 6px; border: 1px solid var(--forja-linha); border-radius: 14px; background: #f4ece3; }
-.menu-abas .btn-aba { border-radius: 10px; border: 0; }
-.menu-abas .btn-aba.ativa { color: #fff; background: linear-gradient(135deg, var(--forja-vinho-claro), var(--forja-vinho-escuro)); box-shadow: 0 7px 16px rgba(127, 29, 45, .18); }
-.dnd-grid-principal { grid-template-columns: minmax(220px,.78fr) minmax(300px,1.02fr) minmax(330px,1.12fr); gap: 18px; align-items: start; }
-.coluna-esquerda, .coluna-meio, .coluna-direita { min-width: 0; gap: 14px; }
+.cabecalho-ficha { padding: 8px 0 24px; margin-bottom: 0; gap: 24px; border: 0; border-bottom: 1px solid var(--forja-linha); border-radius: 0; background: transparent; }
+.nome-personagem { color: var(--forja-vinho-escuro); font-size: 32px; letter-spacing: -.02em; }
+.info-personagem { margin-top: 8px; color: var(--forja-muted); font-size: 14px; line-height: 1.5; }
+.menu-abas { justify-content: flex-start; gap: 24px; margin-bottom: 24px; padding: 0; border: 0; border-bottom: 1px solid var(--forja-linha); border-radius: 0; background: transparent; }
+.menu-abas .btn-aba { min-height: 48px; padding: 12px 0; border-radius: 0; border: 0; border-bottom: 2px solid transparent; color: var(--forja-muted); }
+.menu-abas .btn-aba:hover { transform: none; background: transparent; color: var(--forja-vinho); }
+.menu-abas .btn-aba.ativa { color: var(--forja-vinho); border-bottom-color: var(--forja-vinho); background: transparent; box-shadow: none; }
+.dnd-grid-principal { grid-template-columns: minmax(240px,.85fr) minmax(280px,1fr) minmax(300px,1.1fr); gap: 24px; align-items: start; }
+.coluna-esquerda, .coluna-meio, .coluna-direita { min-width: 0; gap: 20px; }
 .coluna-meio #forja-sessao, .coluna-direita #forja-inventario-extra { grid-template-columns: 1fr; gap: 14px; }
 .caixa-equipamentos { display: none; }
 .caixa-generica, .caixa-hp, .lista-habilidades, .caixa-proficiencias-automaticas, .caixa-percepcao-passiva, .forja-card, .caixa-destaque {
     border-color: var(--forja-linha) !important;
-    border-radius: 16px !important;
+    border-radius: var(--forja-raio) !important;
     background: var(--forja-papel) !important;
-    box-shadow: 0 5px 18px rgba(66, 38, 29, .055);
+    box-shadow: none;
 }
 .forja-card { margin: 0; padding: 18px; }
-.forja-card h3 { margin-bottom: 12px; color: var(--forja-vinho-escuro); font-size: 16px; }
-#forja-resumo { margin: 12px 0; }
+.forja-card h3 { margin-bottom: 16px; color: var(--forja-vinho-escuro); font-family: 'Roboto', sans-serif; font-size: 16px; }
+#forja-resumo { margin: 8px 0 24px; }
 #forja-resumo .forja-detalhes, #forja-resumo .forja-ok { margin: 0; }
 #forja-escolhas { margin-top: 18px; }
 #forja-evolucao { margin-top: 14px; padding: 18px; border: 1px solid var(--forja-linha); border-radius: 16px; background: var(--forja-papel); }
 #forja-evolucao > h3 { margin: 0 0 8px; color: var(--forja-vinho-escuro); font-family: 'Cinzel', serif; font-size: 16px; }
 .grid-status-combate { gap: 9px; }
-.combate-box { border: 1px solid #eadfd4; border-radius: 14px; background: linear-gradient(180deg,#fff,#fbf3e9); }
+.combate-box { border: 0; border-radius: 8px; background: #f2e9dd; }
 .combate-valor { color: var(--forja-vinho-escuro); }
-.caixa-hp { background: linear-gradient(145deg, #fffafa, #fff7f0) !important; }
+.caixa-hp { border: 0; background: #f7e9e8 !important; }
+.atributo-box { border: 0; border-radius: 8px; background: #f5f0e8; box-shadow: none; }
+.atributo-box:hover, .combate-box:hover { transform: none; box-shadow: none; }
+.valor-modificador, .combate-valor { font-family: 'Roboto', sans-serif; }
+.valor-base { border: 0; background: transparent; color: var(--forja-muted); }
+.titulo-lista, .titulo-attr, .titulo-combate { letter-spacing: .025em; }
+.caixa-destaque { font-size: 13px; }
+.caixa-percepcao-passiva { padding: 12px; gap: 12px; grid-template-columns: 44px minmax(0,1fr); margin: 0; }
+.valor-percepcao-passiva { width: 44px; height: 44px; margin: 0; font-family: 'Roboto', sans-serif; box-shadow: none; }
+.texto-percepcao-passiva { align-items: flex-start; text-align: left; padding: 0; }
+.texto-percepcao-passiva strong, .texto-percepcao-passiva small { font-size: 11px; color: var(--forja-muted); }
+.situacao-passiva { grid-column: 1/-1; display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: 8px; }
+.situacao-passiva select { width: 100%; min-height: 44px; }
 .forja-recurso { padding: 10px 0; }
 .forja-item-detalhe { align-items: flex-start; }
-.item-traco { border-radius: 12px; border: 1px solid #eadfd5; overflow: hidden; margin-bottom: 8px; }
-.item-traco-cabecalho { padding: 12px; background: #fffaf4; }
+.item-traco { border-radius: 0; border: 0; border-bottom: 1px solid var(--forja-linha); overflow: hidden; margin-bottom: 0; }
+.item-traco-cabecalho { padding: 14px 4px; background: transparent; }
+.item-traco-cabecalho:hover { background: #f5f0e8; }
 .detalhes-traco { padding: 0 12px 13px; }
 .meta-traco { display: block; margin: 6px 0; color: var(--forja-vinho); font-weight: 700; }
 
-.forja-morte { background: linear-gradient(145deg,#fffdf9,#fbf6f1) !important; }
+.forja-morte { background: var(--forja-papel) !important; }
 .forja-estado-morte { margin: 0 0 12px; color: var(--forja-muted); font-size: 12px; line-height: 1.5; }
 .forja-morte-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; }
 .forja-morte-linha > strong { font-size: 13px; }
@@ -163,30 +200,88 @@ select.input-elegante,
 
 .forja-mobile-topo, .forja-mobile-nav { display: none; }
 
+/* Criação: sequência à esquerda e uma tarefa por vez. */
+.form-criacao { max-width: 1100px; }
+.titulo-principal { color: var(--forja-vinho-escuro); font-size: 28px; text-align: left; margin-bottom: 8px; }
+.subtitulo { text-align: left; color: var(--forja-muted); margin: 0 0 32px; }
+.progresso-criacao { display: flex; flex-wrap: nowrap; gap: 4px; margin: 0 0 24px; overflow-x: auto; animation: none; }
+.passo-indicador { flex: 0 0 auto; min-height: 44px; padding: 8px 12px; gap: 10px; justify-content: flex-start; color: var(--forja-muted); border: 0; border-radius: 8px; font-size: 13px; }
+.passo-indicador span { flex-shrink: 0; width: 28px; height: 28px; color: var(--forja-muted); background: #eae2d7; box-shadow: none; }
+.passo-indicador.ativo { color: var(--forja-vinho); transform: none; }
+.passo-indicador[aria-current="step"] { background: #f1e3e0; }
+.passo-indicador.ativo span { color: #fff; background: var(--forja-vinho); box-shadow: none; }
+.etapa-criacao { min-width: 0; animation: none; }
+.titulo-secao { margin: 0 0 12px; padding: 0; border: 0; font-family: 'Roboto', sans-serif; font-size: 21px; color: var(--forja-tinta); }
+.dica-etapa { max-width: 70ch; margin: 0 0 24px; padding: 0; border: 0; background: transparent; color: var(--forja-muted); line-height: 1.65; }
+.grupo-input label { text-transform: none; color: var(--forja-tinta); }
+.grid-formulario { gap: 16px; margin-bottom: 24px; }
+.grid-formulario .forja-campo { margin: 0; }
+.acoes-etapa { padding-top: 24px; border-top: 1px solid var(--forja-linha); margin-top: 32px; }
+.grid-atributos-base { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.grid-atributos-base .grupo-input { min-width: 0; padding: 12px; background: #f5f0e8; border: 0; box-shadow: none; }
+.grid-atributos-base .grupo-input:hover { transform: none; box-shadow: none; background: #f5f0e8; }
+.grid-atributos-base input { width: 100%; max-width: 88px; font-family: 'Roboto', sans-serif; }
+.forja-escolha { border-color: var(--forja-linha); border-radius: 8px; }
+.forja-checks label { background: #f5f0e8; }
+.forja-checks label:has(input:checked) { background: #f1e3e0; color: var(--forja-vinho-escuro); }
+.forja-campo { gap: var(--forja-espaco-campo); }
+.forja-campo textarea { min-height: 132px; }
+.aba { animation: none; }
+.forja-acoes-mobile { display: grid; gap: 12px; }
+.forja-acoes-mobile button { width: 100%; min-height: 48px; text-align: left; }
+#pagina-2 > h2, #pagina-3 > h2 { font-family: 'Cinzel', serif; color: var(--forja-vinho-escuro); font-size: 24px; margin: 32px 0 24px; }
+#forja-historia { gap: var(--forja-espaco-campo) 24px; }
+#forja-historia > .forja-campo:has(.forja-campo-largo) { grid-column: 1/-1; padding-top: 20px; border-top: 1px solid var(--forja-linha); }
+#forja-historia textarea { line-height: 1.65; }
+#forja-historia-historia, #forja-historia-aparencia { min-height: 200px; }
+#forja-historia > .forja-card { padding: 20px 0; border: 0; border-top: 1px solid var(--forja-linha); border-radius: 0 !important; }
+#forja-conjuracao { display: grid; gap: 24px; }
+#forja-conjuracao > .forja-card { margin: 0; }
+.forja-magia { border: 0; border-top: 1px solid var(--forja-linha); border-radius: 0; padding: 20px 0; margin: 0; }
+.forja-magia p, .forja-texto { max-width: 72ch; line-height: 1.65; }
+.forja-detalhes, .forja-item-detalhe, .forja-recurso { border-color: var(--forja-linha); }
+.forja-detalhes > summary { padding-block: 4px; }
+.forja-item-detalhe > div, .forja-item-detalhe strong { min-width: 0; overflow-wrap: anywhere; }
+.forja-dialogo-topo { border-color: var(--forja-linha); }
+#forja-dialogo { background: var(--forja-papel); border: 0; box-shadow: 0 24px 80px #241f1d33; }
+.item-traco.automatico, .item-traco.bloqueado { border-left: 0; }
+.forja-hub-cabecalho > div:first-child { display: flex; flex-direction: column; }
+.forja-hub-marca { order: 1; }
+
+@media (min-width: 901px) {
+    .form-criacao:not([hidden]) { display: grid !important; grid-template-columns: 200px minmax(0,1fr); column-gap: 40px; align-content: start; }
+    .form-criacao[style*="display: none"] { display: none !important; }
+    .form-criacao > .titulo-principal, .form-criacao > .subtitulo { grid-column: 1/-1; }
+    .form-criacao > .progresso-criacao { grid-column: 1; flex-direction: column; align-self: start; border-right: 1px solid var(--forja-linha); padding-right: 20px; overflow: visible; }
+    .form-criacao > .etapa-criacao { grid-column: 2; grid-row: 3; }
+    #forja-historia { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+
 /* Hub de personagens */
 .modo-hub { align-items: stretch; padding: 0; }
-.forja-hub { width: 100%; min-height: 100vh; padding: clamp(24px,5vw,64px); }
+.forja-hub { width: 100%; min-height: 100vh; padding: 48px 32px; }
 .forja-hub-cabecalho { max-width: 1180px; margin: 0 auto 30px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; }
-.forja-hub-marca { display: block; color: var(--forja-vinho); font-family: 'Cinzel',serif; font-size: 12px; font-weight: 700; letter-spacing: .16em; }
-.forja-hub-cabecalho h1 { margin: 8px 0 5px; color: var(--forja-vinho-escuro); font-family: 'Cinzel',serif; font-size: clamp(30px,4vw,48px); }
+.forja-hub-marca { display: block; margin-top: 12px; color: var(--forja-vinho); font-size: 13px; font-weight: 700; }
+.forja-hub-cabecalho h1 { margin: 0 0 12px; color: var(--forja-vinho-escuro); font-family: 'Cinzel',serif; font-size: 36px; }
 .forja-hub-cabecalho p { margin: 0; color: var(--forja-muted); }
 .forja-hub-acoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .forja-hub-acoes button { min-height: 44px; padding: 10px 16px; }
 .forja-herois-grade { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill,minmax(270px,1fr)); gap: 20px; }
-.forja-heroi-card { overflow: hidden; border: 1px solid rgba(127,29,45,.12); border-radius: 22px; background: rgba(255,253,249,.96); box-shadow: var(--forja-sombra); transition: transform .2s ease, box-shadow .2s ease; }
-.forja-heroi-card:hover { transform: translateY(-3px); box-shadow: 0 18px 42px rgba(62,36,28,.14); }
-.forja-heroi-visual { position: relative; height: 190px; overflow: hidden; background: linear-gradient(145deg,#571322,#9c3747); }
+.forja-heroi-card { min-width: 0; overflow: hidden; border: 1px solid var(--forja-linha); border-radius: 12px; background: var(--forja-papel); box-shadow: none; transition: border-color .2s ease; }
+.forja-heroi-card:hover { border-color: var(--forja-vinho); }
+.forja-heroi-visual { position: relative; height: 144px; overflow: hidden; background: var(--forja-vinho-escuro); }
 .forja-heroi-visual img { width: 100%; height: 100%; object-fit: cover; }
-.forja-heroi-monograma { display: grid; place-items: center; width: 100%; height: 100%; color: rgba(255,255,255,.92); font-family: 'Cinzel',serif; font-size: 72px; background: radial-gradient(circle at 25% 10%,rgba(255,255,255,.18),transparent 34%); }
+.forja-heroi-monograma { display: grid; place-items: center; width: 100%; height: 100%; color: #f0dfc3; font-family: 'Cinzel',serif; font-size: 56px; }
 .forja-heroi-nivel { position: absolute; right: 13px; bottom: 13px; padding: 6px 10px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; color: #fff; font-size: 11px; font-weight: 700; background: rgba(38,13,17,.72); backdrop-filter: blur(8px); }
 .forja-heroi-corpo { padding: 18px; }
 .forja-heroi-corpo small { color: var(--forja-muted); }
 .forja-heroi-corpo h2 { margin: 6px 0; color: var(--forja-vinho-escuro); font-family: 'Cinzel',serif; font-size: 22px; }
 .forja-heroi-corpo p { margin: 0; color: #594d47; }
 .forja-heroi-status { display: flex; gap: 8px; margin-top: 16px; }
-.forja-heroi-status span { flex: 1; padding: 9px 10px; border-radius: 10px; color: var(--forja-muted); font-size: 12px; background: #f6eee5; }
+.forja-heroi-status span { flex: 1; padding: 12px 0; border-top: 1px solid var(--forja-linha); color: var(--forja-muted); font-size: 13px; }
 .forja-heroi-status strong { color: var(--forja-vinho-escuro); }
-.forja-heroi-acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 0 18px 18px; }
+.forja-heroi-acoes { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; padding: 0 18px 18px; }
+.forja-heroi-acoes button { min-width: 0; min-height: 44px; padding: 8px 4px; font-size: 12px; border-radius: 8px; overflow-wrap: anywhere; }
 .forja-heroi-acoes .forja-acao-principal { grid-column: 1/-1; min-height: 44px; }
 .forja-hub-vazio { grid-column: 1/-1; min-height: 340px; display: grid; place-items: center; align-content: center; text-align: center; padding: 36px; border: 1px dashed #c9aa92; border-radius: 22px; background: rgba(255,253,249,.72); }
 .forja-hub-vazio > span { color: var(--forja-ouro); font-size: 42px; }
@@ -195,18 +290,17 @@ select.input-elegante,
 .forja-hub-lixeira { max-width: 1180px; margin: 24px auto 0; padding: 16px; border-radius: 14px; background: rgba(255,253,249,.78); }
 .forja-lixeira-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; }
 
-@media (max-width: 900px) {
-    .dnd-grid-principal { grid-template-columns: 1fr 1fr; }
-    .coluna-direita { grid-column: 1/-1; display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+@media (max-width: 1100px) {
+    .dnd-grid-principal { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .coluna-direita { grid-column: 1/-1; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
     .coluna-direita #forja-inventario-extra { grid-template-columns: 1fr; }
 }
 
 /* Experiência própria de aplicativo para celular */
 @media (max-width: 760px) {
-    :root { --forja-raio: 17px; }
+    :root { --forja-raio: 12px; }
     html { background: #f6f0e8; }
-    body { display: block; width: 100%; padding: 0 0 calc(78px + env(safe-area-inset-bottom)); overflow-x: hidden; background: #f6f0e8; }
-    body::before { opacity: .15; background-size: 24px 24px; }
+    body { display: block; width: 100%; padding: 0 0 calc(88px + env(safe-area-inset-bottom)); background: var(--forja-fundo); }
     .forja-barra { display: none !important; }
     .forja-mobile-topo {
         position: sticky;
@@ -246,17 +340,17 @@ select.input-elegante,
         backdrop-filter: blur(18px);
     }
     .forja-mobile-nav button { flex: 1; min-width: 0; min-height: 50px; padding: 22px 3px 5px; border: 0; border-radius: 14px; color: rgba(255,255,255,.67); font-size: 10px; font-weight: 700; background: transparent; box-shadow: none; position: relative; }
-    .forja-mobile-nav button::before { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); font-size: 16px; }
-    .forja-mobile-nav button:nth-child(1)::before { content: "◈"; }
-    .forja-mobile-nav button:nth-child(2)::before { content: "✎"; }
-    .forja-mobile-nav button:nth-child(3)::before { content: "✦"; }
-    .forja-mobile-nav button:nth-child(4)::before { content: "♟"; }
+    .forja-mobile-nav button::before { content: ""; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: currentColor; mask-position: center; mask-size: contain; mask-repeat: no-repeat; }
+    .forja-mobile-nav button:nth-child(1)::before { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H5v18h14V8zM14 3v5h5M8 12h8M8 16h5'/%3E%3C/svg%3E"); }
+    .forja-mobile-nav button:nth-child(2)::before { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5C8 3 4 3 2 4v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-2-1-6-1-10 1zm0 0v15'/%3E%3C/svg%3E"); }
+    .forja-mobile-nav button:nth-child(3)::before { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 20 11-11m-3-4 2-3 2 3 3 2-3 2-2 3-2-3-3-2zM5 3v4M3 5h4M19 14v6M16 17h6'/%3E%3C/svg%3E"); }
+    .forja-mobile-nav button:nth-child(4)::before { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='7' r='3'/%3E%3Cpath d='M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M18 13a6 6 0 0 1 3 5v3'/%3E%3C/svg%3E"); }
     .forja-mobile-nav button.ativo { color: #fff; background: rgba(255,255,255,.12); }
 
     .painel { width: 100%; max-width: none; margin: 0; padding: 14px 12px 22px; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
     #ficha-completa { padding-bottom: 18px; }
     .menu-abas { display: none !important; }
-    .cabecalho-ficha { margin-bottom: 12px; padding: 15px; border: 0; border-radius: 18px; color: #fff; background: linear-gradient(145deg,#7f1d2d,#4f101d); box-shadow: 0 10px 24px rgba(79,16,29,.2); }
+    .cabecalho-ficha { margin-bottom: 16px; padding: 20px; border: 0; border-radius: 12px; color: #fff; background: var(--forja-vinho-escuro); box-shadow: none; }
     .nome-personagem { color: #fff; font-size: 24px; }
     .info-personagem { color: rgba(255,255,255,.82); line-height: 1.45; }
     .acoes-nivel { align-items: center; }
@@ -268,7 +362,7 @@ select.input-elegante,
     .coluna-direita { order: 3; display: flex; }
     .coluna-esquerda, .coluna-meio, .coluna-direita { width: 100%; gap: 12px; }
     .coluna-meio #forja-sessao, .coluna-direita #forja-inventario-extra { gap: 12px; }
-    .forja-card, .caixa-generica, .caixa-hp, .lista-habilidades, .caixa-proficiencias-automaticas, .caixa-percepcao-passiva, .caixa-destaque { border: 0 !important; border-radius: 18px !important; box-shadow: 0 7px 20px rgba(67,40,31,.07); }
+    .forja-card, .caixa-generica, .caixa-hp, .lista-habilidades, .caixa-proficiencias-automaticas, .caixa-percepcao-passiva, .caixa-destaque { border: 0 !important; border-radius: 12px !important; box-shadow: none; }
     .forja-card { padding: 15px; }
     .grid-status-combate { position: sticky; top: calc(63px + env(safe-area-inset-top)); z-index: 20; padding: 7px; border-radius: 17px; background: rgba(246,240,232,.92); backdrop-filter: blur(12px); }
     .combate-box { min-height: 74px; padding: 10px 5px; border: 0; box-shadow: 0 5px 14px rgba(69,39,29,.07); }
@@ -298,10 +392,11 @@ select.input-elegante,
     .modal-conteudo { width: 100% !important; max-width: none !important; max-height: 90vh; margin: 0 !important; padding: 18px 15px calc(20px + env(safe-area-inset-bottom)) !important; border-radius: 22px 22px 0 0 !important; animation: forja-subir .2s ease-out; }
     .acoes-etapa { position: sticky; bottom: calc(74px + env(safe-area-inset-bottom)); z-index: 12; margin: 18px -4px 0; padding: 9px 4px; background: linear-gradient(transparent,#fffdf9 24%); }
     .etapa-criacao .acoes-etapa button { flex: 1; }
-    .progresso-criacao { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
-    .passo-indicador { flex: 0 0 96px; min-height: 54px; border-radius: 13px; }
+    .progresso-criacao { display: flex; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+    .passo-indicador { flex: 0 0 104px; min-height: 64px; border-radius: 8px; font-size: 12px; }
     .titulo-principal { font-size: 25px; }
-    .form-criacao { min-height: 100vh; padding-top: calc(24px + env(safe-area-inset-top)); }
+    .form-criacao { min-height: 100vh; padding: calc(24px + env(safe-area-inset-top)) 20px 24px; }
+    .form-criacao .acoes-etapa { bottom: 0; margin: 24px 0 0; padding: 16px 0; background: var(--forja-fundo); }
 
     .modo-hub { padding: 0; }
     .modo-hub .forja-mobile-topo, .modo-hub .forja-mobile-nav { display: none !important; }
@@ -313,20 +408,409 @@ select.input-elegante,
     .forja-hub-acoes button { flex: 1 1 120px; }
     .forja-hub-acoes .forja-acao-principal { flex-basis: 100%; }
     .forja-herois-grade { grid-template-columns: 1fr; gap: 14px; }
-    .forja-heroi-card { display: grid; grid-template-columns: 112px 1fr; border-radius: 19px; }
+    .forja-heroi-card { display: grid; grid-template-columns: 88px minmax(0,1fr); border-radius: 12px; }
     .forja-heroi-card:hover { transform: none; }
-    .forja-heroi-visual { grid-row: 1/3; height: 100%; min-height: 205px; }
+    .forja-heroi-visual { grid-row: 1; height: 100%; min-height: 180px; }
     .forja-heroi-monograma { font-size: 48px; }
     .forja-heroi-nivel { right: auto; bottom: 10px; left: 8px; font-size: 9px; }
     .forja-heroi-corpo { padding: 15px 13px 9px; }
     .forja-heroi-corpo h2 { margin: 5px 0; font-size: 18px; }
-    .forja-heroi-corpo p, .forja-heroi-corpo small { font-size: 11px; }
+    .forja-heroi-corpo p, .forja-heroi-corpo small { font-size: 12px; overflow-wrap: anywhere; }
     .forja-heroi-status { margin-top: 10px; }
     .forja-heroi-status span { padding: 7px; font-size: 10px; }
-    .forja-heroi-acoes { grid-column: 2; grid-template-columns: 1fr 1fr 1fr; padding: 0 13px 13px; }
+    .forja-heroi-acoes { grid-column: 1/-1; grid-template-columns: repeat(3,minmax(0,1fr)); padding: 12px; border-top: 1px solid var(--forja-linha); }
     .forja-heroi-acoes .forja-acao-principal { grid-column: 1/-1; }
-    .forja-heroi-acoes button { min-width: 0; padding: 7px 3px; font-size: 10px; }
+    .forja-heroi-acoes button { min-width: 0; min-height: 44px; padding: 8px 4px; font-size: 12px; }
 }
 
 @keyframes forja-subir { from { transform: translateY(28px); opacity: .6; } to { transform: translateY(0); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* Controles de aplicativo: escolha, consulta e edição sem perder o contexto. */
+.forja-seletor-original { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 1px !important; padding: 0 !important; border: 0 !important; opacity: 0; overflow: hidden; pointer-events: none; }
+.forja-seletor-botao { position: relative; width: 100%; min-height: 48px; padding: 12px 38px 12px 14px; text-align: left; border: 1px solid #d5c8bb; border-radius: 10px; background: #fffdfa; color: var(--forja-tinta); font-size: 14px; font-weight: 500; line-height: 1.45; cursor: pointer; overflow-wrap: anywhere; }
+.forja-seletor-botao::after { content: ''; position: absolute; right: 16px; top: 20px; width: 7px; height: 7px; border-right: 2px solid var(--forja-vinho); border-bottom: 2px solid var(--forja-vinho); transform: rotate(45deg); }
+.forja-seletor-botao:hover { border-color: var(--forja-vinho); background: #fff8ef; }
+.forja-seletor-botao[aria-expanded="true"] { border-color: var(--forja-vinho); background: #f4e8e4; }
+.forja-seletor-dialogo { width: min(640px,94vw); max-height: 85dvh; padding: 24px; border: 0; border-radius: 16px; color: var(--forja-tinta); background: var(--forja-papel); box-shadow: 0 24px 80px #241f1d44; }
+.forja-seletor-dialogo::backdrop { background: #241f1d99; }
+.forja-seletor-dialogo h2 { font-size: 22px; color: var(--forja-vinho-escuro); margin: 0 0 16px; }
+.forja-seletor-busca { position: sticky; top: 0; z-index: 1; width: 100%; margin-bottom: 16px; }
+.forja-seletor-lista { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; max-height: 52dvh; overflow-y: auto; padding: 4px; margin-bottom: 20px; }
+.forja-seletor-opcao { padding: 14px; min-height: 52px; color: var(--forja-tinta); border: 1px solid var(--forja-linha); border-radius: 10px; background: #fffdf9; text-align: left; font-size: 14px; cursor: pointer; overflow-wrap: anywhere; }
+.forja-seletor-opcao[aria-selected="true"] { border-color: var(--forja-vinho); background: #f1e3e0; color: var(--forja-vinho-escuro); font-weight: 700; }
+.forja-seletor-opcao:not(:disabled):hover { background: #f5ede2; }
+.forja-atributos-escolha { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; width: 100%; margin: 16px 0; }
+#forja-metodos { display: block; }
+#forja-metodos > .forja-campo { margin: 0 0 24px; }
+.forja-valores { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0; }
+.forja-valor { min-width: 64px; min-height: 56px; padding: 10px; font-size: 20px; font-weight: 700; border: 1px solid #b8a99b; border-radius: 12px; color: var(--forja-vinho-escuro); background: #fffdf9; cursor: pointer; }
+.forja-valor.selecionado { color: white; background: var(--forja-vinho); border-color: var(--forja-vinho); }
+.forja-atributo-escolha { min-height: 76px; padding: 16px 10px; border: 1px solid var(--forja-linha); border-radius: 12px; background: #f5f0e8; color: var(--forja-tinta); font-size: 15px; font-weight: 700; cursor: pointer; }
+.forja-ponto-atributo { padding: 16px 8px; border-radius: 12px; background: #f5f0e8; text-align: center; }
+.forja-ponto-atributo > div { display: flex; justify-content: center; align-items: center; gap: 12px; margin: 12px 0; }
+.forja-ponto-atributo button { width: 40px; min-height: 44px; padding: 0; }
+.forja-ponto-atributo output { min-width: 28px; font-size: 24px; font-weight: 700; }
+.forja-ponto-atributo small { color: var(--forja-muted); }
+.forja-pontos-disponiveis { display: flex; align-items: center; gap: 12px; padding: 16px; background: #f1e3e0; color: var(--forja-vinho-escuro); border-radius: 12px; }
+.forja-pontos-disponiveis strong { font-size: 32px; }
+.forja-dados-mesa { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+.forja-dado { display: grid; place-items: center; width: 56px; height: 56px; border: 1px solid #cbb9a3; border-radius: 12px; background: #fffdf9; color: var(--forja-vinho); font-size: 28px; font-weight: 700; box-shadow: 0 4px 10px #4f101d12; }
+.forja-dado.descartado { opacity: .5; text-decoration: line-through; }
+.forja-resultados-rolagem { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.forja-resultados-rolagem span { padding: 8px 12px; border-radius: 8px; background: #efe6d8; font-weight: 700; }
+.forja-riqueza-total { font-size: 20px; color: var(--forja-vinho); }
+.forja-riqueza-total strong { font-size: 36px; }
+.forja-pv-escolha { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--forja-linha); }
+.forja-pv-escolha > div { flex: 1 1 160px; }
+.forja-pv-escolha small { display: block; margin-top: 6px; color: var(--forja-muted); }
+.forja-pv-escolha output { font-size: 18px; font-weight: 700; color: var(--forja-vinho); }
+.forja-pv-escolha button { min-height: 44px; }
+#forja-criacao-escolhas > h3 { margin-top: 32px; }
+.forja-revisao-identidade { padding: 20px 0; border-bottom: 1px solid var(--forja-linha); }
+.forja-revisao-identidade h3 { font: 700 28px 'Cinzel',serif; color: var(--forja-vinho); margin: 0 0 12px; }
+.forja-revisao-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin: 24px 0; }
+.forja-revisao-grid section { padding: 16px; border-radius: 12px; background: #f5f0e8; }
+.forja-revisao-grid h4 { margin: 0 0 16px; color: var(--forja-vinho-escuro); }
+.forja-revisao-atributos { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.forja-revisao-atributos span { display: flex; flex-direction: column; gap: 4px; }
+.forja-revisao-atributos strong { font-size: 24px; }
+.caixa-equipamentos { display: flex; min-height: 220px; padding: 16px; border: 1px solid var(--forja-linha); border-radius: 12px; background: var(--forja-papel); }
+.lista-inventario-conteudo { max-height: 240px; overflow-y: auto; }
+.forja-inventario-acoes { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; }
+.forja-inventario-acoes .btn-add-item { position: static; flex-shrink: 0; width: 44px; height: 44px; }
+.forja-inventario-paineis { display: grid; gap: 24px; }
+.forja-inventario-paineis .forja-card { border: 0; border-radius: 0 !important; padding: 0; }
+.forja-saldo { position: sticky; top: 0; z-index: 1; padding: 14px; margin: 0 0 16px; border-radius: 10px; background: #f1e3e0; color: var(--forja-vinho-escuro); font-weight: 700; }
+.forja-catalogo { margin-top: 16px; }
+.forja-compra .forja-item-detalhe { padding-block: 16px; }
+.forja-item-detalhe > button { min-height: 44px; }
+.forja-acoes-sessao { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.hp-valores > button, .pv-temporarios > button { padding: 4px 10px; border: 0; border-bottom: 1px dashed var(--forja-vinho); border-radius: 4px; background: transparent; color: inherit; font-size: inherit; font-weight: inherit; cursor: text; }
+.pv-temporarios > button { min-width: 44px; min-height: 44px; color: var(--forja-vinho); font-size: 20px; font-weight: 700; }
+.forja-pv-editor { display: inline-block; width: 110px; max-width: 100%; min-height: 48px; padding: 4px; border: 1px solid var(--forja-vinho); border-radius: 8px; background: #fffdf9; font: inherit; color: var(--forja-vinho); text-align: center; }
+.forja-pv-editor[aria-invalid="true"] { border: 2px solid #a1182b; }
+#forja-ajuda-pv { max-width: 36ch; margin: 12px auto 0; font-size: 11px; }
+.forja-cabecalho-retrato { width: 76px; height: 76px; object-fit: cover; border-radius: 12px; }
+.cabecalho-ficha:has(.forja-cabecalho-retrato:not([hidden])) { display: grid; grid-template-columns: 76px minmax(0,1fr) auto; }
+#forja-historia { display: block; }
+#forja-historia > section { margin-bottom: 32px; }
+.forja-historia-fisico { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px 20px; }
+.forja-historia-aparencia, .forja-historia-organizacao { display: grid; grid-template-columns: 240px minmax(0,1fr); gap: 24px; align-items: start; padding-block: 24px; border-block: 1px solid var(--forja-linha); }
+.forja-historia-personalidade { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 24px; }
+#forja-historia textarea { min-height: 150px; padding: 18px; border: 1px solid #d9ccbe; border-radius: 12px; background: #fbf7ef; line-height: 1.75; font-size: 15px; resize: vertical; }
+#forja-historia-historia { min-height: 260px !important; }
+.forja-historia-aparencia textarea, .forja-historia-organizacao textarea { min-height: 260px !important; }
+.forja-sugestoes { padding: 20px; border-radius: 12px; background: #f1e7d9; }
+.forja-sugestoes h3 { margin: 0 0 8px; font-size: 18px; color: var(--forja-vinho-escuro); }
+.forja-sugestoes-acoes { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-top: 20px; }
+.forja-sugestoes-acoes button { min-height: 48px; font-size: 13px; }
+.forja-midia-editor { min-width: 0; max-width: 100%; }
+.forja-midia-editor h3 { margin: 0 0 16px; font-size: 16px; }
+.forja-midia-quadro { position: relative; display: grid; place-items: center; min-height: 180px; aspect-ratio: 4/3; overflow: hidden; border: 1px dashed #c6ad96; border-radius: 12px; background: #f1e8da; }
+.forja-midia-preview { width: 100%; height: 100%; max-height: 240px; object-fit: contain; }
+.forja-midia-vazio { color: var(--forja-muted); font-size: 14px; }
+.forja-midia-quadro:has(img:not([hidden])) .forja-midia-vazio { display: none; }
+.forja-midia-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.forja-midia-acoes button { min-height: 44px; font-size: 12px; padding: 10px; }
+.forja-arquivo-imagem { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.etapa-criacao > .forja-midia-editor { margin-top: 24px; padding: 20px; border: 1px solid var(--forja-linha); border-radius: 12px; max-width: 480px; }
+.etapa-criacao > .forja-midia-editor .forja-midia-quadro { min-height: 100px; aspect-ratio: 3/1; }
+.forja-criaturas { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 24px; margin-top: 32px; border: 1px solid var(--forja-linha); border-radius: 12px; background: var(--forja-papel); }
+.forja-criaturas > h3, .forja-criaturas > details { flex-basis: 100%; margin: 0; }
+.forja-criaturas > button { min-height: 48px; }
+.forja-conjuracao-status { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 16px 0; }
+.forja-conjuracao-status > div { padding: 16px; background: #f3eadf; border-radius: 10px; display: flex; flex-direction: column; gap: 8px; }
+.forja-conjuracao-status strong { color: var(--forja-vinho-escuro); font-size: 24px; }
+.forja-conjuracao-status small { color: var(--forja-muted); font-size: 12px; }
+.forja-confirmacao { display: grid; gap: 16px; }
+.forja-confirmacao p { line-height: 1.7; max-width: 65ch; }
+.forja-lixeira-atalho { display: inline-flex; align-items: center; gap: 8px; }
+.forja-lixeira-lista { display: grid; gap: 12px; }
+.forja-lixeira-item { padding-block: 12px; border-bottom: 1px solid var(--forja-linha); }
+.forja-lixeira-item strong { overflow-wrap: anywhere; }
+.form-nivel { display: grid; gap: 20px; }
+.form-nivel .campo-formulario { display: grid; gap: 8px; }
+.toast-notificacao { top: auto; right: auto; bottom: 24px; left: 50%; grid-template-columns: 28px minmax(0,1fr) 32px; max-width: min(480px,calc(100vw - 32px)); padding: 14px 16px; border: 0; border-radius: 12px; background: #fffdf9; color: var(--forja-tinta); box-shadow: 0 8px 28px #241f1d26; transform: translate(-50%,12px); transition: opacity .22s ease,transform .22s cubic-bezier(.2,.8,.2,1); }
+.toast-notificacao.visivel { transform: translate(-50%,0); }
+.toast-icone { color: var(--forja-vinho); background: #f1e3e0; }
+.toast-notificacao.sucesso .toast-icone { color: #235735; background: #e5f1e7; }
+.toast-fechar, .toast-fechar:hover { color: var(--forja-muted); min-height: 36px; }
+.forja-pv-operacoes { display: flex; justify-content: center; gap: 8px; margin: 8px 0; font-size: 12px; }
+.forja-pv-operacoes button { min-height: 40px; padding: 8px; border: 1px solid var(--forja-linha); border-radius: 8px; background: #fffdf9; color: var(--forja-vinho); }
+dialog .toast-notificacao { position: fixed; bottom: 24px; z-index: 1000; }
+
+@media (max-width: 760px) {
+    .forja-seletor-dialogo { width: 100%; max-width: none; margin: auto 0 0; max-height: 90dvh; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; }
+    .forja-seletor-lista { grid-template-columns: 1fr; max-height: 58dvh; }
+    .forja-seletor-opcao { min-height: 56px; }
+    .forja-seletor-botao { min-height: 48px; font-size: 14px; }
+    .forja-atributos-escolha { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .forja-valor { flex: 1 1 28%; }
+    .forja-pv-escolha > button { flex: 1 1 120px; }
+    .forja-revisao-grid { grid-template-columns: 1fr; }
+    .forja-historia-fisico { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px 12px; }
+    .forja-historia-aparencia, .forja-historia-organizacao { grid-template-columns: 1fr; gap: 16px; }
+    .forja-historia-personalidade { grid-template-columns: 1fr; }
+    .forja-sugestoes { padding: 16px; }
+    .forja-sugestoes-acoes { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .forja-midia-quadro { min-height: 180px; max-height: 240px; }
+    .forja-carteira .forja-seletor-botao { font-size: 12px; }
+    .forja-inventario-acoes { position: sticky; bottom: 0; background: var(--forja-papel); }
+    .forja-criaturas { padding: 16px; }
+    .forja-criaturas > button { width: 100%; }
+    .cabecalho-ficha:has(.forja-cabecalho-retrato:not([hidden])) { grid-template-columns: 64px minmax(0,1fr); gap: 16px; }
+    .cabecalho-ficha:has(.forja-cabecalho-retrato:not([hidden])) .acoes-nivel { grid-column: 1/-1; }
+    .forja-cabecalho-retrato { width: 64px; height: 72px; }
+    .toast-notificacao { bottom: calc(88px + env(safe-area-inset-bottom)); font-size: 13px; }
+    .forja-conjuracao-status { gap: 8px; }
+    .forja-conjuracao-status > div { padding: 12px 8px; }
+}
+
+/* Catálogo único: busca e carteira ficam disponíveis durante a consulta. */
+body:has(dialog[open]) { overflow: hidden; }
+::selection { background: #ead0d5; color: #4f101d; }
+input, textarea { caret-color: var(--forja-vinho); }
+dialog { scrollbar-color: #baa99c transparent; scrollbar-width: thin; }
+.forja-icone { width: 22px; height: 22px; flex: 0 0 22px; vertical-align: middle; }
+button:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--forja-vinho); outline-offset: 3px; }
+#modal-equipamentos { width: min(980px,calc(100vw - 48px)); max-width: none; padding: 0; border: 0; border-radius: 16px; color: var(--forja-tinta); background: var(--forja-papel); overflow: hidden; box-shadow: 0 24px 72px #241f1d33; }
+#modal-equipamentos::backdrop, #forja-dialogo::backdrop { background: #241f1d70; backdrop-filter: none; }
+#modal-equipamentos .modal-conteudo { width: 100% !important; max-width: none; height: min(780px,90dvh); max-height: 90dvh; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; background: var(--forja-papel); box-shadow: none; animation: none; overflow: hidden; }
+#modal-equipamentos .modal-cabecalho { flex: 0 0 auto; align-items: flex-start; gap: 20px; padding: 26px 28px 20px; border: 0; }
+#titulo-catalogo { font-size: 24px; line-height: 1.3; }
+#modal-equipamentos .modal-cabecalho p { margin: 8px 0 0; color: var(--forja-muted); font-size: 14px; line-height: 1.5; }
+#modal-equipamentos .btn-fechar, .forja-fechar-dialogo { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 1px solid var(--forja-linha); border-radius: 10px; background: transparent; color: var(--forja-muted); cursor: pointer; }
+#modal-equipamentos .btn-fechar:hover, .forja-fechar-dialogo:hover { color: var(--forja-vinho); background: #f3e9df; }
+#modal-equipamentos .modal-abas { flex: 0 0 auto; gap: 4px; padding: 0 24px; margin: 0; border-block: 1px solid var(--forja-linha); background: #f6f0e8; overflow-x: auto; scrollbar-width: thin; }
+#modal-equipamentos .btn-cat { flex: 0 0 auto; min-height: 48px; padding: 12px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; font-size: 14px; color: var(--forja-muted); font-weight: 500; white-space: nowrap; }
+#modal-equipamentos .btn-cat.ativa { color: var(--forja-vinho); border-bottom-color: var(--forja-vinho); background: #fffdf9; font-weight: 700; }
+#modal-equipamentos .btn-cat:hover { color: var(--forja-vinho); }
+#catalogo-filtros { flex: 0 0 auto; display: flex; align-items: center; gap: 20px; padding: 20px 28px 14px; }
+.catalogo-busca { flex: 1; min-width: 0; position: relative; }
+.catalogo-busca > svg { position: absolute; top: 50%; left: 14px; transform: translateY(-50%); pointer-events: none; color: var(--forja-muted); }
+.catalogo-busca input { width: 100%; min-height: 48px; padding: 12px 14px 12px 44px !important; border: 1px solid #cbbbae; border-radius: 10px; background: #fffdfa; font: inherit; }
+#catalogo-contagem { color: var(--forja-muted); font-size: 13px; white-space: nowrap; }
+#modal-equipamentos .modal-lista { flex: 1 1 auto; min-height: 0; max-height: none; display: block; padding: 0 28px; margin: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+#modal-equipamentos .item-catalogo { display: grid; grid-template-columns: minmax(0,1fr) 90px 100px; gap: 20px; align-items: start; padding: 20px 0; border: 0; border-bottom: 1px solid var(--forja-linha); border-radius: 0; background: transparent; }
+#modal-equipamentos .item-catalogo:hover { background: transparent; }
+#modal-equipamentos .item-info { min-width: 0; display: block; }
+#modal-equipamentos .item-info h4 { margin: 0 0 6px; color: var(--forja-tinta); font-size: 16px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.catalogo-peso { color: var(--forja-muted); font-size: 13px; }
+.catalogo-preco { padding-top: 12px; color: var(--forja-vinho-escuro); text-align: right; font-size: 15px; font-variant-numeric: tabular-nums; }
+#modal-equipamentos .item-info details { margin-top: 4px; padding: 0; border: 0; }
+#modal-equipamentos .item-info summary { width: fit-content; min-height: 36px; padding: 9px 0; color: var(--forja-vinho); font-size: 13px; cursor: pointer; }
+#modal-equipamentos .item-info details p { margin: 4px 0 0; max-width: 65ch; font-size: 14px; line-height: 1.6; color: var(--forja-muted); overflow-wrap: anywhere; }
+#modal-equipamentos .btn-adicionar-catalogo { min-height: 44px; padding: 10px 16px; border: 1px solid #cdb7a7; border-radius: 8px; color: var(--forja-vinho); background: #fffdf9; font-size: 14px; font-weight: 700; cursor: pointer; }
+#modal-equipamentos .btn-adicionar-catalogo:hover:not(:disabled) { background: var(--forja-vinho); color: white; border-color: var(--forja-vinho); }
+#modal-equipamentos .btn-adicionar-catalogo:disabled { color: #75685f; background: #f2ece6; opacity: .7; cursor: not-allowed; }
+.catalogo-vazio { padding: 48px 16px; text-align: center; line-height: 1.7; color: var(--forja-muted); }
+#catalogo-rodape { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex: 0 0 auto; padding: 16px 28px; border-top: 1px solid var(--forja-linha); background: #f6f0e8; }
+#catalogo-rodape .forja-saldo { position: static; display: flex; flex-direction: column; gap: 4px; padding: 0; margin: 0; background: transparent; border-radius: 0; }
+#catalogo-rodape .forja-saldo span { font-size: 12px; font-weight: 400; color: var(--forja-muted); }
+#catalogo-saldo { font-size: 20px; font-variant-numeric: tabular-nums; color: var(--forja-vinho-escuro); }
+#catalogo-rodape p { margin: 0; max-width: 24ch; color: var(--forja-muted); font-size: 12px; line-height: 1.5; text-align: right; }
+#modal-equipamentos [hidden] { display: none !important; }
+
+/* O formulário original compartilha a mesma janela e a mesma linguagem. */
+#modal-equipamentos .form-item-personalizado { min-height: 0; padding: 24px 28px; background: var(--forja-papel); overscroll-behavior: contain; }
+#modal-equipamentos .personalizado-introducao { padding: 0 0 22px; margin-bottom: 0; border: 0; background: transparent; box-shadow: none; }
+#modal-equipamentos .personalizado-introducao-icone { display: none; }
+#modal-equipamentos .personalizado-introducao strong { font-family: inherit; font-size: 18px; color: var(--forja-tinta); }
+#modal-equipamentos .personalizado-introducao p { max-width: 60ch; color: var(--forja-muted); }
+#modal-equipamentos .secao-personalizado { padding: 24px 0; margin: 0; border: 0; border-top: 1px solid var(--forja-linha); border-radius: 0; box-shadow: none; background: transparent; }
+#modal-equipamentos .titulo-secao-personalizado > span { display: none; }
+#modal-equipamentos .titulo-secao-personalizado { margin-bottom: 18px; }
+#modal-equipamentos .titulo-secao-personalizado strong { color: var(--forja-tinta); }
+#modal-equipamentos .titulo-secao-personalizado small { color: var(--forja-muted); }
+#modal-equipamentos .tipo-item-card { min-width: 0; border: 1px solid var(--forja-linha); border-radius: 10px; background: #fffdf9; box-shadow: none; }
+#modal-equipamentos .tipo-item-card.selecionado { border-color: var(--forja-vinho); background: #f7ebed; }
+#modal-equipamentos .estado-item-comum { padding: 16px 0; background: transparent; border: 0; }
+#modal-equipamentos .resumo-item-personalizado { border: 1px solid var(--forja-linha); border-radius: 10px; box-shadow: none; background: #f6f0e8; }
+#modal-equipamentos .acoes-modal { margin-top: 24px; gap: 12px; }
+#modal-equipamentos .input-com-sufixo input { padding-right: 48px; }
+
+/* Diálogos de coleção e ações: conteúdo legível, fechamento e rodapé estáveis. */
+#forja-dialogo { width: min(780px,calc(100vw - 48px)); max-height: 88dvh; padding: 0; border-radius: 16px; color: var(--forja-tinta); }
+#forja-dialogo[open] { display: flex; flex-direction: column; }
+#forja-dialogo[data-tipo="importar"], #forja-dialogo[data-tipo="backup"], #forja-dialogo[data-tipo="confirmacao"], #forja-dialogo[data-tipo="renomear"], #forja-dialogo[data-tipo="lixeira"] { width: min(540px,calc(100vw - 48px)); }
+#forja-dialogo .forja-dialogo-topo { flex: 0 0 auto; position: static; padding: 24px 28px 20px; margin: 0; gap: 20px; background: var(--forja-papel); border-color: var(--forja-linha); }
+#forja-dialogo-titulo { font-size: 22px; line-height: 1.35; }
+#forja-dialogo-corpo { padding: 24px 28px 28px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.forja-dialogo-descricao { margin: 0; line-height: 1.65; color: var(--forja-muted); max-width: 65ch; }
+.forja-dialogo-acoes { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; padding-top: 20px; margin-top: 4px; border-top: 1px solid var(--forja-linha); }
+.forja-dialogo-acoes button { min-height: 46px; }
+.forja-dialogo-acoes .forja-acao-principal { display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
+.forja-transferencia { display: grid; gap: 20px; }
+.forja-arquivo-area { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 28px 20px; border: 1px dashed #baa596; border-radius: 12px; background: #f7f1e9; text-align: center; }
+.forja-arquivo-area > .forja-icone { width: 32px; height: 32px; flex-basis: 32px; margin-bottom: 4px; color: var(--forja-vinho); }
+.forja-arquivo-area > span { font-size: 13px; color: var(--forja-muted); }
+.forja-arquivo-area button { margin-top: 8px; min-height: 48px; }
+.forja-arquivo-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; clip-path: inset(50%); }
+.forja-importacao-estado:empty { display: none; }
+.forja-importacao-estado { margin: 0; font-size: 13px; overflow-wrap: anywhere; color: var(--forja-muted); }
+.forja-erro-inline { margin: 0; padding: 12px 14px; border-radius: 8px; background: #fae8e9; color: #801d2b; font-size: 14px; line-height: 1.6; }
+.forja-backup-resumo { display: flex; align-items: center; gap: 16px; padding: 20px; border: 1px solid var(--forja-linha); border-radius: 12px; background: #f7f1e9; }
+.forja-backup-resumo > .forja-icone { width: 32px; height: 32px; flex-basis: 32px; color: var(--forja-vinho); }
+.forja-backup-resumo > div { display: grid; min-width: 0; gap: 8px; }
+.forja-backup-resumo strong { overflow-wrap: anywhere; }
+.forja-backup-resumo span, .forja-backup-resumo small { font-size: 13px; color: var(--forja-muted); line-height: 1.4; }
+.forja-lixeira-atalho { min-height: 44px; }
+.forja-contador { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 5px; border-radius: 6px; background: #eee4d9; font-size: 12px; font-variant-numeric: tabular-nums; }
+.forja-lixeira-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; }
+.forja-lixeira-item > div { display: grid; gap: 6px; min-width: 0; }
+.forja-lixeira-item small { color: var(--forja-muted); }
+.forja-lixeira-item button { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.forja-estado-vazio { padding: 28px 8px; text-align: center; }
+.forja-estado-vazio > .forja-icone { width: 40px; height: 40px; color: var(--forja-muted); }
+.forja-estado-vazio h3 { margin: 20px 0 10px; font-size: 18px; }
+.forja-estado-vazio p { margin: 0 auto; max-width: 34ch; line-height: 1.65; color: var(--forja-muted); }
+
+@media (max-width: 760px) {
+    #modal-equipamentos { width: 100%; max-height: 96dvh; margin: auto 0 0; border-radius: 16px 16px 0 0; }
+    #modal-equipamentos .modal-conteudo { height: 94dvh; max-height: 94dvh; }
+    #modal-equipamentos .modal-cabecalho { padding: 20px 16px 16px; gap: 12px; }
+    #titulo-catalogo { font-size: 20px; }
+    #modal-equipamentos .modal-cabecalho p { font-size: 13px; }
+    #modal-equipamentos .modal-abas { padding: 0 12px; }
+    #modal-equipamentos .btn-cat { min-height: 48px; }
+    #catalogo-filtros { display: grid; gap: 8px; padding: 16px 16px 10px; }
+    .catalogo-busca input { font-size: 16px; }
+    #catalogo-contagem { font-size: 12px; }
+    #modal-equipamentos .modal-lista { padding: 0 16px; scrollbar-gutter: auto; }
+    #modal-equipamentos .item-catalogo { grid-template-columns: minmax(0,1fr) auto; gap: 8px 12px; padding: 16px 0; }
+    #modal-equipamentos .item-info { grid-row: span 2; }
+    .catalogo-preco { padding: 2px 0; font-size: 14px; }
+    #modal-equipamentos .btn-adicionar-catalogo { padding: 10px 12px; }
+    #modal-equipamentos .item-info summary { min-height: 44px; padding-block: 12px; }
+    #catalogo-rodape { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); gap: 12px; }
+    #catalogo-rodape p { max-width: 17ch; }
+    #modal-equipamentos .form-item-personalizado { padding: 20px 16px calc(24px + env(safe-area-inset-bottom)); }
+    #modal-equipamentos .tipo-item-card { min-height: 112px; padding: 12px; }
+    #modal-equipamentos .form-item-personalizado input { font-size: 16px; }
+    #forja-dialogo, #forja-dialogo[data-tipo] { width: 100%; max-width: none; max-height: 92dvh; margin: auto 0 0; border-radius: 16px 16px 0 0; }
+    #forja-dialogo .forja-dialogo-topo { padding: 20px 16px 16px; gap: 12px; }
+    #forja-dialogo-titulo { font-size: 20px; }
+    #forja-dialogo-corpo { padding: 20px 16px calc(24px + env(safe-area-inset-bottom)); }
+    .forja-dialogo-acoes { flex-direction: column-reverse; }
+    .forja-dialogo-acoes button { width: 100%; }
+    .forja-arquivo-area { padding: 24px 16px; }
+    .forja-lixeira-item { flex-wrap: wrap; }
+    .forja-lixeira-item button { margin-left: auto; }
+    .forja-importacao-estado, .forja-erro-inline { font-size: 14px; }
+}
+
+
+/* Editor de retrato interativo com previews ao vivo (Hub + Cabeçalho da Ficha) */
+.forja-retrato-estudio { margin-top: 14px; padding: 16px; border: 1px solid var(--forja-linha); border-radius: 14px; background: #f8f2e9; display: grid; gap: 14px; }
+.forja-retrato-estudio[hidden] { display: none !important; }
+.forja-retrato-estudio-topo { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.forja-retrato-estudio-topo strong { font-family: Georgia, "Times New Roman", serif; color: var(--forja-vinho-escuro); font-size: 16px; }
+.forja-retrato-estudio-topo small { color: var(--forja-muted); font-size: 12px; }
+.forja-retrato-estudio-grade { display: grid; grid-template-columns: minmax(200px, 240px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.forja-retrato-palco-wrap { display: grid; gap: 10px; justify-items: center; }
+.forja-retrato-palco { width: 100%; max-width: 240px; aspect-ratio: 4/5; border-radius: 12px; border: 2px solid var(--forja-ouro); background: #261a17; cursor: grab; touch-action: none; box-shadow: 0 8px 20px #2417121f; }
+.forja-retrato-palco:active { cursor: grabbing; }
+.forja-retrato-botoes { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; }
+.forja-retrato-botoes button { flex: 1 1 auto; min-height: 36px; padding: 6px 10px; font-size: 12px; }
+.forja-retrato-painel-direito { display: grid; gap: 14px; min-width: 0; }
+.forja-retrato-sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+.forja-retrato-slider { display: grid; gap: 4px; font-size: 12px; font-weight: 700; color: var(--forja-tinta); }
+.forja-retrato-slider input[type="range"] { width: 100%; accent-color: var(--forja-vinho); cursor: pointer; }
+.forja-retrato-previews { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.forja-retrato-preview-card { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--forja-linha); border-radius: 10px; background: var(--forja-papel-claro); }
+.forja-retrato-preview-card > small { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--forja-muted); }
+.forja-preview-hub-mock { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; background: linear-gradient(145deg, #2d1d1c, #5f1d28); }
+.forja-preview-canvas-hub { width: 100%; height: 100%; display: block; object-fit: cover; }
+.forja-preview-badge { position: absolute; right: 8px; bottom: 8px; padding: 2px 8px; border-radius: 999px; background: #191312cc; color: #f6e7c8; font-size: 10px; font-weight: 700; }
+.forja-preview-hub-mock .forja-preview-nome { position: absolute; left: 8px; bottom: 8px; color: #fffdf9; font-size: 12px; text-shadow: 0 1px 4px #000a; max-width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.forja-preview-ficha-mock { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 8px; background: #f3ece2; }
+.forja-preview-canvas-ficha { width: 56px; height: 56px; flex: 0 0 56px; border-radius: 10px; border: 2px solid var(--forja-ouro); background: #261a17; }
+.forja-preview-ficha-info { display: grid; gap: 2px; min-width: 0; }
+.forja-preview-ficha-info strong { font-size: 13px; color: var(--forja-vinho-escuro); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.forja-preview-ficha-info span { font-size: 11px; color: var(--forja-muted); }
+
+/* Guia de criação — Etapa 2 em duas partes com Cards e Catálogo em Modal */
+.forja-origem-controles-nativos { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: 0 !important; border: 0 !important; opacity: 0 !important; overflow: hidden !important; pointer-events: none !important; }
+.forja-origem-palco { display: grid; gap: 18px; margin: 14px 0 18px; }
+.forja-origem-etapas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 6px; border-radius: 12px; background: #efe6da; border: 1px solid var(--forja-linha); }
+.forja-origem-etapa-btn { min-height: 44px; border: 0; border-radius: 9px; background: transparent; color: var(--forja-muted); font-weight: 700; font-size: 14px; transition: background .16s ease, color .16s ease; }
+.forja-origem-etapa-btn.ativo { background: var(--forja-vinho); color: #fffdf9; box-shadow: 0 4px 12px #7f1d2d33; }
+.forja-origem-etapa-btn:disabled { opacity: .5; cursor: not-allowed; }
+.forja-origem-dupla { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.forja-origem-escolha-card, .forja-origem-catalogo-card { display: flex; flex-direction: column; border: 1px solid var(--forja-linha); border-radius: 16px; background: var(--forja-papel-claro); overflow: hidden; box-shadow: 0 8px 24px #2b1d1212; transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease; }
+.forja-origem-escolha-card.preenchido, .forja-origem-catalogo-card.selecionado { border-color: var(--forja-vinho); box-shadow: 0 10px 26px #7f1d2d1f; }
+.forja-origem-card-midia { position: relative; aspect-ratio: 16/9; min-height: 140px; max-height: 185px; background: linear-gradient(135deg, #2d1d1c 0%, #5c1f2b 58%, #8f6826 100%); overflow: hidden; display: grid; place-items: center; }
+.forja-origem-card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.forja-origem-card-placeholder { display: grid; place-items: center; gap: 4px; text-align: center; color: #f6e7c8cc; padding: 12px; }
+.forja-origem-emblema { font-size: 28px; color: #f6e7c8; line-height: 1; }
+.forja-origem-card-placeholder small { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; opacity: .85; }
+.forja-origem-card-tag { position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: 999px; background: #191312cc; color: #f6e7c8; font-size: 11px; font-weight: 700; letter-spacing: .03em; }
+.forja-origem-card-corpo { display: flex; flex-direction: column; flex: 1; gap: 10px; padding: 18px; }
+.forja-origem-kicker { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--forja-ouro); }
+.forja-origem-card-corpo h3, .forja-origem-card-corpo h4 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 21px; color: var(--forja-vinho-escuro); }
+.forja-origem-card-corpo p, .forja-origem-card-desc { margin: 0; color: var(--forja-muted); font-size: 14px; line-height: 1.55; }
+.forja-origem-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.forja-origem-pill { padding: 4px 10px; border-radius: 999px; background: #efe6da; color: var(--forja-tinta); font-size: 12px; font-weight: 600; }
+.forja-origem-pill.destaque { background: #f7ebed; color: var(--forja-vinho-escuro); border: 1px solid #dfb9c0; font-weight: 700; }
+.forja-origem-tracos-lista { display: grid; gap: 8px; padding-top: 8px; border-top: 1px solid #eadfd2; max-height: 210px; overflow-y: auto; scrollbar-width: thin; }
+.forja-origem-subtitulo { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--forja-ouro); }
+.forja-origem-traco-item { display: grid; gap: 2px; font-size: 12.5px; line-height: 1.45; }
+.forja-origem-traco-item strong { color: var(--forja-tinta); font-size: 13px; }
+.forja-origem-traco-item span { color: var(--forja-muted); }
+.forja-classe-metricas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 4px; }
+.forja-classe-metrica { padding: 10px 12px; border: 1px solid #e5d8c8; border-radius: 10px; background: #faf5ed; display: grid; gap: 2px; }
+.forja-classe-metrica small { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--forja-muted); }
+.forja-classe-metrica strong { font-size: 15px; color: var(--forja-vinho-escuro); }
+.forja-origem-card-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 8px; }
+.forja-origem-card-acoes button, .forja-origem-card-btn { width: 100%; min-height: 44px; margin-top: auto; }
+#forja-dialogo[data-tipo="catalogo-origem"] { width: min(980px, calc(100vw - 32px)); max-height: 90dvh; }
+.forja-catalogo-origem-modal { display: grid; gap: 16px; }
+.forja-catalogo-subraca-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; border-radius: 10px; background: #f6efe6; border: 1px solid var(--forja-linha); }
+.forja-catalogo-origem-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+.forja-variante-comparacao { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+.forja-variante-opcao { padding: 14px; border: 1px solid var(--forja-linha); border-radius: 12px; background: var(--forja-papel-claro); display: grid; gap: 6px; }
+.forja-variante-opcao strong { color: var(--forja-vinho-escuro); }
+.forja-variante-opcao p { margin: 0; font-size: 13px; color: var(--forja-muted); line-height: 1.5; }
+
+/* Escolhas e substituição de perícias duplicadas */
+.forja-escolha-status { margin: 6px 0 10px; padding: 8px 12px; border-radius: 8px; background: #f3ece2; color: var(--forja-muted); font-size: 13px; font-weight: 600; }
+.forja-escolha-status.completo { background: #e8f4ec; color: #1f5f3b; }
+.forja-checks label.selecionado { border-color: var(--forja-vinho); background: #f7ebed; color: var(--forja-vinho-escuro); font-weight: 700; }
+
+/* Gerenciar inventário didático e organizado */
+.forja-inventario-resumo-topo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.forja-inv-metrica { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--forja-linha); background: #faf5ed; display: grid; gap: 2px; }
+.forja-inv-metrica small { font-size: 11px; color: var(--forja-muted); text-transform: uppercase; letter-spacing: .04em; }
+.forja-inv-metrica strong { font-size: 16px; color: var(--forja-vinho-escuro); }
+.forja-carteira-acoes { display: flex; justify-content: flex-end; margin: 8px 0; }
+.forja-subtitulo-inv { margin: 14px 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: var(--forja-ouro); }
+.forja-maos-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.forja-mochila-atalhos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.forja-mochila-lista { display: grid; gap: 8px; }
+.forja-mochila-lista .forja-item-detalhe { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 14px; border: 1px solid #e6dacb; border-radius: 10px; background: #fffdf9; }
+.forja-item-cabecalho { display: grid; gap: 2px; min-width: 160px; flex: 1; }
+.forja-item-meta { font-size: 12px; color: var(--forja-muted); }
+.forja-item-acoes { display: flex; flex-wrap: wrap; gap: 6px; }
+.forja-item-acoes button { min-height: 36px; padding: 6px 10px; font-size: 12.5px; }
+
+/* Recursos e descansos organizados */
+.forja-descansos-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.forja-btn-descanso { min-height: 44px; font-weight: 700; border-color: #d8c3ab; background: #faf4eb; color: var(--forja-vinho-escuro); }
+.forja-recursos-lista { display: grid; gap: 10px; }
+.forja-recursos-lista .forja-recurso { display: grid; gap: 6px; padding: 12px; border: 1px solid #e6dacb; border-radius: 10px; background: #faf5ed; }
+.forja-recurso-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.forja-recurso-info { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.forja-recurso-meta { font-size: 12px; color: var(--forja-muted); }
+.forja-recurso-acoes { display: flex; gap: 6px; flex-shrink: 0; }
+.forja-recurso-acoes button { min-height: 36px; padding: 6px 12px; font-size: 12.5px; }
+.forja-furia-btn { width: 100%; margin-top: 8px; }
+.forja-furia-btn.ativo { background: var(--forja-vinho); color: #fffdf9; border-color: var(--forja-vinho); }
+.forja-sopro-destaque { padding: 10px 12px; border-radius: 8px; background: #f6efe6; border: 1px solid #e2d4c3; }
+.forja-acoes-sessao { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eadfd2; }
+
+@media (max-width: 760px) {
+    .forja-retrato-estudio-grade, .forja-retrato-sliders, .forja-retrato-previews, .forja-origem-dupla, .forja-variante-comparacao, .forja-maos-grade { grid-template-columns: 1fr; }
+    .forja-inventario-resumo-topo { grid-template-columns: 1fr; }
+    .forja-catalogo-origem-grade { grid-template-columns: 1fr; }
+}

@@ -6,7 +6,7 @@
     <title>Forja de Personagens - D&D 5E</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=20261015-1">
-    <link rel="stylesheet" href="app-shell.css?v=20261019-2">
+    <link rel="stylesheet" href="app-shell.css?v=20261021-1">
 </head>
 <body>
     <aside id="alerta-salvamento" class="alerta-salvamento" role="alert" hidden>
@@ -24,7 +24,7 @@
         <h1 class="titulo-principal">Ficha de Personagem 5E</h1>
         <p class="subtitulo">Crie seu personagem passo a passo.</p>
         <div class="progresso-criacao">
-            <div class="passo-indicador ativo" data-passo="1"><span>1</span> Identidade</div>
+            <div class="passo-indicador ativo" data-passo="1" aria-current="step"><span>1</span> Identidade</div>
             <div class="passo-indicador" data-passo="2"><span>2</span> Origem</div>
             <div class="passo-indicador" data-passo="3"><span>3</span> Atributos</div>
             <div class="passo-indicador" data-passo="4"><span>4</span> Perícias</div>
@@ -32,7 +32,7 @@
         </div>
 
         <section class="etapa-criacao ativa" data-etapa="1">
-            <h3 class="titulo-secao">🎭 Quem é seu personagem?</h3>
+            <h3 class="titulo-secao">Quem é seu personagem?</h3>
             <p class="dica-etapa">Defina o nome e a experiência (nível) do seu herói para começar sua jornada.</p>
             <div class="grid-formulario">
                 <div class="grupo-input campo-largo">
@@ -48,10 +48,10 @@
         </section>
 
         <section class="etapa-criacao" data-etapa="2">
-            <h3 class="titulo-secao">⚔️ Origem e treinamento</h3>
+            <h3 class="titulo-secao">Origem e treinamento</h3>
             <p class="dica-etapa">A raça define seus traços físicos e cultura, enquanto a classe determina suas habilidades de combate e magia.</p>
-            <div class="grid-formulario">
-                <div class="grupo-input"><label for="select-raca">Raça</label><select id="select-raca" class="input-elegante"><option value="">-- Escolha uma Raça --</option></select></div>
+            <div class="grid-formulario forja-origem-controles-nativos">
+                <div class="grupo-input"><label for="select-raca">Raça</label><select id="select-raca" class="input-elegante" data-forja-sem-seletor="true"><option value="">-- Escolha uma Raça --</option></select></div>
                 <div class="grupo-input campo-largo" id="pergunta-subraca" hidden>
                     <span class="rotulo-grupo">Deseja escolher uma sub-raça?</span>
                     <div class="opcoes-inline">
@@ -59,15 +59,16 @@
                         <label><input type="radio" name="usar-subraca" value="nao"> Não</label>
                     </div>
                 </div>
-                <div class="grupo-input campo-largo" id="grupo-subraca" hidden><label for="select-subraca">Escolha a sub-raça</label><select id="select-subraca" class="input-elegante"><option value="">-- Escolha uma Sub-raça --</option></select></div>
-                <div class="grupo-input"><label for="select-classe">Classe</label><select id="select-classe" class="input-elegante"><option value="">-- Escolha uma Classe --</option></select></div>
-                <div class="grupo-input"><label for="select-subclasse">Subclasse</label><select id="select-subclasse" class="input-elegante" disabled><option value="">-- Escolha primeiro a Classe --</option></select></div>
+                <div class="grupo-input campo-largo" id="grupo-subraca" hidden><label for="select-subraca">Escolha a sub-raça</label><select id="select-subraca" class="input-elegante" data-forja-sem-seletor="true"><option value="">-- Escolha uma Sub-raça --</option></select></div>
+                <div class="grupo-input"><label for="select-classe">Classe</label><select id="select-classe" class="input-elegante" data-forja-sem-seletor="true"><option value="">-- Escolha uma Classe --</option></select></div>
+                <div class="grupo-input"><label for="select-subclasse">Subclasse</label><select id="select-subclasse" class="input-elegante" data-forja-sem-seletor="true" disabled><option value="">-- Escolha primeiro a Classe --</option></select></div>
             </div>
-            <div class="acoes-etapa"><button class="btn-secundario" onclick="mostrarEtapa(1)">Voltar</button><button class="btn-primario btn-inline" onclick="proximaEtapa(3)">Continuar</button></div>
+            <div id="forja-origem-palco" class="forja-origem-palco"></div>
+            <div class="acoes-etapa"><button class="btn-secundario" id="btn-voltar-etapa-2" onclick="voltarEtapaOrigem()">Voltar</button><button class="btn-primario btn-inline" id="btn-continuar-etapa-2" onclick="proximaEtapa(3)">Continuar</button></div>
         </section>
 
         <section class="etapa-criacao" data-etapa="3">
-            <h3 class="titulo-secao">💪 Atributos base</h3>
+            <h3 class="titulo-secao">Atributos base</h3>
             <p class="dica-etapa">Distribua os valores baseados na sua classe. Força e Destreza afetam ataques físicos e defesa; atributos mentais são essenciais para magias e interação.</p>
             <div class="grid-atributos-base">
                 <div class="grupo-input"><label>Força <small>FOR</small></label><input type="number" id="attr-for" value="10" min="1" max="20" class="input-elegante centralizado"></div>
@@ -81,7 +82,7 @@
         </section>
 
         <section class="etapa-criacao" data-etapa="4">
-            <h3 class="titulo-secao">🎯 Perícias da classe</h3>
+            <h3 class="titulo-secao">Perícias da classe</h3>
             <p class="dica-etapa">As perícias representam as habilidades específicas que seu personagem domina, baseadas no treinamento da sua classe.</p>
             <p id="instrucao-pericias" class="subtitulo-pericias"></p>
             <div id="lista-pericias-criacao" class="grid-pericias-criacao"></div>
@@ -90,7 +91,7 @@
         </section>
 
         <section class="etapa-criacao" data-etapa="5">
-            <h3 class="titulo-secao">📖 Alinhamento e antecedente</h3>
+            <h3 class="titulo-secao">Alinhamento e antecedente</h3>
             <p class="dica-etapa">O alinhamento reflete a bússola moral do seu personagem. O antecedente revela sua vida e profissão antes de se aventurar.</p>
             <div class="grid-formulario">
                 <div class="grupo-input">
@@ -130,7 +131,7 @@
                     <div class="info-personagem info-secundaria"><span id="display-alinhamento"></span> • <span id="display-antecedente"></span></div>
                 </div>
                 <div class="acoes-cabecalho acoes-nivel">
-                    <button class="btn-gerenciar-nivel" type="button" onclick="abrirModalNivel()">
+                    <button class="btn-gerenciar-nivel" type="button" onclick="abrirModalNivel()" aria-label="Gerenciar nível">
                         <small>NÍVEL ATUAL</small><strong id="display-nivel-acao">1</strong><span>Alterar</span>
                     </button>
                     <div class="notificacoes-nivel">
@@ -178,7 +179,7 @@
                             <strong>SABEDORIA PASSIVA (PERCEPÇÃO)</strong>
                             <small id="calculo-percepcao-passiva">10 + 0 de Sabedoria</small>
                         </div>
-                        <label class="situacao-passiva" for="situacao-percepcao">Situação do teste
+                        <label class="situacao-passiva" for="situacao-percepcao" hidden>Situação do teste
                             <select id="situacao-percepcao" onchange="alterarSituacaoPercepcao(this.value)">
                                 <option value="normal">Normal</option><option value="vantagem">Com vantagem (+5)</option><option value="desvantagem">Com desvantagem (−5)</option>
                             </select>
@@ -216,9 +217,9 @@
 
                     <div class="caixa-hp">
                         <div class="titulo-combate">PONTOS DE VIDA ATUAIS / MÁXIMOS</div>
-                        <div class="hp-valores"><span id="display-hp-atual">10</span> / <span id="display-hp-max">10</span></div>
-                        <p class="pv-temporarios">Temporários: <strong id="display-hp-temporarios">0</strong></p>
-                        <button class="btn-secundario btn-recurso" type="button" onclick="abrirModalPV()">Gerenciar PV</button>
+                        <div class="hp-valores"><button type="button" id="display-hp-atual" aria-label="Alterar PV atuais">10</button> / <span id="display-hp-max">10</span></div>
+                        <p class="pv-temporarios">Temporários: <button type="button" id="display-hp-temporarios" aria-label="Alterar PV temporários">0</button></p>
+                        <p id="forja-ajuda-pv" class="forja-nota">Toque no valor. Digite −2 para dano, +5 para cura ou o valor atual. Enter confirma.</p>
                     </div>
 
                     <div class="caixa-generica caixa-ataques">
@@ -274,7 +275,10 @@
                         </div>
 
                         <!-- Botão (+) -->
-                        <button class="btn-add-item" onclick="abrirModalEquipamentos()" title="Adicionar Item">+</button>
+                        <div class="forja-inventario-acoes">
+                            <button class="btn-secundario" type="button" onclick="ForjaInterface.abrirInventario()">Gerenciar inventário</button>
+                            <button class="btn-add-item" type="button" onclick="ForjaInterface.catalogo()" title="Comprar equipamento" aria-label="Comprar equipamento">+</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -499,23 +503,29 @@
     </div>
 
     <!-- MODAL DE EQUIPAMENTOS -->
-    <div id="modal-equipamentos" class="modal-overlay" style="display: none;">
+    <dialog id="modal-equipamentos" aria-labelledby="titulo-catalogo">
         <div class="modal-conteudo modal-equipamentos-conteudo">
             <div class="modal-cabecalho">
-                <h3>Adicionar Equipamento</h3>
-                <button class="btn-fechar" type="button" onclick="fecharModalEquipamentos()">&times;</button>
+                <div><h3 id="titulo-catalogo">Catálogo de equipamentos</h3><p>Prepare seu personagem para a próxima aventura.</p></div>
+                <button class="btn-fechar" type="button" onclick="fecharModalEquipamentos()" aria-label="Fechar catálogo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
             </div>
             
-            <div class="modal-abas">
-                <button class="btn-cat ativa" type="button" onclick="mudarCategoriaModal('todos', this)">Todos</button>
+            <div class="modal-abas" role="group" aria-label="Categorias de equipamentos">
+                <button class="btn-cat ativa" type="button" onclick="mudarCategoriaModal('todos', this)" aria-pressed="true">Todos</button>
                 <button class="btn-cat" type="button" onclick="mudarCategoriaModal('armas', this)">Armas</button>
                 <button class="btn-cat" type="button" onclick="mudarCategoriaModal('armaduras', this)">Armaduras</button>
                 <button class="btn-cat" type="button" onclick="mudarCategoriaModal('aventura', this)">Aventura</button>
+                <button class="btn-cat" type="button" onclick="mudarCategoriaModal('ferramentas', this)">Ferramentas</button>
+                <button class="btn-cat" type="button" onclick="mudarCategoriaModal('viagem', this)">Viagem</button>
                 <button class="btn-cat" type="button" onclick="mudarCategoriaModal('pacotes', this)">Pacotes</button>
                 <button class="btn-cat" type="button" onclick="mudarCategoriaModal('personalizados', this)">Personalizados</button>
             </div>
-
+            <div id="catalogo-filtros">
+                <label class="catalogo-busca"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="busca-equipamentos" type="search" placeholder="Busque um item ou uma propriedade" aria-label="Buscar no catálogo" oninput="carregarItensCatalogo()"></label>
+                <span id="catalogo-contagem" role="status"></span>
+            </div>
             <div class="modal-lista" id="modal-lista-itens"></div>
+            <footer id="catalogo-rodape"><div class="forja-saldo"><span>Disponível na carteira</span><strong id="catalogo-saldo">0 PO</strong></div><p>Cada compra desconta o preço da carteira.</p></footer>
 
             <form id="form-item-personalizado" class="form-item-personalizado" onsubmit="salvarItemPersonalizado(event)" oninput="atualizarResumoItemPersonalizado()" hidden>
                 <div class="personalizado-introducao">
@@ -545,16 +555,16 @@
                     <input id="item-personalizado-tipo" type="hidden" value="comum">
                     <div class="tipos-item-grid">
                         <button class="tipo-item-card selecionado" type="button" data-tipo="comum" onclick="selecionarTipoItemPersonalizado('comum', this)">
-                            <span class="tipo-item-icone">📦</span><strong>Item comum</strong><small>Objetos, mapas e relíquias</small>
+                            <span class="tipo-item-icone" aria-hidden="true"></span><strong>Item comum</strong><small>Objetos, mapas e relíquias</small>
                         </button>
                         <button class="tipo-item-card" type="button" data-tipo="arma" onclick="selecionarTipoItemPersonalizado('arma', this)">
-                            <span class="tipo-item-icone">⚔️</span><strong>Arma</strong><small>Dano e propriedades de combate</small>
+                            <span class="tipo-item-icone" aria-hidden="true"></span><strong>Arma</strong><small>Dano e propriedades de combate</small>
                         </button>
                         <button class="tipo-item-card" type="button" data-tipo="armadura" onclick="selecionarTipoItemPersonalizado('armadura', this)">
-                            <span class="tipo-item-icone">🛡️</span><strong>Armadura</strong><small>CA fixa ou com Destreza</small>
+                            <span class="tipo-item-icone" aria-hidden="true"></span><strong>Armadura</strong><small>CA fixa ou com Destreza</small>
                         </button>
                         <button class="tipo-item-card" type="button" data-tipo="pocao" onclick="selecionarTipoItemPersonalizado('pocao', this)">
-                            <span class="tipo-item-icone">🧪</span><strong>Poção</strong><small>Com ou sem rolagem</small>
+                            <span class="tipo-item-icone" aria-hidden="true"></span><strong>Poção</strong><small>Com ou sem rolagem</small>
                         </button>
                     </div>
                 </section>
@@ -596,7 +606,7 @@
                 </section>
 
                 <div class="resumo-item-personalizado">
-                    <span id="resumo-item-icone" class="resumo-item-icone">📦</span>
+                    <span id="resumo-item-icone" class="resumo-item-icone" aria-hidden="true"></span>
                     <div class="resumo-item-texto"><small>PRÉVIA NO INVENTÁRIO</small><strong id="resumo-item-nome">Novo item comum</strong><span id="resumo-item-detalhes">Item comum · 0 kg</span></div>
                 </div>
 
@@ -606,7 +616,7 @@
                 </div>
             </form>
         </div>
-    </div>
+    </dialog>
 
     <script src="banco_phb.js?v=20261015-1"></script>
     <script src="talentos_phb.js?v=20261015-1"></script>
@@ -630,7 +640,15 @@
     <script src="js/criaturas.js?v=20261019-1"></script>
     <script src="js/estado.js?v=20261015-1"></script>
     <script src="js/colecao.js?v=20261015-1"></script>
-    <script src="app.js?v=20261019-2"></script>
+    <script src="js/notificacoes.js?v=20261021-1"></script>
+    <script src="js/criacao-regras.js?v=20261021-1"></script>
+    <script src="js/seletores.js?v=20261021-1"></script>
+    <script src="js/transicoes.js?v=20261021-1"></script>
+    <script src="js/criacao.js?v=20261021-1"></script>
+    <script src="js/midia.js?v=20261021-1"></script>
+    <script src="js/historia.js?v=20261021-1"></script>
+    <script src="js/vitais.js?v=20261021-1"></script>
+    <script src="app.js?v=20261021-1"></script>
     <script src="js/interface.js?v=20261019-2"></script>
 </body>
 </html>

@@ -299,6 +299,11 @@ window.onload = function() {
     console.log("Banco de dados conectado com sucesso!");
     carregarOpcoes();
     document.getElementById('select-raca').addEventListener('change', carregarSubracas);
+    document.getElementById('select-subraca').addEventListener('change', () => {
+        const val = document.getElementById('select-subraca').value;
+        const radio = document.querySelector('input[name="usar-subraca"][value="' + (val ? 'sim' : 'nao') + '"]');
+        if (radio) radio.checked = true;
+    });
     document.querySelectorAll('input[name="usar-subraca"]').forEach(campo => campo.addEventListener('change', alternarEscolhaSubraca));
     document.getElementById('select-classe').addEventListener('change', () => {
         carregarSubclasses();
@@ -389,6 +394,10 @@ function iniciarPersonagem(restaurando = false) {
         return false;
     }
     if (!validarPericiasDaClasse(restaurando)) return false;
+    if (!restaurando && detalhesFicha.escolhas.criacaoNova) {
+        recursosPersonagem.pvAtual = null;
+        delete detalhesFicha.escolhas.criacaoNova;
+    }
     personagemAtual = { nome, nivel, raca, subraca, classe, subclasse, alinhamento, antecedente };
     document.getElementById('criacao-rapida').style.display = 'none';
     document.getElementById('ficha-completa').style.display = 'block';
@@ -575,6 +584,7 @@ function atualizarSugestoesProficiencia() {
         opcao.value = valor;
         datalist.appendChild(opcao);
     });
+    ForjaSeletores.entrada(document.getElementById('proficiencia-valor'), catalogoPorTipoProficiencia(tipo));
 }
 
 function abrirModalProficiencia(modo = 'manual', tipo = 'idioma', id = '') {
@@ -618,7 +628,10 @@ function salvarProficiencia(evento) {
     const nome = document.getElementById('proficiencia-valor').value.trim();
     const origem = document.getElementById('proficiencia-origem').value;
     const idEdicao = document.getElementById('proficiencia-id-edicao').value;
-    if (!nome) return;
+    if (!nome || !catalogoPorTipoProficiencia(tipo).includes(nome)) {
+        mostrarToast('Escolha uma opção da lista de proficiências.');
+        return;
+    }
 
     const dados = obterDadosProficienciasAutomaticas();
     const todosDaCategoria = [...(dados[tipo] || []), ...proficienciasAdicionais.filter(item => item.tipo === tipo && item.id !== idEdicao).map(item => item.nome)];
@@ -720,135 +733,129 @@ function mudarAba(idAbaDesejada, botao = null) {
         (btn.getAttribute('onclick') || '').includes("'" + idAbaDesejada + "'")
     );
     if (correto) correto.classList.add('ativa');
+    ForjaTransicoes.mostrar(document.getElementById(idAbaDesejada));
 }
 
 // ==========================================
 // FUNÇÕES DO MODAL E DO INVENTÁRIO (COM CARGA)
 // ==========================================
 
-function abrirModalEquipamentos() {
-    document.getElementById('modal-equipamentos').style.display = 'flex';
-    mudarCategoriaModal('todos');
+let categoriaCatalogo = 'todos';
+
+function abrirModalEquipamentos(categoria = 'todos') {
+    const modal = document.getElementById('modal-equipamentos');
+    document.getElementById('busca-equipamentos').value = '';
+    mudarCategoriaModal(categoria);
+    if (!modal.open) modal.showModal();
+    document.getElementById(categoria === 'personalizados' ? 'item-personalizado-nome' : 'busca-equipamentos').focus();
 }
 
 function fecharModalEquipamentos() {
-    document.getElementById('modal-equipamentos').style.display = 'none';
+    document.getElementById('modal-equipamentos').close();
 }
 
 function mudarCategoriaModal(categoria, botao = null) {
     const botoes = document.querySelectorAll('#modal-equipamentos .modal-abas .btn-cat');
-    botoes.forEach(b => b.classList.remove('ativa'));
+    categoriaCatalogo = categoria;
+    botoes.forEach(b => { b.classList.remove('ativa'); b.setAttribute('aria-pressed', 'false'); });
     const correto = botao || Array.from(botoes).find(b =>
         (b.getAttribute('onclick') || '').includes("'" + categoria + "'")
     );
-    if (correto) correto.classList.add('ativa');
+    if (correto) { correto.classList.add('ativa'); correto.setAttribute('aria-pressed', 'true'); }
 
     const catalogo = document.getElementById('modal-lista-itens');
     const formulario = document.getElementById('form-item-personalizado');
     const personalizado = categoria === 'personalizados';
     catalogo.hidden = personalizado;
     formulario.hidden = !personalizado;
+    document.getElementById('catalogo-filtros').hidden = personalizado;
+    document.getElementById('catalogo-rodape').hidden = personalizado;
     if (personalizado) {
+        document.querySelectorAll('.tipo-item-card').forEach(card => {
+            card.querySelector('.tipo-item-icone').replaceChildren(iconeItemPersonalizado(card.dataset.tipo));
+        });
         atualizarCamposItemPersonalizado();
         return;
     }
-    carregarItensCatalogo(categoria);
+    carregarItensCatalogo();
 }
 
-function carregarItensCatalogo(categoria) {
+function itensCatalogoEquipamentos() {
+    return [...ForjaCatalogo.itens(bancoDnD), ...bancoDnD.equipamentos.pacotes.map(p => ({
+        ...p, tipo: 'pacotes', preco: p.custo ?? p.preco, peso: 'Conteúdo do pacote'
+    }))];
+}
+
+function descricaoCatalogo(item) {
+    if (item.tipo === 'pacotes') return (item.conteudo || []).map(([nome, quantidade]) => quantidade + ' × ' + nome).join(' · ');
+    return [item.dano && 'Dano ' + item.dano, item.ca && 'CA ' + item.ca, item.propriedades, item.descricao].filter(Boolean).join(' · ');
+}
+
+function carregarItensCatalogo() {
     const container = document.getElementById('modal-lista-itens');
-    container.innerHTML = '';
-
-    const eq = bancoDnD.equipamentos;
-    let listaParaExibir = [];
-
-    if (categoria === 'todos' || categoria === 'armas') {
-        for (let sub in eq.armas) {
-            eq.armas[sub].forEach(item => {
-                listaParaExibir.push({
-                    nome: item.nome,
-                    preco: item.preco,
-                    peso: item.peso,
-                    detalhes: `Dano: ${item.dano} | ${item.propriedades}`
-                });
-            });
+    const termo = ForjaRegras.normalizar(document.getElementById('busca-equipamentos').value);
+    const grupos = { aventura: ['equipamento_aventura', 'bens'], viagem: ['veiculos', 'arreios'] };
+    const tipos = grupos[categoriaCatalogo] || [categoriaCatalogo];
+    const lista = itensCatalogoEquipamentos().filter(item =>
+        (categoriaCatalogo === 'todos' || tipos.includes(item.tipo)) &&
+        ForjaRegras.normalizar(item.nome + ' ' + descricaoCatalogo(item)).includes(termo)
+    );
+    container.replaceChildren();
+    document.getElementById('catalogo-contagem').textContent = lista.length + (lista.length === 1 ? ' item encontrado' : ' itens encontrados');
+    atualizarSaldoCatalogo();
+    for (const item of lista) {
+        const linha = document.createElement('article'); linha.className = 'item-catalogo';
+        const info = document.createElement('div'); info.className = 'item-info';
+        const nome = document.createElement('h4'); nome.textContent = item.nome;
+        const peso = document.createElement('span'); peso.className = 'catalogo-peso'; peso.textContent = item.peso || 'Peso não informado';
+        info.append(nome, peso);
+        const descricao = descricaoCatalogo(item);
+        if (descricao) {
+            const detalhe = document.createElement('details'), resumo = document.createElement('summary'), texto = document.createElement('p');
+            resumo.textContent = item.tipo === 'pacotes' ? 'Ver conteúdo' : 'Detalhes'; texto.textContent = descricao;
+            detalhe.append(resumo, texto); info.append(detalhe);
         }
+        const preco = document.createElement('strong'); preco.className = 'catalogo-preco'; preco.textContent = item.preco || 'A combinar';
+        const comprar = document.createElement('button'); comprar.type = 'button'; comprar.className = 'btn-adicionar-catalogo';
+        comprar.textContent = 'Comprar'; comprar.setAttribute('aria-label', 'Comprar ' + item.nome);
+        comprar.disabled = ForjaCampanha.precoCobre(item.preco) === null;
+        if (comprar.disabled) comprar.title = 'Combine o preço com o Mestre.';
+        comprar.addEventListener('click', () => comprarItemCatalogo(item.id));
+        linha.append(info, preco, comprar); container.append(linha);
     }
-
-    if (categoria === 'todos' || categoria === 'armaduras') {
-        for (let sub in eq.armaduras) {
-            eq.armaduras[sub].forEach(item => {
-                listaParaExibir.push({
-                    nome: item.nome,
-                    preco: item.preco,
-                    peso: item.peso,
-                    detalhes: `CA: ${item.ca}`
-                });
-            });
-        }
+    if (!lista.length) {
+        const vazio = document.createElement('p'); vazio.className = 'catalogo-vazio';
+        vazio.textContent = 'Nenhum item encontrado. Tente outro nome ou a categoria Todos.'; container.append(vazio);
     }
-
-    if (categoria === 'todos' || categoria === 'aventura') {
-        eq.equipamento_aventura.forEach(item => {
-            listaParaExibir.push({
-                nome: item.item,
-                preco: item.custo,
-                peso: item.peso,
-                detalhes: `Custo: ${item.custo}`
-            });
-        });
-    }
-
-    if (categoria === 'todos' || categoria === 'pacotes') {
-        eq.pacotes.forEach(item => {
-            listaParaExibir.push({
-                nome: item.nome,
-                preco: item.custo,
-                peso: "Variado",
-                detalhes: item.descricao
-            });
-        });
-    }
-
-    listaParaExibir.forEach(item => {
-        let div = document.createElement('div');
-        div.className = 'item-catalogo';
-        div.innerHTML = `
-            <div class="item-info">
-                <span class="item-nome">${item.nome} (${item.preco})</span>
-                <span class="item-detalhes">${item.detalhes} | Peso: ${item.peso}</span>
-            </div>
-            <button class="btn-adicionar-catalogo" onclick="adicionarAoInventario('${item.nome}', '${item.peso}')">Adicionar</button>
-        `;
-        container.appendChild(div);
-    });
+    container.scrollTop = 0;
 }
 
-function adicionarAoInventario(nome, pesoStr) {
-    if (Object.keys(ForjaOpcoes.pacotes).some(x => ForjaRegras.normalizar(x) === ForjaRegras.normalizar(nome))) {
-        ForjaInterface.adicionarItem(nome); atualizarInventario(); ForjaInterface.renderizar(); return;
-    }
-    let pesoNum = 0;
-    if (pesoStr && pesoStr !== "-" && pesoStr !== "Variado") {
-        let limpo = pesoStr.replace(" kg", "").replace(",", ".");
-        pesoNum = parseFloat(limpo) || 0;
-    }
+function atualizarSaldoCatalogo() {
+    document.getElementById('catalogo-saldo').textContent = (ForjaCampanha.dinheiroEmCobre(detalhesFicha.moedas) / 100).toLocaleString('pt-BR') + ' PO';
+}
 
-    const existente = inventarioPersonagem.find(item => item.nome === nome && !item.personalizado);
-    if (existente) {
-        existente.quantidade = (existente.quantidade || 1) + 1;
-    } else {
-        inventarioPersonagem.push({ id: novoId('item'), nome: nome, peso: pesoNum, pesoOriginal: pesoStr, quantidade: 1 });
-    }
-    atualizarInventario();
-    mostrarToast(nome + ' foi adicionado ao inventário.', 'sucesso');
+function comprarItemCatalogo(id) {
+    try {
+        const item = itensCatalogoEquipamentos().find(x => x.id === id);
+        if (!item) throw Error('Item não encontrado no catálogo.');
+        const preco = ForjaCampanha.precoCobre(item.preco);
+        if (preco === null) throw Error('Combine o preço com o Mestre.');
+        const carteira = ForjaCampanha.movimentarCarteira(detalhesFicha.moedas, -preco);
+        ForjaInterface.adicionarItem(item.nome);
+        detalhesFicha.moedas = carteira;
+        detalhesFicha.transacoes.unshift({ tipo: 'compra', nome: item.nome, cobre: preco, data: new Date().toISOString() });
+        recalcularFicha(); atualizarSaldoCatalogo();
+        mostrarToast(item.nome + ' comprado. Valor descontado da carteira.', 'sucesso');
+    } catch (erro) { mostrarToast(erro.message, 'aviso'); }
 }
 
 function selecionarTipoItemPersonalizado(tipo, botao = null) {
     const campoTipo = document.getElementById('item-personalizado-tipo');
     if (campoTipo) campoTipo.value = tipo;
     document.querySelectorAll('.tipo-item-card').forEach(card => {
-        card.classList.toggle('selecionado', card === botao || (!botao && card.dataset.tipo === tipo));
+        const selecionado = card === botao || (!botao && card.dataset.tipo === tipo);
+        card.classList.toggle('selecionado', selecionado);
+        card.setAttribute('aria-pressed', String(selecionado));
     });
     atualizarCamposItemPersonalizado();
 }
@@ -878,15 +885,22 @@ function atualizarCamposRolagemPocao() {
     atualizarResumoItemPersonalizado();
 }
 
+function iconeItemPersonalizado(tipo) {
+    const caminhos = {comum:'m3 7 9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10M7 5l10 4',arma:'m14 3 7 0 0 7-11 11-7-7zM3 21l4-4M8 12l4 4',armadura:'m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z',pocao:'M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M8 14h8'};
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    for (const [k,v] of Object.entries({viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true',class:'forja-icone'})) svg.setAttribute(k,v);
+    const path = document.createElementNS(svg.namespaceURI, 'path');path.setAttribute('d',caminhos[tipo] || caminhos.comum);svg.append(path);return svg;
+}
+
 function atualizarResumoItemPersonalizado() {
     const tipo = document.getElementById('item-personalizado-tipo')?.value || 'comum';
     const nome = document.getElementById('item-personalizado-nome')?.value.trim();
     const peso = Math.max(0, obterValorNumerico('item-personalizado-peso'));
     const configuracoes = {
-        comum: { icone: '📦', titulo: 'Novo item comum', detalhe: 'Item comum' },
-        arma: { icone: '⚔️', titulo: 'Nova arma', detalhe: 'Arma' },
-        armadura: { icone: '🛡️', titulo: 'Nova armadura', detalhe: 'Armadura' },
-        pocao: { icone: '🧪', titulo: 'Nova poção', detalhe: 'Poção' }
+        comum: { titulo: 'Novo item comum', detalhe: 'Item comum' },
+        arma: { titulo: 'Nova arma', detalhe: 'Arma' },
+        armadura: { titulo: 'Nova armadura', detalhe: 'Armadura' },
+        pocao: { titulo: 'Nova poção', detalhe: 'Poção' }
     };
     const atual = configuracoes[tipo];
     let detalhe = atual.detalhe;
@@ -910,7 +924,7 @@ function atualizarResumoItemPersonalizado() {
         }
     }
 
-    document.getElementById('resumo-item-icone').textContent = atual.icone;
+    document.getElementById('resumo-item-icone').replaceChildren(iconeItemPersonalizado(tipo));
     document.getElementById('resumo-item-nome').textContent = nome || atual.titulo;
     document.getElementById('resumo-item-detalhes').textContent = detalhe + ' · ' + peso.toLocaleString('pt-BR') + ' kg';
 }
@@ -1206,8 +1220,22 @@ function restaurarEstado() {
 
 
 function mostrarEtapa(numero) {
+    const anterior = Number(document.querySelector('.passo-indicador[aria-current="step"]')?.dataset.passo || 1);
     document.querySelectorAll('.etapa-criacao').forEach(etapa => etapa.classList.toggle('ativa', Number(etapa.dataset.etapa) === numero));
-    document.querySelectorAll('.passo-indicador').forEach(passo => passo.classList.toggle('ativo', Number(passo.dataset.passo) <= numero));
+    document.querySelectorAll('.passo-indicador').forEach(passo => {
+        passo.classList.toggle('ativo', Number(passo.dataset.passo) <= numero);
+        if (Number(passo.dataset.passo) === numero) passo.setAttribute('aria-current', 'step');
+        else passo.removeAttribute('aria-current');
+    });
+    const progresso = document.querySelector('.progresso-criacao');
+    const atual = progresso.querySelector('[aria-current="step"]');
+    if (atual && progresso.scrollWidth > progresso.clientWidth) progresso.scrollLeft = atual.offsetLeft - progresso.offsetLeft;
+    ForjaTransicoes.mostrar(document.querySelector('.etapa-criacao.ativa'), {direcao: numero < anterior ? -1 : 1});
+}
+
+function voltarEtapaOrigem() {
+    if (typeof ForjaInterface !== 'undefined' && ForjaInterface.voltarParteOrigem && ForjaInterface.voltarParteOrigem()) return;
+    mostrarEtapa(1);
 }
 
 function proximaEtapa(numero) {
@@ -1219,19 +1247,11 @@ function proximaEtapa(numero) {
         const raca = document.getElementById('select-raca').value;
         const classe = document.getElementById('select-classe').value;
         const subclasse = document.getElementById('select-subclasse').value;
-        const temSubracas = Object.keys(bancoDnD.racas[raca]?.subracas || {}).length > 0;
-        const decisaoSubraca = document.querySelector('input[name="usar-subraca"]:checked')?.value;
-        const subraca = document.getElementById('select-subraca').value;
         if (!raca || !classe) {
             mostrarToast('Selecione a raça e a classe.');
             return;
         }
-        if (temSubracas && !decisaoSubraca) {
-            mostrarToast('Informe se deseja escolher uma sub-raça.');
-            return;
-        }
-        if (decisaoSubraca === 'sim' && !subraca) {
-            mostrarToast('Escolha uma sub-raça para continuar.');
+        if (typeof ForjaInterface !== 'undefined' && ForjaInterface.avancarParteOrigem && ForjaInterface.avancarParteOrigem()) {
             return;
         }
         if (validarNivel() >= ForjaRegras.nivelSubclasse(classe) && !subclasse) {
@@ -1392,6 +1412,7 @@ function abrirModalNivel() {
 }
 
 function fecharModalNivel() {
+    ForjaInterface.cancelarPVNivel();
     document.getElementById('modal-nivel').style.display = 'none';
 }
 
@@ -1410,6 +1431,11 @@ function salvarNovoNivel(evento) {
         mostrarToast('Escolha a subclasse para este nível.');
         return;
     }
+    if (!ForjaInterface.validarPVNivel()) {
+        mostrarToast('Escolha a média ou role o Dado de Vida dos novos níveis.');
+        return;
+    }
+    ForjaInterface.confirmarPVNivel();
     document.getElementById('nivel-personagem').value = novoNivel;
     carregarSubclasses();
     document.getElementById('select-subclasse').value = subclasse;
@@ -2218,35 +2244,6 @@ function filtrarTracos(tipo, botao) {
 }
 
 
-let temporizadorToast;
-
-function mostrarToast(mensagem, tipo = 'aviso') {
-    let toast = document.getElementById('toast-notificacao');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast-notificacao';
-        toast.className = 'toast-notificacao';
-        toast.setAttribute('role', 'status');
-        toast.setAttribute('aria-live', 'polite');
-        toast.innerHTML = '<span class="toast-icone" aria-hidden="true">!</span><span class="toast-mensagem"></span><button class="toast-fechar" type="button" aria-label="Fechar notificação">&times;</button>';
-        document.body.appendChild(toast);
-        toast.querySelector('.toast-fechar').addEventListener('click', fecharToast);
-    }
-
-    clearTimeout(temporizadorToast);
-    toast.className = 'toast-notificacao ' + tipo;
-    toast.querySelector('.toast-mensagem').textContent = mensagem;
-    requestAnimationFrame(() => toast.classList.add('visivel'));
-    temporizadorToast = setTimeout(fecharToast, 3500);
-}
-
-function fecharToast() {
-    const toast = document.getElementById('toast-notificacao');
-    if (!toast) return;
-    clearTimeout(temporizadorToast);
-    toast.classList.remove('visivel');
-}
-
 // A interface fornece entradas; o motor não consulta nem modifica elementos HTML.
 function contextoDaFicha() {
     const valor = id => document.getElementById(id)?.value || '';
@@ -2255,7 +2252,7 @@ function contextoDaFicha() {
     return {
         nome: valor('nome-personagem').trim(), nivel: ForjaRegras.nivel(valor('nivel-personagem')),
         raca: valor('select-raca'),
-        subraca: document.querySelector('input[name="usar-subraca"]:checked')?.value === 'sim' ? valor('select-subraca') : '',
+        subraca: document.querySelector('input[name="usar-subraca"]:checked')?.value === 'nao' ? '' : valor('select-subraca'),
         classe: valor('select-classe'), subclasse: valor('select-subclasse'),
         alinhamento: valor('select-alinhamento'), antecedente: valor('select-antecedente'),
         atributos, detalhes: detalhesFicha, tracos: tracosPersonagem, progressosResolvidos,
@@ -2358,6 +2355,7 @@ function atualizarSubclasseNivelModal() {
     document.getElementById('ajuda-subclasse-nivel').textContent = select.disabled
         ? 'A escolha fica disponível no nível ' + ForjaRegras.nivelSubclasse(classe) + '.'
         : 'Escolha a subclasse para continuar.';
+    ForjaInterface.prepararPVNivel();
 }
 
 function atualizarDisplayPV() {
