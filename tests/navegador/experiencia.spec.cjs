@@ -133,6 +133,8 @@ test('retrato opcional e símbolo ficam nos lugares corretos e campos antigos s�
  // PNG válido gerado no navegador descartável, sem imagem externa ou perfil pessoal.
  const png=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=32;c.height=40;const x=c.getContext('2d');x.fillStyle='#7f1d2d';x.fillRect(0,0,32,40);return c.toDataURL('image/png').split(',')[1];});
  await page.getByLabel('Escolher retrato',{exact:true}).setInputFiles({name:'retrato.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+ await expect(page.locator('dialog.forja-retrato-modal')).toBeVisible();
+ await page.getByRole('button',{name:'Salvar retrato',exact:true}).click();
  await expect(page.locator('.forja-historia-aparencia img')).toBeVisible();
  await page.getByLabel('Escolher símbolo da organização',{exact:true}).setInputFiles({name:'simbolo.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
  await expect(page.locator('.forja-historia-organizacao img')).toBeVisible();

@@ -702,33 +702,42 @@ button:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px soli
 
 
 /* Editor de retrato interativo com previews ao vivo (Hub + Cabeçalho da Ficha) */
-.forja-retrato-estudio { margin-top: 14px; padding: 16px; border: 1px solid var(--forja-linha); border-radius: 14px; background: #f8f2e9; display: grid; gap: 14px; }
-.forja-retrato-estudio[hidden] { display: none !important; }
-.forja-retrato-estudio-topo { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
-.forja-retrato-estudio-topo strong { font-family: Georgia, "Times New Roman", serif; color: var(--forja-vinho-escuro); font-size: 16px; }
-.forja-retrato-estudio-topo small { color: var(--forja-muted); font-size: 12px; }
-.forja-retrato-estudio-grade { display: grid; grid-template-columns: minmax(200px, 240px) minmax(0, 1fr); gap: 16px; align-items: start; }
-.forja-retrato-palco-wrap { display: grid; gap: 10px; justify-items: center; }
-.forja-retrato-palco { width: 100%; max-width: 240px; aspect-ratio: 4/5; border-radius: 12px; border: 2px solid var(--forja-ouro); background: #261a17; cursor: grab; touch-action: none; box-shadow: 0 8px 20px #2417121f; }
+dialog.forja-retrato-modal { width: min(860px, calc(100vw - 32px)); max-width: none; max-height: 92dvh; padding: 0; border: 1px solid var(--forja-linha); border-radius: 18px; background: var(--forja-papel); color: var(--forja-tinta); box-shadow: 0 28px 80px #19110e55; overflow: hidden; }
+dialog.forja-retrato-modal[open] { display: flex; flex-direction: column; }
+dialog.forja-retrato-modal::backdrop { background: #1c141288; backdrop-filter: blur(2px); }
+.forja-retrato-modal-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 20px 24px 16px; border-bottom: 1px solid var(--forja-linha); background: #faf5ed; }
+.forja-retrato-modal-topo h2 { margin: 0 0 4px; font-family: Georgia, "Times New Roman", serif; font-size: 22px; color: var(--forja-vinho-escuro); }
+.forja-retrato-modal-topo p { margin: 0; font-size: 13.5px; color: var(--forja-muted); line-height: 1.45; }
+.forja-retrato-modal-corpo { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 24px; padding: 22px 24px; overflow-y: auto; overscroll-behavior: contain; align-items: start; }
+.forja-retrato-palco-col { display: grid; gap: 12px; justify-items: center; }
+.forja-retrato-palco-moldura { position: relative; width: 100%; max-width: 320px; border-radius: 14px; overflow: hidden; border: 2px solid var(--forja-ouro); background: #1e1513; box-shadow: 0 12px 28px #1e151326; }
+.forja-retrato-palco { width: 100%; height: auto; aspect-ratio: 4/5; display: block; cursor: grab; touch-action: none; }
 .forja-retrato-palco:active { cursor: grabbing; }
-.forja-retrato-botoes { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; }
-.forja-retrato-botoes button { flex: 1 1 auto; min-height: 36px; padding: 6px 10px; font-size: 12px; }
-.forja-retrato-painel-direito { display: grid; gap: 14px; min-width: 0; }
-.forja-retrato-sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
-.forja-retrato-slider { display: grid; gap: 4px; font-size: 12px; font-weight: 700; color: var(--forja-tinta); }
-.forja-retrato-slider input[type="range"] { width: 100%; accent-color: var(--forja-vinho); cursor: pointer; }
-.forja-retrato-previews { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.forja-retrato-preview-card { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--forja-linha); border-radius: 10px; background: var(--forja-papel-claro); }
-.forja-retrato-preview-card > small { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--forja-muted); }
-.forja-preview-hub-mock { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; background: linear-gradient(145deg, #2d1d1c, #5f1d28); }
+.forja-retrato-dica { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); padding: 4px 10px; border-radius: 999px; background: #16100ecc; color: #f6e7c8; font-size: 11px; font-weight: 600; white-space: nowrap; pointer-events: none; }
+.forja-retrato-botoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.forja-retrato-botoes button { min-height: 38px; padding: 8px 10px; font-size: 13px; width: 100%; }
+.forja-retrato-controles-col { display: grid; gap: 18px; min-width: 0; }
+.forja-retrato-sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; padding: 16px; border: 1px solid var(--forja-linha); border-radius: 12px; background: var(--forja-papel-claro); }
+.forja-retrato-slider { display: grid; gap: 6px; min-width: 0; }
+.forja-retrato-slider-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12.5px; }
+.forja-retrato-slider-topo span { font-weight: 700; color: var(--forja-tinta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.forja-retrato-slider-topo strong { font-variant-numeric: tabular-nums; color: var(--forja-vinho); font-size: 12px; flex-shrink: 0; }
+.forja-retrato-slider input[type="range"] { width: 100%; margin: 0; accent-color: var(--forja-vinho); cursor: pointer; }
+.forja-retrato-previews { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.forja-retrato-preview-card { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--forja-linha); border-radius: 12px; background: var(--forja-papel-claro); min-width: 0; }
+.forja-retrato-preview-card > small { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--forja-ouro); }
+.forja-preview-hub-mock { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; background: linear-gradient(145deg, #2d1d1c, #5f1d28); border: 1px solid #d8c6b4; }
 .forja-preview-canvas-hub { width: 100%; height: 100%; display: block; object-fit: cover; }
-.forja-preview-badge { position: absolute; right: 8px; bottom: 8px; padding: 2px 8px; border-radius: 999px; background: #191312cc; color: #f6e7c8; font-size: 10px; font-weight: 700; }
-.forja-preview-hub-mock .forja-preview-nome { position: absolute; left: 8px; bottom: 8px; color: #fffdf9; font-size: 12px; text-shadow: 0 1px 4px #000a; max-width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.forja-preview-ficha-mock { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 8px; background: #f3ece2; }
-.forja-preview-canvas-ficha { width: 56px; height: 56px; flex: 0 0 56px; border-radius: 10px; border: 2px solid var(--forja-ouro); background: #261a17; }
-.forja-preview-ficha-info { display: grid; gap: 2px; min-width: 0; }
-.forja-preview-ficha-info strong { font-size: 13px; color: var(--forja-vinho-escuro); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.forja-preview-ficha-info span { font-size: 11px; color: var(--forja-muted); }
+.forja-preview-hub-overlay { position: absolute; inset: auto 0 0 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 18px 10px 8px; background: linear-gradient(to top, #140d0ce6, transparent); }
+.forja-preview-hub-overlay .forja-preview-nome { color: #fffdf9; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.forja-preview-badge { padding: 3px 8px; border-radius: 999px; background: #191312d9; color: #f6e7c8; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.forja-preview-ficha-mock { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px; background: #f4ede3; border: 1px solid #e2d4c3; min-width: 0; }
+.forja-preview-canvas-ficha { width: 68px; height: 68px; flex: 0 0 68px; border-radius: 12px; border: 2px solid var(--forja-ouro); background: #1e1513; display: block; }
+.forja-preview-ficha-info { display: grid; gap: 3px; min-width: 0; }
+.forja-preview-ficha-info strong { font-size: 14px; color: var(--forja-vinho-escuro); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.forja-preview-ficha-info span { font-size: 12px; color: var(--forja-muted); }
+.forja-retrato-modal-rodape { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--forja-linha); background: #faf5ed; }
+.forja-retrato-modal-rodape button { min-height: 44px; padding: 10px 18px; }
 
 /* Guia de criação — Etapa 2 em duas partes com Cards e Catálogo em Modal */
 .forja-origem-controles-nativos { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: 0 !important; border: 0 !important; opacity: 0 !important; overflow: hidden !important; pointer-events: none !important; }
@@ -810,7 +819,12 @@ button:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px soli
 .forja-acoes-sessao { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eadfd2; }
 
 @media (max-width: 760px) {
-    .forja-retrato-estudio-grade, .forja-retrato-sliders, .forja-retrato-previews, .forja-origem-dupla, .forja-variante-comparacao, .forja-maos-grade { grid-template-columns: 1fr; }
+    dialog.forja-retrato-modal { width: 100%; max-height: 95dvh; margin: auto 0 0; border-radius: 18px 18px 0 0; }
+    .forja-retrato-modal-corpo { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+    .forja-retrato-sliders, .forja-retrato-previews { grid-template-columns: 1fr; }
+    .forja-retrato-modal-rodape { flex-direction: column-reverse; padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); }
+    .forja-retrato-modal-rodape button { width: 100%; }
+    .forja-origem-dupla, .forja-variante-comparacao, .forja-maos-grade { grid-template-columns: 1fr; }
     .forja-inventario-resumo-topo { grid-template-columns: 1fr; }
     .forja-catalogo-origem-grade { grid-template-columns: 1fr; }
 }
