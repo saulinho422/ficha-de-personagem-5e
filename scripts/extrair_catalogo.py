@@ -13,7 +13,7 @@ def linhas_colunas(doc,n,colunas=2):
  grupos=[[] for _ in origens]
  for b in p.get_text('dict')['blocks']:
   for l in b.get('lines',[]):
-   x,y,_,_=l['bbox'];s=''.join(z['text'] for z in l['spans']).strip()
+   x,y,_,_=l['bbox'];s=''.join(z['text'] for z in l['spans']).replace('\uf0b7','•').strip()
    if not s or re.fullmatch(r'[–—−-]+',s) or re.fullmatch(r'\d+',s) or y<22 or y>h-22 or (colunas==3 and n==209 and y<200):continue
    i=min(range(colunas),key=lambda i:abs(x-origens[i]));grupos[i].append((y,s))
  for grupo in grupos:yield [s for _,s in sorted(grupo,key=lambda x:x[0])]

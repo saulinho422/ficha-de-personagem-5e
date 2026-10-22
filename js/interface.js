@@ -3,7 +3,7 @@ const ForjaInterface = (() => {
 'use strict';
 const R=ForjaRegras, F=ForjaCampanha, O=ForjaOpcoes, A=ForjaAuxiliares;
 const $=id=>document.getElementById(id);
-let executando=false,temporizadorSalvar,ultimoUsoItem=null,focoDialogo=null,exibindoHub=false,dialogoAtual='',ganhosPVNivel=null,parteOrigem=1;
+let executando=false,temporizadorSalvar,ultimoUsoItem=null,focoDialogo=null,focoDialogoId='',exibindoHub=false,dialogoAtual='',ganhosPVNivel=null,parteOrigem=1;
 const criacao=ForjaCriacao.criar({contexto:()=>contexto(),detalhes:()=>detalhesFicha,el,campo,botao,aplicar:()=>aplicar(),salvar:()=>salvar()});
 const midia=ForjaMidia.criar({detalhes:()=>detalhesFicha,el,botao,salvar:()=>salvar(),atualizar:()=>midia.preencher()});
 const historia=ForjaHistoria.criar({contexto:()=>contexto(),detalhes:()=>detalhesFicha,campos:()=>camposHistoria,el,campo,botao,midia,salvar:()=>salvar(),tabelasPersonalidade,sugerirFisico});
@@ -221,7 +221,7 @@ function renderOrigem(){
     el('p',{},dadoRaca?dadoRaca.descricao:'Clique para abrir o catálogo de raças com descrição, bônus de atributos e habilidades raciais.'),
     dadoRaca?el('div',{class:'forja-origem-pills'},...formatarBonusRaca(c.raca,dadoRaca).map(b=>el('span',{class:'forja-origem-pill destaque'},b)),el('span',{class:'forja-origem-pill'},(dadoRaca.caracteristicas||[]).length+' habilidades raciais')):null,
     el('div',{class:'forja-origem-card-acoes'},
-     botao(c.raca?'Trocar Raça':'Escolher Raça',()=>abrirCatalogoOrigem('raca'),{class:'btn-secundario forja-acao-principal','aria-label':'Escolher Raça: '+(c.raca||'Selecionar')}),
+     botao(c.raca?'Trocar Raça':'Escolher Raça',()=>abrirCatalogoOrigem('raca'),{id:'forja-btn-origem-raca',class:'btn-secundario forja-acao-principal','aria-label':'Escolher Raça: '+(c.raca||'Selecionar')}),
      ['Humano','Humano Variante'].includes(c.raca)?botao(c.raca==='Humano Variante'?'Variante: Ativo':'Ativar Humano Variante?',perguntarHumanoVariante):null
     )
    )
@@ -239,7 +239,7 @@ function renderOrigem(){
      el('div',{class:'forja-classe-metrica'},el('small',{},'Salvaguardas'),el('strong',{},salvas))
     ):null,
     el('div',{class:'forja-origem-card-acoes'},
-     botao(c.classe?'Trocar Classe':'Escolher Classe',()=>abrirCatalogoOrigem('classe'),{class:'btn-secundario forja-acao-principal','aria-label':'Escolher Classe: '+(c.classe||'Selecionar')})
+     botao(c.classe?'Trocar Classe':'Escolher Classe',()=>abrirCatalogoOrigem('classe'),{id:'forja-btn-origem-classe',class:'btn-secundario forja-acao-principal','aria-label':'Escolher Classe: '+(c.classe||'Selecionar')})
     )
    )
   );
@@ -257,7 +257,7 @@ function renderOrigem(){
     el('p',{},dadoSub?(O.descricoesSubracas?.[c.subraca]||'Sub-raça selecionada.'):temSubracas?'A escolha de sub-raça é totalmente opcional. Clique para ver as sub-raças de '+racaBase+' ou prossiga sem sub-raça.':(['Humano','Humano Variante'].includes(c.raca)?'Humanos não possuem sub-raça, mas contam com a opção de Humano Variante.':'A raça '+c.raca+' possui linhagem única e não requer sub-raça.')),
     dadoSub?el('div',{class:'forja-origem-pills'},...formatarBonusRaca(c.subraca,dadoSub).map(b=>el('span',{class:'forja-origem-pill destaque'},b))):null,
     el('div',{class:'forja-origem-card-acoes'},
-     temSubracas?botao(c.subraca?'Trocar Sub-raça':'Escolher Sub-raça',()=>abrirCatalogoOrigem('subraca'),{class:'btn-secundario forja-acao-principal','aria-label':'Escolher Escolha a sub-raça: '+(c.subraca||'Opcional')}):null,
+     temSubracas?botao(c.subraca?'Trocar Sub-raça':'Escolher Sub-raça',()=>abrirCatalogoOrigem('subraca'),{id:'forja-btn-origem-subraca',class:'btn-secundario forja-acao-principal','aria-label':'Escolher Escolha a sub-raça: '+(c.subraca||'Opcional')}):null,
      temSubracas&&c.subraca?botao('Remover sub-raça',()=>selecionarOrigem('subraca','')):null,
      ['Humano','Humano Variante'].includes(c.raca)?botao('Alterar Humano Variante',perguntarHumanoVariante):null,
      botao('Trocar Raça ('+racaBase+')',()=>{parteOrigem=1;abrirCatalogoOrigem('raca');})
@@ -272,7 +272,7 @@ function renderOrigem(){
     el('h4',{},c.subclasse||(liberaSub?'Escolha sua Subclasse':'Subclasse no '+nvSub+'º nível')),
     el('p',{},c.subclasse?(O.descricoesSubclasses?.[c.subclasse]||'Subclasse selecionada.'):liberaSub?'Seu nível atual ('+c.nivel+') já permite escolher uma subclasse de '+c.classe+'. Escolha para avançar.':'No nível '+c.nivel+', sua classe ('+c.classe+') ainda não requer subclasse. Você poderá avançar diretamente.'),
     el('div',{class:'forja-origem-card-acoes'},
-     liberaSub?botao(c.subclasse?'Trocar Subclasse':'Escolher Subclasse',()=>abrirCatalogoOrigem('subclasse'),{class:'btn-secundario forja-acao-principal','aria-label':'Escolher Subclasse: '+(c.subclasse||'Selecionar')}):null,
+     liberaSub?botao(c.subclasse?'Trocar Subclasse':'Escolher Subclasse',()=>abrirCatalogoOrigem('subclasse'),{id:'forja-btn-origem-subclasse',class:'btn-secundario forja-acao-principal','aria-label':'Escolher Subclasse: '+(c.subclasse||'Selecionar')}):null,
      botao('Trocar Classe ('+c.classe+')',()=>{parteOrigem=1;abrirCatalogoOrigem('classe');})
     )
    )
@@ -296,7 +296,7 @@ function iniciar(){
  const navMobile=el('nav',{id:'forja-mobile-nav',class:'forja-mobile-nav','aria-label':'Navegação do aplicativo'},...['Ficha','História','Magias'].map((nome,i)=>botao(nome,()=>abrirPaginaMobile(i),{'data-pagina':String(i+1),class:'forja-mobile-destino'+(i===0?' ativo':'')})),botao('Heróis',mostrarHub,{class:'forja-mobile-destino'}));
  document.body.prepend(hub);document.body.prepend(barra);document.body.prepend(topoMobile);document.body.append(navMobile,el('p',{id:'forja-mensagem',class:'forja-sr',role:'status','aria-live':'polite'}));
  const dialogo=el('dialog',{id:'forja-dialogo','aria-labelledby':'forja-dialogo-titulo'},el('div',{class:'forja-dialogo-topo'},el('h2',{id:'forja-dialogo-titulo'}),botao(icone('fechar'),fecharDialogo,{'aria-label':'Fechar diálogo',class:'forja-fechar-dialogo'})),el('div',{id:'forja-dialogo-corpo'}));
- dialogo.addEventListener('close',()=>{dialogoAtual='';$('forja-dialogo-corpo').replaceChildren();focoDialogo?.focus();});document.body.append(dialogo);
+ dialogo.addEventListener('close',()=>{dialogoAtual='';$('forja-dialogo-corpo').replaceChildren();(focoDialogo?.isConnected?focoDialogo:(focoDialogoId?$(focoDialogoId):null))?.focus();});document.body.append(dialogo);
  $('pagina-2').replaceChildren();$('pagina-3').replaceChildren();
  const p2=$('pagina-2');p2.append(el('h2',{},'História e apresentação'),el('div',{id:'forja-historia',class:'forja-grid'}),el('div',{id:'forja-auxiliares'}));
  montarHistoria();
@@ -325,7 +325,7 @@ function iniciar(){
 }
 const focoModal=new Map();
 function abrirPaginaMobile(indice){const aba=$('forja-aba-'+(indice+1));aba?.click();document.querySelectorAll('.forja-mobile-destino[data-pagina]').forEach((b,i)=>b.classList.toggle('ativo',i===indice));window.scrollTo({top:0,behavior:'smooth'});}
-function abrirDialogo(titulo,conteudo,tipo=''){dialogoAtual=tipo;if(!$('forja-dialogo').open)focoDialogo=document.activeElement;$('forja-dialogo').dataset.tipo=tipo;$('forja-dialogo-titulo').textContent=titulo;$('forja-dialogo-corpo').replaceChildren(conteudo);if(!$('forja-dialogo').open)$('forja-dialogo').showModal();$('forja-dialogo').scrollTop=0;ForjaSeletores.atualizar();}
+function abrirDialogo(titulo,conteudo,tipo=''){dialogoAtual=tipo;if(!$('forja-dialogo').open){focoDialogo=document.activeElement;focoDialogoId=focoDialogo?.id||'';}$('forja-dialogo').dataset.tipo=tipo;$('forja-dialogo-titulo').textContent=titulo;$('forja-dialogo-corpo').replaceChildren(conteudo);if(!$('forja-dialogo').open)$('forja-dialogo').showModal();$('forja-dialogo').scrollTop=0;ForjaSeletores.atualizar();}
 function fecharDialogo(){dialogoAtual='';$('forja-dialogo').close();$('forja-dialogo-corpo').replaceChildren();}
 function editar(etapa){if($('ficha-completa').style.display==='block')criacao.preservarGanhos();exibindoHub=false;document.body.classList.remove('modo-hub');$('forja-hub').hidden=true;$('forja-barra').hidden=false;$('criacao-rapida').hidden=false;$('ficha-completa').hidden=false;$('criacao-rapida').style.display='block';$('ficha-completa').style.display='none';if(etapa===2)parteOrigem=1;mostrarEtapa(etapa);renderizar();document.querySelector('.etapa-criacao.ativa input,.etapa-criacao.ativa select,.etapa-criacao.ativa button')?.focus();}
 function metodosAtributos(){criacao.renderAtributos(limpar('forja-metodos'));}

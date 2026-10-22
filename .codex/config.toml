@@ -1,0 +1,4 @@
+# Conexão de projeto; requer confiança no checkout e descoberta numa sessão nova.
+# Credenciais, modelo, permissões e configurações pessoais ficam fora do repositório.
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"

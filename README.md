@@ -23,25 +23,48 @@ Algumas regras dependem do contexto da mesa. A aplicação registra o recurso, d
 O site não requer build nem servidor. É possível abrir `index.html` diretamente. Para desenvolvimento:
 
 ```sh
-python3 -m http.server 8765
+corepack yarn start
 ```
 
-Depois abra `http://localhost:8765`.
+Depois abra `http://127.0.0.1:8765`. O servidor Node escuta apenas no loopback e
+serve os recursos públicos da aplicação. Não depende de Python.
 
 ## Verificar
 
-Requer Node.js 22 ou superior e Yarn 1.22:
+Requer Node.js 24 (recomendado), ou 22.13+ na série 22, e Yarn 1.22.22:
 
 ```sh
-corepack enable
-yarn install --frozen-lockfile
-yarn check
-yarn test
-yarn playwright install --with-deps chromium
-yarn test:e2e
+corepack yarn install --frozen-lockfile
+corepack yarn playwright install chromium
+corepack yarn verify:all
 ```
 
-A suíte contém 91 testes de regras, persistência e integração DOM, além de 12 cenários reais em Chromium. O GitHub Actions guarda o relatório, as capturas e o PDF de teste.
+A suíte contém os 91 testes de regras, persistência e DOM, além dos testes do
+servidor local, dois testes de notificações e 14 cenários Chromium. Neste Windows, são 103 testes aprovados
+e 1 ignorado por permissão de symlink. O lint registra dívida anterior sem
+reformatar a aplicação. Consulte [qualidade](docs/quality.md) e
+[evidências do setup](docs/setup.md) para resultados e limites. O GitHub Actions
+guarda o relatório, as capturas e o PDF de teste.
+
+No PowerShell restrito, use `npm.cmd` e `corepack.cmd`. Os comandos existentes
+`npm test`, `npm run check` e `npm run test:e2e` continuam disponíveis depois da
+instalação com Yarn. Preparação detalhada: [onboarding](docs/onboarding.md).
+
+## Contexto para desenvolvimento
+
+- [PRODUCT.md](PRODUCT.md): escopo, fluxos e critérios do produto.
+- [AGENTS.md](AGENTS.md): comandos e acordos compartilhados para agentes.
+- [Implementação](docs/IMPLEMENTACAO.md): arquitetura, persistência e recuperação.
+- [Cobertura](docs/COBERTURA.md): matriz dos requisitos implementados.
+- [Design](docs/design.md): identidade visual, responsividade e acessibilidade.
+- [Qualidade](docs/quality.md): lint, testes e procedimento de revisão.
+- [Setup](docs/setup.md): versões, integrações, pendências e manutenção.
+- [Harness](docs/harness.md): descoberta de contexto e avaliações descartáveis.
+
+O toolkit foi aprovado. A [proposta de modularização](docs/planos/modularizacao.md)
+orienta as extrações em fatias verificáveis. O piloto aprovado está em
+`js/notificacoes.js`, preservando a API global e o comportamento. As demais fatias
+aguardam escopo próprio; regras e formato dos personagens continuam os mesmos.
 
 ## Estrutura
 
@@ -50,11 +73,22 @@ A suíte contém 91 testes de regras, persistência e integração DOM, além de
 - `js/sessao.js`: turno, dano tipado, cura e recursos usados em combate.
 - `js/criaturas.js`: Forma Selvagem, companheiro revisado e criaturas próprias.
 - `js/estado.js` e `js/colecao.js`: validação, migração, backup e coleção.
+- `js/notificacoes.js`: mensagens toast, fechamento e temporizador, sem estado de personagem.
 - `js/interface.js`: assistente, hub de personagens, três páginas, diálogos e impressão.
 - `app-shell.css`: acabamento visual, componentes personalizados e experiência mobile em formato de aplicativo.
 - `dados/`: classes, escolhas, magias e tabelas extraídas da fonte fornecida.
 - `scripts/`: extrações reproduzíveis; o PDF original não é distribuído no repositório.
 - `tests/`: testes unitários, DOM e navegador.
+
+A revisão estrutural com [Impeccable](https://github.com/pbakaus/impeccable)
+organiza as nove etapas, reduz superfícies repetidas e adapta ficha, história,
+magias e hub entre celular e desktop. Decisões em [design](docs/design.md);
+validações e limites em [qualidade](docs/quality.md).
+
+A ficha permite editar PV em linha, comprar com débito na carteira e gerenciar
+o inventário em diálogo. A criação tem rolagens individuais, distribuição de
+atributos, pontos, ganhos de PV e confirmação de riqueza. As transições são
+locais e respeitam a preferência de redução de movimento.
 
 Os dados ficam no `localStorage` do navegador. Exporte JSON regularmente para manter uma cópia fora do dispositivo.
 

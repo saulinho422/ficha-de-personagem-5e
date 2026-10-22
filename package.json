@@ -5,16 +5,23 @@
   "description": "Ficha de personagem D&D 5e, perfil 2014 com Patrulheiro Revisado",
   "packageManager": "yarn@1.22.22",
   "engines": {
-    "node": ">=22"
+    "node": "^22.13.0 || >=24.0.0"
   },
   "scripts": {
     "test": "node --test tests/*.test.cjs",
     "check": "node scripts/verificar.cjs",
-    "start": "python3 -m http.server 8765",
-    "test:e2e": "playwright test"
+    "start": "node scripts/servidor.cjs",
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "check:rules": "node scripts/verify-quality-rules.mjs",
+    "verify": "npm run check && npm run check:rules && npm run lint && npm test",
+    "verify:all": "npm run verify && npm run test:e2e"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.62.1",
+    "eslint": "10.13.0",
+    "globals": "17.13.0",
     "jsdom": "26.1.0"
   }
 }

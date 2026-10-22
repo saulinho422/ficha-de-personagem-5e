@@ -1,0 +1,24 @@
+# Adaptado do toolkit 790a895; nenhuma extração sem CLI/runtime compatíveis.
+.git/
+node_modules/
+.agents/
+.codex/
+.claude/
+playwright-report/
+test-results/
+coverage/
+graphify-out/
+dist/
+build/
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+auth.json
+credentials.json
+*.log
+*.tsbuildinfo
+yarn.lock
+skills-lock.json

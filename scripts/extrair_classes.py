@@ -25,7 +25,7 @@ def bloco_linhas(doc,n):
  p=doc[n];grupos=[[],[]]
  for b in p.get_text('dict')['blocks']:
   for l in b.get('lines',[]):
-   x,y,_,_=l['bbox'];s=''.join(z['text'] for z in l['spans']).strip();f=max(z['size'] for z in l['spans'])
+   x,y,_,_=l['bbox'];s=''.join(z['text'] for z in l['spans']).replace('\uf0b7','•').strip();f=max(z['size'] for z in l['spans'])
    if s and not re.fullmatch(r'\d+',s) and 25<y<p.rect.height-25:grupos[int(x>275)].append((y,s,f,n))
  return [a for g in grupos for a in sorted(g)]
 def dados(doc,banco):

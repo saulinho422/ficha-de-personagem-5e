@@ -20,6 +20,8 @@ jobs:
       - run: corepack enable
       - run: yarn install --frozen-lockfile --network-timeout 120000
       - run: yarn check
+      - run: yarn check:rules
+      - run: yarn lint
       - run: yarn test
   navegador:
     runs-on: ubuntu-latest
