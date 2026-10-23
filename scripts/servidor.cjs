@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const PUBLICOS = new Set([
-  'index.html', 'style.css', 'app-shell.css', 'app.js',
+  'index.html', 'admin.html', 'style.css', 'app-shell.css', 'admin.css', 'app.js',
   'banco_phb.js', 'talentos_phb.js',
   'manifest.webmanifest', 'sw.js', 'icon-192.png', 'icon-512.png', 'icon.svg',
 ]);

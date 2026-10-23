@@ -191,6 +191,7 @@ function abrirCatalogoOrigem(tipo){
    }
   }
   if(!grade.children.length)grade.append(el('p',{class:'forja-nota'},'Nenhuma opção encontrada para a pesquisa.'));
+  ForjaTransicoes.staggerCards?.(grade);
  };
  busca.addEventListener('input',renderLista);
  wrap.append(busca);
@@ -295,14 +296,15 @@ function instalarApp(){
  }).catch(()=>undefined);
 }
 function iniciar(){
+ ForjaCatalogo.aplicarCustomizacoes?.(bancoDnD,O,ForjaClasses);
  detalhesFicha.escolhas.criacaoNova=true;
  if('serviceWorker' in navigator&&(window.location.protocol==='https:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')){navigator.serviceWorker.register('./sw.js').catch(()=>undefined);}
  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptInstalacao=e;document.querySelectorAll('[data-forja-instalar]').forEach(b=>b.hidden=false);});
  window.addEventListener('appinstalled',()=>{promptInstalacao=null;document.querySelectorAll('[data-forja-instalar]').forEach(b=>b.hidden=true);});
  const barra=el('header',{id:'forja-barra',class:'forja-barra'},el('div',{},el('strong',{},'FORJA DE PERSONAGENS'),el('small',{},'D&D 5e • base 2014 + Patrulheiro Revisado')),
- el('nav',{'aria-label':'Gerenciar fichas'},botao('Personagens',mostrarHub),botao('Editar criação',()=>editar(1)),botao('Exportar JSON',exportar),botao('Importar',importar),botao('Imprimir / PDF',imprimir),botao('Instalar app',instalarApp,{'data-forja-instalar':'1',hidden:!promptInstalacao})));
+ el('nav',{'aria-label':'Gerenciar fichas'},botao('Personagens',mostrarHub),botao('Editar criação',()=>editar(1)),botao('Painel Admin',()=>{window.location.href='admin.html';}),botao('Exportar JSON',exportar),botao('Importar',importar),botao('Imprimir / PDF',imprimir),botao('Instalar app',instalarApp,{'data-forja-instalar':'1',hidden:!promptInstalacao})));
  const hub=el('main',{id:'forja-hub',class:'forja-hub',hidden:true});
- const topoMobile=el('header',{id:'forja-mobile-topo',class:'forja-mobile-topo'},botao('‹',mostrarHub,{'aria-label':'Voltar aos personagens',class:'forja-mobile-voltar'}),el('div',{},el('small',{},'PERSONAGEM ATUAL'),el('strong',{id:'forja-mobile-personagem'},'Forja de Personagens')),botao('•••',()=>abrirDialogo('Ações da ficha',el('div',{class:'forja-acoes-mobile'},botao('Editar criação',()=>{fecharDialogo();editar(1);}),botao('Exportar JSON',exportar),botao('Importar',importar),botao('Imprimir / PDF',imprimir),promptInstalacao?botao('Instalar aplicativo no celular',()=>{fecharDialogo();instalarApp();},{class:'btn-secundario forja-acao-principal'}):null)),{'aria-label':'Mais ações'}));
+ const topoMobile=el('header',{id:'forja-mobile-topo',class:'forja-mobile-topo'},botao('‹',mostrarHub,{'aria-label':'Voltar aos personagens',class:'forja-mobile-voltar'}),el('div',{},el('small',{},'PERSONAGEM ATUAL'),el('strong',{id:'forja-mobile-personagem'},'Forja de Personagens')),botao('•••',()=>abrirDialogo('Ações da ficha',el('div',{class:'forja-acoes-mobile'},botao('Editar criação',()=>{fecharDialogo();editar(1);}),botao('Painel Admin',()=>{window.location.href='admin.html';}),botao('Exportar JSON',exportar),botao('Importar',importar),botao('Imprimir / PDF',imprimir),promptInstalacao?botao('Instalar aplicativo no celular',()=>{fecharDialogo();instalarApp();},{class:'btn-secundario forja-acao-principal'}):null)),{'aria-label':'Mais ações'}));
  const navMobile=el('nav',{id:'forja-mobile-nav',class:'forja-mobile-nav','aria-label':'Navegação do aplicativo'},...['Ficha','História','Magias'].map((nome,i)=>botao(nome,()=>abrirPaginaMobile(i),{'data-pagina':String(i+1),class:'forja-mobile-destino'+(i===0?' ativo':'')})),botao('Heróis',mostrarHub,{class:'forja-mobile-destino'}));
  document.body.prepend(hub);document.body.prepend(barra);document.body.prepend(topoMobile);document.body.append(navMobile,el('p',{id:'forja-mensagem',class:'forja-sr',role:'status','aria-live':'polite'}));
  const dialogo=el('dialog',{id:'forja-dialogo','aria-labelledby':'forja-dialogo-titulo'},el('div',{class:'forja-dialogo-topo'},el('h2',{id:'forja-dialogo-titulo'}),botao(icone('fechar'),fecharDialogo,{'aria-label':'Fechar diálogo',class:'forja-fechar-dialogo'})),el('div',{id:'forja-dialogo-corpo'}));
@@ -335,7 +337,7 @@ function iniciar(){
 }
 const focoModal=new Map();
 function abrirPaginaMobile(indice){const aba=$('forja-aba-'+(indice+1));aba?.click();document.querySelectorAll('.forja-mobile-destino[data-pagina]').forEach((b,i)=>b.classList.toggle('ativo',i===indice));window.scrollTo({top:0,behavior:'smooth'});}
-function abrirDialogo(titulo,conteudo,tipo=''){dialogoAtual=tipo;if(!$('forja-dialogo').open){focoDialogo=document.activeElement;focoDialogoId=focoDialogo?.id||'';}$('forja-dialogo').dataset.tipo=tipo;$('forja-dialogo-titulo').textContent=titulo;$('forja-dialogo-corpo').replaceChildren(conteudo);if(!$('forja-dialogo').open)$('forja-dialogo').showModal();$('forja-dialogo').scrollTop=0;ForjaSeletores.atualizar();}
+function abrirDialogo(titulo,conteudo,tipo=''){dialogoAtual=tipo;if(!$('forja-dialogo').open){focoDialogo=document.activeElement;focoDialogoId=focoDialogo?.id||'';}$('forja-dialogo').dataset.tipo=tipo;$('forja-dialogo-titulo').textContent=titulo;$('forja-dialogo-corpo').replaceChildren(conteudo);if(!$('forja-dialogo').open){$('forja-dialogo').showModal();ForjaTransicoes.animarDialogo?.($('forja-dialogo'));}$('forja-dialogo').scrollTop=0;ForjaSeletores.atualizar();}
 function fecharDialogo(){dialogoAtual='';$('forja-dialogo').close();$('forja-dialogo-corpo').replaceChildren();}
 function editar(etapa){if($('ficha-completa').style.display==='block')criacao.preservarGanhos();exibindoHub=false;document.body.classList.remove('modo-hub');$('forja-hub').hidden=true;$('forja-barra').hidden=false;$('criacao-rapida').hidden=false;$('ficha-completa').hidden=false;$('criacao-rapida').style.display='block';$('ficha-completa').style.display='none';if(etapa===2)parteOrigem=1;mostrarEtapa(etapa);renderizar();document.querySelector('.etapa-criacao.ativa input,.etapa-criacao.ativa select,.etapa-criacao.ativa button')?.focus();}
 function metodosAtributos(){criacao.renderAtributos(limpar('forja-metodos'));}
@@ -594,6 +596,7 @@ function renderizarHub(){
  const c=ForjaColecao.ler(window.localStorage),hub=limpar('forja-hub');
  const acoes=el('div',{class:'forja-hub-acoes'},
   botao('Novo personagem',confirmarNovoPersonagem,{class:'forja-acao-principal'}),
+  botao('Painel Admin',()=>{window.location.href='admin.html';}),
   botao('Instalar app',instalarApp,{'data-forja-instalar':'1',hidden:!promptInstalacao}),
   botao('Importar ficha',importar),
   botao('Backup',confirmarBackup),botao([icone('lixeira'),el('span',{},'Lixeira'),el('span',{class:'forja-contador'},String(c.lixeira.length))],abrirLixeira,{'aria-label':'Abrir lixeira ('+c.lixeira.length+')',class:'btn-secundario forja-lixeira-atalho'})
@@ -606,6 +609,7 @@ function renderizarHub(){
  c.personagens.forEach(p=>grade.append(cardPersonagem(p)));
  if(!c.personagens.length)grade.append(el('div',{class:'forja-hub-vazio'},el('span',{'aria-hidden':'true'},'✦'),el('h2',{},'Uma nova história espera por você'),el('p',{},'Monte sua ficha em nove etapas e deixe os cálculos por conta da Forja.'),botao('Criar personagem',confirmarNovoPersonagem,{class:'forja-acao-principal'})));
  hub.append(grade);
+ ForjaTransicoes.staggerCards?.(grade);
 }
 function mostrarHub(){if(!exibindoHub&&$('ficha-completa').style.display==='block')salvarColecao();exibindoHub=true;document.body.classList.add('modo-hub');$('forja-hub').hidden=false;$('forja-barra').hidden=true;$('criacao-rapida').hidden=true;$('ficha-completa').hidden=true;renderizarHub();ForjaTransicoes.mostrar(document.querySelector('.forja-herois-grade'));}
 function abrirHubInicial(){if(window.sessionStorage.getItem('forjaPersonagens.abrirDireto')){window.sessionStorage.removeItem('forjaPersonagens.abrirDireto');return;}let c=ForjaColecao.ler(window.localStorage);if($('ficha-completa').style.display==='block'&&!c.personagens.some(p=>p.detalhes.id===detalhesFicha.id)){salvarColecao();c=ForjaColecao.ler(window.localStorage);}if(c.personagens.length)mostrarHub();}

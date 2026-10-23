@@ -3,7 +3,30 @@ const ForjaCriacao = (() => {
 function criar({contexto,detalhes,el,campo,botao,aplicar,salvar}) {
  const Q=ForjaCriacaoRegras,R=ForjaRegras,F=ForjaCampanha;
  const siglas=Object.keys(R.ATRIBUTOS),nomes=['Força','Destreza','Constituição','Inteligência','Sabedoria','Carisma'];
- let selecionado=null;
+ const ANGULOS={1:[0,0],6:[0,180],2:[-90,0],5:[90,0],3:[0,-90],4:[0,90]};
+ let selecionado=null,animarUltimaRolagem=false;
+ function posicionarCubo(cubo,rx,ry,opcoes){
+  const final='rotateX('+rx+'deg) rotateY('+ry+'deg)';
+  const reduzido=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  if(!opcoes.animar||opcoes.nulo||reduzido){cubo.style.transform=final;return;}
+  const vx=rx+(2+(opcoes.indice%3))*360,vy=ry+(3+(opcoes.indice%2))*360;
+  if(window.gsap){window.gsap.fromTo(cubo,{rotateX:vx,rotateY:vy},{rotateX:rx,rotateY:ry,duration:0.85,ease:'back.out(1.2)'});return;}
+  cubo.style.transform='rotateX('+vx+'deg) rotateY('+vy+'deg)';
+  if(window.requestAnimationFrame)window.requestAnimationFrame(()=>{cubo.style.transform=final;});
+  else cubo.style.transform=final;
+ }
+ function textosDado(valor,descartado){
+  if(valor===null)return{front:'?',rotulo:'?',label:'Dado preparado',cls:'forja-dado-3d forja-dado'};
+  const sufixo=descartado?' descartado':'';
+  return{front:'1',rotulo:descartado?valor+' (menor)':String(valor),label:String(valor)+sufixo,cls:'forja-dado-3d forja-dado'+sufixo};
+ }
+ function criarDado3D(valor,descartado=false,animar=false,indice=0){
+  const [rx,ry]=ANGULOS[valor]||[0,0],t=textosDado(valor,descartado);
+  const faces=[['front',t.front],['back','6'],['top','2'],['bottom','5'],['right','3'],['left','4']];
+  const cubo=el('div',{class:'forja-cubo-3d'},faces.map(([cls,txt])=>el('div',{class:'forja-face '+cls,'aria-hidden':'true'},txt)));
+  posicionarCubo(cubo,rx,ry,{animar,nulo:valor===null,indice});
+  return el('div',{class:t.cls,'aria-label':t.label},cubo,el('small',{class:'forja-dado-rotulo'},t.rotulo));
+ }
  function atualizar(foco=document.activeElement?.id){aplicar();salvar();const alvo=document.getElementById(foco);if(alvo&&!alvo.disabled)alvo.focus();else document.getElementById('forja-valor-0')?.focus();}
  const origem=()=>document.querySelector('.grid-atributos-base');
  const valores=()=>detalhes().metodoAtributos==='rolagem'?detalhes().rolagens.map(x=>x.total):[15,14,13,12,10,8];
@@ -60,10 +83,11 @@ function criar({contexto,detalhes,el,campo,botao,aplicar,salvar}) {
   if(!d.escolhas.rolagemConfirmada&&!d.rolagens.length){
    destino.append(el('p',{class:'forja-nota'},'Você fará seis rolagens. Em cada uma, role quatro d6 e descarte o menor. A série concluída fica vinculada a esta personagem.'),botao('Confirmar método e preparar os dados',()=>{d.escolhas.rolagemConfirmada=true;aplicar();salvar();}));return;
   }
-  const ultima=d.rolagens.at(-1),dados=ultima?.dados||[null,null,null,null];
-  destino.append(el('div',{class:'forja-dados-mesa','aria-label':'Quatro dados de seis faces'},dados.map((v,i)=>el('span',{class:'forja-dado'+(ultima?.descarte===i?' descartado':''),'aria-label':v===null?'Dado preparado':String(v)+(ultima?.descarte===i?' descartado':'')},v===null?'?':String(v)))),el('p',{role:'status',class:'forja-nota'},d.rolagens.length+'/6 resultados registrados'+(ultima?' · último total: '+ultima.total:'')));
+  const ultima=d.rolagens.at(-1),dados=ultima?.dados||[null,null,null,null],animar=animarUltimaRolagem;
+  animarUltimaRolagem=false;
+  destino.append(el('div',{class:'forja-dados-mesa','aria-label':'Quatro dados de seis faces'},dados.map((v,i)=>criarDado3D(v,ultima?.descarte===i,animar,i))),el('p',{role:'status',class:'forja-nota'},d.rolagens.length+'/6 resultados registrados'+(ultima?' · último total: '+ultima.total:'')));
   if(d.rolagens.length<6)destino.append(botao('Rolar '+(d.rolagens.length+1)+'ª série de 4d6',()=>{
-   d.rolagens=Q.rolarAtributo(d.rolagens);atualizar();mostrarToast('Rolagem '+d.rolagens.length+' registrada: '+d.rolagens.at(-1).total+'.','sucesso');
+   d.rolagens=Q.rolarAtributo(d.rolagens);animarUltimaRolagem=true;atualizar();mostrarToast('Rolagem '+d.rolagens.length+' registrada: '+d.rolagens.at(-1).total+'.','sucesso');
   },{id:'forja-rolar-atributo',class:'forja-acao-principal'}));
   else destino.append(el('p',{class:'forja-ok'},'Série concluída. Agora distribua seus seis resultados.'));
   if(d.rolagens.length)destino.append(el('div',{class:'forja-resultados-rolagem'},d.rolagens.map((r,i)=>el('span',{},(i+1)+'ª: '+r.total))));

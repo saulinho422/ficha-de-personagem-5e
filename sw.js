@@ -1,11 +1,13 @@
 'use strict';
 
-const CACHE_ATUAL = 'forja-5e-pwa-v1';
+const CACHE_ATUAL = 'forja-5e-pwa-v2';
 const ARQUIVOS_ESSENCIAIS = [
   './',
   './index.html',
+  './admin.html',
   './style.css',
   './app-shell.css',
+  './admin.css',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

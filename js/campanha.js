@@ -19,7 +19,7 @@ function validarDetalhes(d){
  if(!Array.isArray(d.magias.selecoes)||d.magias.selecoes.some(x=>typeof x.id!=='string'||typeof x.fonte!=='string'||typeof x.preparada!=='boolean'))throw Error('Seleção de magia inválida.');
  for(const lista of [d.gastos,d.magias.gastos,d.dadosVidaGastos,d.ganhosPV])if(Object.values(lista).some(x=>!Number.isInteger(x)||x<0||x>1000000))throw Error('Contador inválido.');
  if(d.ajustes.some(x=>!x||typeof x.alvo!=='string'||!Number.isFinite(x.valor)||Math.abs(x.valor)>10000||typeof x.origem!=='string'))throw Error('Ajuste inválido.');
- for(const [k,v]of Object.entries(d.historia)){if(typeof v!=='string'||v.length>(['retrato','simbolo'].includes(k)?900000:60000))throw Error('História ou imagem excede o limite.');if(['retrato','simbolo'].includes(k)&&v&&!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(v))throw Error('Imagem inválida.');}
+ for(const [k,v]of Object.entries(d.historia)){if(typeof v!=='string'||v.length>(['retrato','retratoOriginal','simbolo'].includes(k)?900000:60000))throw Error('História ou imagem excede o limite.');if(['retrato','retratoOriginal','simbolo'].includes(k)&&v&&!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(v))throw Error('Imagem inválida.');}
  function textoSeguro(x,depth=0){if(depth>15)throw Error('Estrutura de escolhas muito profunda.');if(Array.isArray(x))x.forEach(v=>textoSeguro(v,depth+1));else if(x&&typeof x==='object')for(const [k,v]of Object.entries(x)){if(['__proto__','constructor','prototype'].includes(k))throw Error('Chave não permitida.');textoSeguro(v,depth+1);}else if(!['string','number','boolean'].includes(typeof x)&&x!==null)throw Error('Tipo de escolha inválido.');}
  textoSeguro(d);return d;
 }

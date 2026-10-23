@@ -6,6 +6,27 @@ const ForjaTransicoes = (() => {
         const anterior = animacaoAtual;
         animacaoAtual = null;
         anterior?.cancel();
+        if (typeof window.gsap !== 'undefined') window.gsap.killTweensOf('*');
+    }
+
+    function staggerCards(container) {
+        if (!container || movimentoReduzido?.matches || typeof window.gsap === 'undefined') return;
+        const filhos = [...(container.children || [])].filter(el => !el.hidden);
+        if (!filhos.length) return;
+        window.gsap.fromTo(
+            filhos,
+            { opacity: 0, y: 14, scale: 0.985 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.32, stagger: 0.035, ease: 'power2.out', clearProps: 'transform,opacity' }
+        );
+    }
+
+    function animarDialogo(dialogo) {
+        if (!dialogo || movimentoReduzido?.matches || typeof window.gsap === 'undefined') return;
+        window.gsap.fromTo(
+            dialogo,
+            { opacity: 0, y: 18, scale: 0.97 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.26, ease: 'power3.out', clearProps: 'transform,opacity' }
+        );
     }
 
     function mostrar(elemento, { direcao = 1 } = {}) {
@@ -37,5 +58,5 @@ const ForjaTransicoes = (() => {
     movimentoReduzido?.addEventListener?.('change', limpar);
     window.addEventListener('beforeprint', limpar);
     window.addEventListener('pagehide', limpar);
-    return { mostrar, limpar };
+    return { mostrar, limpar, staggerCards, animarDialogo };
 })();

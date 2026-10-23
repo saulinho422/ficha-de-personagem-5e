@@ -177,3 +177,29 @@ test('sub-raça é opcional e escolher Humano pergunta sobre Humano Variante em 
  assert.equal(app.eval('contextoDaFicha().raca'),'Humano Variante');
  assert.equal(app.eval('detalhesFicha.opcoes.humanoVariante'),true);
 });
+
+test('dados 3D de 4d6 renderizam cubos com 6 faces e catálogo aceita customizações do Admin',async t=>{
+ const app=await interfaceFicha(ficha());t.after(app.fechar);const d=app.w.document;
+ app.eval('Math.random=()=>0.5');
+ escolher(app,'forja-metodo-atributos','rolagem');
+ clicar(app,'Confirmar método e preparar os dados');
+ clicar(app,'Rolar 1ª série de 4d6');
+ const cubos=d.querySelectorAll('.forja-dado-3d .forja-cubo-3d');
+ assert.equal(cubos.length,4);
+ assert.equal(cubos[0].querySelectorAll('.forja-face').length,6);
+ app.w.localStorage.setItem('forjaPersonagens.customCatalogo.v1',JSON.stringify({
+  imagens:{racas:{Elfo:'https://exemplo.com/elfo.webp'}},
+  racas:{'Aasimar':{descricao:'Tocado pelos planos celestiais.',deslocamento:9,bonusAtributos:{car:2},idiomas:['Comum','Celestial'],caracteristicas:['Mãos Curativas'],descricoesCaracteristicas:{'Mãos Curativas':'Cura por toque.'}}}
+ }));
+ app.eval('ForjaCatalogo.aplicarCustomizacoes(bancoDnD,ForjaOpcoes,ForjaClasses)');
+ assert.equal(app.eval("ForjaOpcoes.imagensOrigem.racas['Elfo']"),'https://exemplo.com/elfo.webp');
+ assert.equal(app.eval("bancoDnD.racas['Aasimar'].bonusAtributos.car"),2);
+});
+
+test('editor de retrato preserva imagem original e separa zoom de corte',()=>{
+ const d=F.novo();
+ d.historia.retrato='data:image/webp;base64,UklGRg==';
+ d.historia.retratoOriginal='data:image/webp;base64,UklGRk9SSUc=';
+ d.historia.retratoEdicao=JSON.stringify({zoom:1.4,corte:20,giro:90,x:10,y:-5,espelhar:true});
+ assert.doesNotThrow(()=>F.validarDetalhes(d));
+});

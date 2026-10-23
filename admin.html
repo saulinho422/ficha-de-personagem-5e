@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Mestre &amp; Administrador — Forja 5e</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <header class="admin-cabecalho">
+      <div class="admin-cabecalho-topo">
+        <a href="index.html" class="btn-voltar-forja">← Voltar para a Forja de Personagens</a>
+        <div class="admin-acoes-globais">
+          <button type="button" id="btn-exportar-admin" class="btn-secundario-admin">📥 Exportar Catálogo Customizado (JSON)</button>
+          <label for="input-importar-admin" class="btn-secundario-admin label-importar">📤 Importar Catálogo (JSON)</label>
+          <input type="file" id="input-importar-admin" accept="application/json,.json" hidden>
+          <button type="button" id="btn-resetar-admin" class="btn-perigo-admin">🗑️ Restaurar Padrão</button>
+        </div>
+      </div>
+      <div class="admin-titulo-bloco">
+        <span class="admin-selo">OFICINA DO MESTRE • D&amp;D 5E</span>
+        <h1>Painel do Mestre &amp; Administrador — Forja 5e</h1>
+        <p>Alimente as ilustrações faltantes do Guia de Criação Rápida e cadastre Raças, Sub-raças, Classes, Subclasses, Talentos e Antecedentes personalizados.</p>
+      </div>
+      <div class="admin-estatisticas" id="admin-estatisticas" aria-live="polite"></div>
+    </header>
+
+    <nav class="admin-abas" role="tablist" aria-label="Seções do Painel do Mestre">
+      <button type="button" class="admin-aba-btn ativa" data-aba="aba-imagens" role="tab" aria-selected="true">🖼️ Galeria de Imagens (Guia de Criação)</button>
+      <button type="button" class="admin-aba-btn" data-aba="aba-racas" role="tab" aria-selected="false">🧬 Raças &amp; Sub-raças</button>
+      <button type="button" class="admin-aba-btn" data-aba="aba-classes" role="tab" aria-selected="false">⚔️ Classes &amp; Subclasses</button>
+      <button type="button" class="admin-aba-btn" data-aba="aba-talentos" role="tab" aria-selected="false">🌟 Talentos &amp; Antecedentes</button>
+    </nav>
+
+    <main class="admin-conteudo">
+      <!-- ABA 1: GALERIA DE IMAGENS -->
+      <section id="aba-imagens" class="admin-secao ativa" role="tabpanel">
+        <div class="admin-barra-ferramentas">
+          <div class="admin-filtros-categoria" role="group" aria-label="Filtrar categoria de imagem">
+            <button type="button" class="chip-filtro ativo" data-cat="todos">Todos</button>
+            <button type="button" class="chip-filtro" data-cat="racas">Raças</button>
+            <button type="button" class="chip-filtro" data-cat="subracas">Sub-raças</button>
+            <button type="button" class="chip-filtro" data-cat="classes">Classes</button>
+            <button type="button" class="chip-filtro" data-cat="subclasses">Subclasses</button>
+            <button type="button" class="chip-filtro" data-cat="faltantes">Apenas Faltantes</button>
+          </div>
+          <div class="admin-busca-wrap">
+            <input type="search" id="busca-galeria" class="input-admin" placeholder="Buscar raça, sub-raça, classe ou subclasse...">
+          </div>
+        </div>
+        <div id="grid-galeria-imagens" class="grid-galeria-admin"></div>
+      </section>
+
+      <!-- ABA 2: RAÇAS & SUB-RAÇAS -->
+      <section id="aba-racas" class="admin-secao" role="tabpanel" hidden>
+        <div class="admin-duas-colunas">
+          <form id="form-raca" class="card-admin-form">
+            <h2>Cadastrar / Editar Raça</h2>
+            <p class="subtitulo-form">Adicione uma nova raça jogável ou atualize uma raça customizada.</p>
+            <div class="linha-form">
+              <label>Nome da Raça *
+                <input type="text" id="raca-nome" class="input-admin" required placeholder="Ex.: Aasimar, Golias, Tabaxi">
+              </label>
+              <label>Deslocamento (m) *
+                <input type="number" id="raca-deslocamento" class="input-admin" step="1.5" min="1.5" max="30" value="9" required>
+              </label>
+            </div>
+            <label>Descrição breve *
+              <textarea id="raca-descricao" class="input-admin" rows="2" required placeholder="Resumo visual e cultural exibido no Guia de Criação..."></textarea>
+            </label>
+            <fieldset class="fieldset-atributos">
+              <legend>Bônus de Atributos Raciais</legend>
+              <div class="grid-seis-atributos">
+                <label>FOR <input type="number" id="raca-for" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>DES <input type="number" id="raca-des" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>CON <input type="number" id="raca-con" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>INT <input type="number" id="raca-int" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>SAB <input type="number" id="raca-sab" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>CAR <input type="number" id="raca-car" class="input-admin" min="-4" max="4" value="0"></label>
+              </div>
+            </fieldset>
+            <label>Idiomas iniciais (separados por vírgula)
+              <input type="text" id="raca-idiomas" class="input-admin" value="Comum" placeholder="Ex.: Comum, Celestial">
+            </label>
+            <label>Habilidades Raciais (uma por linha no formato <code>Nome: Descrição</code>)
+              <textarea id="raca-habilidades" class="input-admin" rows="4" placeholder="Visão no Escuro: Enxerga no escuro até 18 metros.&#10;Mãos Curativas: Como uma ação, toca uma criatura e restaura PV igual ao seu nível."></textarea>
+            </label>
+            <label>URL da Imagem (ou faça upload na Galeria)
+              <input type="url" id="raca-imagem" class="input-admin" placeholder="https://exemplo.com/imagem.webp">
+            </label>
+            <div class="acoes-form">
+              <button type="submit" class="btn-primario-admin">💾 Salvar Raça</button>
+              <button type="reset" class="btn-secundario-admin">Limpar</button>
+            </div>
+          </form>
+
+          <form id="form-subraca" class="card-admin-form">
+            <h2>Cadastrar / Editar Sub-raça</h2>
+            <p class="subtitulo-form">Vincule uma nova linhagem ou sub-raça a qualquer raça existente.</p>
+            <div class="linha-form">
+              <label>Raça Principal *
+                <select id="subraca-pai" class="input-admin" required></select>
+              </label>
+              <label>Nome da Sub-raça *
+                <input type="text" id="subraca-nome" class="input-admin" required placeholder="Ex.: Aasimar Protetor, Elfo Astral">
+              </label>
+            </div>
+            <label>Descrição breve *
+              <textarea id="subraca-descricao" class="input-admin" rows="2" required placeholder="Resumo exibido no card de escolha da sub-raça..."></textarea>
+            </label>
+            <fieldset class="fieldset-atributos">
+              <legend>Bônus de Atributos da Sub-raça</legend>
+              <div class="grid-seis-atributos">
+                <label>FOR <input type="number" id="subraca-for" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>DES <input type="number" id="subraca-des" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>CON <input type="number" id="subraca-con" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>INT <input type="number" id="subraca-int" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>SAB <input type="number" id="subraca-sab" class="input-admin" min="-4" max="4" value="0"></label>
+                <label>CAR <input type="number" id="subraca-car" class="input-admin" min="-4" max="4" value="0"></label>
+              </div>
+            </fieldset>
+            <label>Habilidades da Sub-raça (uma por linha: <code>Nome: Descrição</code>)
+              <textarea id="subraca-habilidades" class="input-admin" rows="4" placeholder="Alma Radiante: A partir do 3º nível, libera asas luminosas por 1 minuto."></textarea>
+            </label>
+            <label>URL da Imagem
+              <input type="url" id="subraca-imagem" class="input-admin" placeholder="https://exemplo.com/subraca.webp">
+            </label>
+            <div class="acoes-form">
+              <button type="submit" class="btn-primario-admin">💾 Salvar Sub-raça</button>
+              <button type="reset" class="btn-secundario-admin">Limpar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-admin-lista">
+          <h3>Raças e Sub-raças Customizadas Cadastradas</h3>
+          <div id="lista-racas-custom" class="lista-registros-admin"></div>
+        </div>
+      </section>
+
+      <!-- ABA 3: CLASSES & SUBCLASSES -->
+      <section id="aba-classes" class="admin-secao" role="tabpanel" hidden>
+        <div class="admin-duas-colunas">
+          <form id="form-classe" class="card-admin-form">
+            <h2>Cadastrar / Editar Classe</h2>
+            <p class="subtitulo-form">Configure dado de vida, salvaguardas, perícias e características de nível.</p>
+            <div class="linha-form">
+              <label>Nome da Classe *
+                <input type="text" id="classe-nome" class="input-admin" required placeholder="Ex.: Artífice, Caçador de Sangue">
+              </label>
+              <label>Dado de Vida *
+                <select id="classe-dado-vida" class="input-admin" required>
+                  <option value="6">d6</option>
+                  <option value="8" selected>d8</option>
+                  <option value="10">d10</option>
+                  <option value="12">d12</option>
+                </select>
+              </label>
+            </div>
+            <label>Descrição breve *
+              <textarea id="classe-descricao" class="input-admin" rows="2" required placeholder="Resumo exibido no card da classe na Etapa 2..."></textarea>
+            </label>
+            <div class="linha-form tres-colunas">
+              <label>1ª Salvaguarda *
+                <select id="classe-salva-1" class="input-admin" required>
+                  <option value="forca">Força</option>
+                  <option value="destreza">Destreza</option>
+                  <option value="constituicao" selected>Constituição</option>
+                  <option value="inteligencia">Inteligência</option>
+                  <option value="sabedoria">Sabedoria</option>
+                  <option value="carisma">Carisma</option>
+                </select>
+              </label>
+              <label>2ª Salvaguarda *
+                <select id="classe-salva-2" class="input-admin" required>
+                  <option value="forca">Força</option>
+                  <option value="destreza">Destreza</option>
+                  <option value="constituicao">Constituição</option>
+                  <option value="inteligencia" selected>Inteligência</option>
+                  <option value="sabedoria">Sabedoria</option>
+                  <option value="carisma">Carisma</option>
+                </select>
+              </label>
+              <label>Qtd. Perícias *
+                <input type="number" id="classe-pericias-qtd" class="input-admin" min="1" max="6" value="2" required>
+              </label>
+            </div>
+            <label>Características por Nível (uma por linha: <code>Nível | Nome | Descrição</code>)
+              <textarea id="classe-habilidades" class="input-admin" rows="4" placeholder="1 | Engenhosidade Mágica | Imbui objetos mundanos com efeitos arcanos.&#10;2 | Infundir Item | Cria infusões mágicas em equipamentos."></textarea>
+            </label>
+            <label>URL da Imagem
+              <input type="url" id="classe-imagem" class="input-admin" placeholder="https://exemplo.com/classe.webp">
+            </label>
+            <div class="acoes-form">
+              <button type="submit" class="btn-primario-admin">💾 Salvar Classe</button>
+              <button type="reset" class="btn-secundario-admin">Limpar</button>
+            </div>
+          </form>
+
+          <form id="form-subclasse" class="card-admin-form">
+            <h2>Cadastrar / Editar Subclasse</h2>
+            <p class="subtitulo-form">Adicione um arquétipo, domínio, colégio ou caminho a uma classe.</p>
+            <div class="linha-form">
+              <label>Classe Principal *
+                <select id="subclasse-pai" class="input-admin" required></select>
+              </label>
+              <label>Nome da Subclasse *
+                <input type="text" id="subclasse-nome" class="input-admin" required placeholder="Ex.: Lâmina Maldita, Alquimista">
+              </label>
+            </div>
+            <label>Descrição breve *
+              <textarea id="subclasse-descricao" class="input-admin" rows="2" required placeholder="Resumo exibido no card da subclasse na Etapa 2..."></textarea>
+            </label>
+            <label>Habilidades por Nível (uma por linha: <code>Nível | Nome | Descrição</code>)
+              <textarea id="subclasse-habilidades" class="input-admin" rows="5" placeholder="1 | Maldição da Lâmina | Marca um alvo com ação bônus para causar dano extra.&#10;1 | Combatente Maldito | Usa Carisma nos ataques e danos com armas pactuadas."></textarea>
+            </label>
+            <label>URL da Imagem
+              <input type="url" id="subclasse-imagem" class="input-admin" placeholder="https://exemplo.com/subclasse.webp">
+            </label>
+            <div class="acoes-form">
+              <button type="submit" class="btn-primario-admin">💾 Salvar Subclasse</button>
+              <button type="reset" class="btn-secundario-admin">Limpar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-admin-lista">
+          <h3>Classes e Subclasses Customizadas Cadastradas</h3>
+          <div id="lista-classes-custom" class="lista-registros-admin"></div>
+        </div>
+      </section>
+
+      <!-- ABA 4: TALENTOS & ANTECEDENTES -->
+      <section id="aba-talentos" class="admin-secao" role="tabpanel" hidden>
+        <div class="admin-duas-colunas">
+          <form id="form-talento" class="card-admin-form">
+            <h2>Cadastrar / Editar Talento</h2>
+            <p class="subtitulo-form">Talentos ficam imediatamente disponíveis na criação e na progressão.</p>
+            <label>Nome do Talento *
+              <input type="text" id="talento-nome" class="input-admin" required placeholder="Ex.: Telecinético, Tocada pelas Fadas">
+            </label>
+            <label>Pré-requisitos (opcional)
+              <input type="text" id="talento-prereq" class="input-admin" placeholder="Ex.: Nível 4 ou superior, Inteligência 13 ou maior">
+            </label>
+            <label>Benefícios do Talento *
+              <textarea id="talento-beneficios" class="input-admin" rows="5" required placeholder="Descreva os benefícios mecânicos completos do talento..."></textarea>
+            </label>
+            <div class="acoes-form">
+              <button type="submit" class="btn-primario-admin">💾 Salvar Talento</button>
+              <button type="reset" class="btn-secundario-admin">Limpar</button>
+            </div>
+          </form>
+
+          <form id="form-antecedente" class="card-admin-form">
+            <h2>Cadastrar / Editar Antecedente</h2>
+            <p class="subtitulo-form">Configure perícias concedidas e a característica especial de origem.</p>
+            <label>Nome do Antecedente *
+              <input type="text" id="antecedente-nome" class="input-admin" required placeholder="Ex.: Investigador, Caçador de Recompensas">
+            </label>
+            <div class="linha-form">
+              <label>1ª Perícia Concedida *
+                <select id="antecedente-pericia-1" class="input-admin" required></select>
+              </label>
+              <label>2ª Perícia Concedida *
+                <select id="antecedente-pericia-2" class="input-admin" required></select>
+              </label>
+            </div>
+            <div class="linha-form">
+              <label>Nome da Habilidade de Antecedente *
+                <input type="text" id="antecedente-habilidade" class="input-admin" required placeholder="Ex.: Olho Oficial para o Crime">
+              </label>
+              <label>Idiomas Adicionais à Escolha
+                <input type="number" id="antecedente-idiomas" class="input-admin" min="0" max="3" value="0">
+              </label>
+            </div>
+            <label>Descrição da Habilidade *
+              <textarea id="antecedente-descricao" class="input-admin" rows="3" required placeholder="Descreva o benefício narrativo e social deste antecedente..."></textarea>
+            </label>
+            <div class="acoes-form">
+              <button type="submit" class="btn-primario-admin">💾 Salvar Antecedente</button>
+              <button type="reset" class="btn-secundario-admin">Limpar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-admin-lista">
+          <h3>Talentos e Antecedentes Customizados Cadastrados</h3>
+          <div id="lista-talentos-custom" class="lista-registros-admin"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Input invisível compartilhado para upload de imagem de card -->
+  <input type="file" id="upload-imagem-card" accept="image/*" hidden>
+
+  <script src="js/notificacoes.js"></script>
+  <script src="banco_phb.js"></script>
+  <script src="talentos_phb.js"></script>
+  <script src="dados/opcoes.js"></script>
+  <script src="dados/aventura.js"></script>
+  <script src="dados/classes.js"></script>
+  <script src="dados/auxiliares.js"></script>
+  <script src="js/catalogo.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
