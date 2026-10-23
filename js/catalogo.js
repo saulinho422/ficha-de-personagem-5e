@@ -11,6 +11,13 @@ const num=(v,p=0)=>Number(v)||p;
 function lerCustom(){
  try{const b=globalThis.localStorage?.getItem(CHAVE_ADMIN);return b?JSON.parse(b):null;}catch{return null;}
 }
+function mesclarFontesCustom(globalCustom,localCustom){
+ const g=obj(globalCustom),l=obj(localCustom);
+ const res={imagens:{racas:{},subracas:{},classes:{},subclasses:{}},racas:{},subracas:{},classes:{},subclasses:{},talentos:{},antecedentes:{}};
+ for(const k of ['racas','subracas','classes','subclasses'])res.imagens[k]={...obj(g.imagens?.[k]),...obj(l.imagens?.[k])};
+ for(const k of ['racas','subracas','classes','subclasses','talentos','antecedentes'])res[k]={...obj(g[k]),...obj(l[k])};
+ return res;
+}
 function mesclarImagens(opcoes,imagens){
  const orig=obj(opcoes.imagensOrigem);
  const nov=obj(imagens);
@@ -81,8 +88,10 @@ function carimbarIds(banco,progressao){
  carimbarColecao('antecedente',banco.antecedentes,progressao);
 }
 function aplicarCustomizacoes(banco,opcoes,progressao){
- const custom=lerCustom();
- if(!banco||!opcoes||!progressao||!custom)return banco;
+ const globalCustom=globalThis.ForjaCustomCatalogo||null;
+ const localCustom=lerCustom();
+ if(!banco||!opcoes||!progressao||(!globalCustom&&!localCustom))return banco;
+ const custom=mesclarFontesCustom(globalCustom,localCustom);
  const ctx={banco,opcoes,progressao};
  mesclarImagens(opcoes,custom.imagens);
  for(const [n,d]of Object.entries(obj(custom.racas)))aplicarRaca(ctx,n,d);

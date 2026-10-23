@@ -22,9 +22,10 @@
     const base = { imagens: { racas: {}, subracas: {}, classes: {}, subclasses: {} } };
     for (const k of COLECOES) base[k] = {};
     try {
+      const glob = raiz.ForjaCustomCatalogo || {};
       const lido = JSON.parse(raiz.localStorage?.getItem(CHAVE) || '{}');
-      for (const k of Object.keys(base.imagens)) base.imagens[k] = { ...(lido.imagens?.[k] || {}) };
-      for (const k of COLECOES) base[k] = { ...(lido[k] || {}) };
+      for (const k of Object.keys(base.imagens)) base.imagens[k] = { ...(glob.imagens?.[k] || {}), ...(lido.imagens?.[k] || {}) };
+      for (const k of COLECOES) base[k] = { ...(glob[k] || {}), ...(lido[k] || {}) };
     } catch { /* ignora JSON corrompido */ }
     return base;
   }
@@ -298,6 +299,9 @@
       const arq = ev.target.files?.[0]; ev.target.value = ''; if (!arq || !alvoUpload) return;
       try { definirImagemItem(alvoUpload, await comprimirParaWebP(arq)); avisar(`Imagem de "${alvoUpload.nome}" otimizada e salva!`); }
       catch { avisar('Não foi possível processar a imagem.', 'aviso'); }
+    });
+    $('btn-publicar-admin')?.addEventListener('click', () => {
+      raiz.ForjaPublicador?.abrirModalPublicacao(lerEstado, avisar);
     });
     $('btn-exportar-admin')?.addEventListener('click', () => {
       const url = URL.createObjectURL(new Blob([JSON.stringify(lerEstado(), null, 2)], { type: 'application/json' }));

@@ -15,8 +15,9 @@
       <div class="admin-cabecalho-topo">
         <a href="index.html" class="btn-voltar-forja">← Voltar para a Forja de Personagens</a>
         <div class="admin-acoes-globais">
-          <button type="button" id="btn-exportar-admin" class="btn-secundario-admin">📥 Exportar Catálogo Customizado (JSON)</button>
-          <label for="input-importar-admin" class="btn-secundario-admin label-importar">📤 Importar Catálogo (JSON)</label>
+          <button type="button" id="btn-publicar-admin" class="btn-primario-admin">🌐 Publicar para Todos (GitHub)</button>
+          <button type="button" id="btn-exportar-admin" class="btn-secundario-admin">📥 Exportar JSON</button>
+          <label for="input-importar-admin" class="btn-secundario-admin label-importar">📤 Importar JSON</label>
           <input type="file" id="input-importar-admin" accept="application/json,.json" hidden>
           <button type="button" id="btn-resetar-admin" class="btn-perigo-admin">🗑️ Restaurar Padrão</button>
         </div>
@@ -305,7 +306,9 @@
   <script src="dados/aventura.js"></script>
   <script src="dados/classes.js"></script>
   <script src="dados/auxiliares.js"></script>
+  <script src="dados/custom-catalogo.js"></script>
   <script src="js/catalogo.js"></script>
+  <script src="js/admin-publicar.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>

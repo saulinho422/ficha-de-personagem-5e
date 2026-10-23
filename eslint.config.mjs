@@ -9,6 +9,7 @@ const compartilhados = Object.fromEntries([
   'ForjaOpcoes', 'ForjaAventura', 'ForjaClasses', 'ForjaAuxiliares', 'ForjaKits',
   'ForjaMagias', 'ForjaMagiasOrigem', 'ForjaCriacaoRegras', 'ForjaCriacao',
   'ForjaMidia', 'ForjaHistoria', 'ForjaVitais', 'ForjaSeletores', 'ForjaTransicoes',
+  'ForjaCustomCatalogo', 'ForjaPublicador',
 ].map(nome => [nome, 'readonly']));
 
 export default [

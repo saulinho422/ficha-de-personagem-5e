@@ -550,3 +550,18 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+dialog.modal-admin-publicar {
+  width: min(560px, calc(100vw - 32px));
+  padding: 0;
+  border: 2px solid var(--admin-dourado);
+  border-radius: var(--admin-raio);
+  background: var(--admin-pergaminho);
+  color: var(--admin-texto);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+}
+
+dialog.modal-admin-publicar::backdrop {
+  background: rgba(20, 12, 10, 0.72);
+  backdrop-filter: blur(3px);
+}
