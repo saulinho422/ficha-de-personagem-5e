@@ -15,8 +15,8 @@ const ForjaTransicoes = (() => {
         if (!filhos.length) return;
         window.gsap.fromTo(
             filhos,
-            { opacity: 0, y: 14, scale: 0.985 },
-            { opacity: 1, y: 0, scale: 1, duration: 0.32, stagger: 0.035, ease: 'power2.out', clearProps: 'transform,opacity' }
+            { opacity: 0, y: 12 },
+            { opacity: 1, y: 0, duration: 0.24, stagger: 0.03, ease: 'power2.out', clearProps: 'transform,opacity' }
         );
     }
 
@@ -24,8 +24,8 @@ const ForjaTransicoes = (() => {
         if (!dialogo || movimentoReduzido?.matches || typeof window.gsap === 'undefined') return;
         window.gsap.fromTo(
             dialogo,
-            { opacity: 0, y: 18, scale: 0.97 },
-            { opacity: 1, y: 0, scale: 1, duration: 0.26, ease: 'power3.out', clearProps: 'transform,opacity' }
+            { opacity: 0.4, y: 12 },
+            { opacity: 1, y: 0, duration: 0.2, ease: 'power3.out', clearProps: 'transform,opacity' }
         );
     }
 

@@ -8,7 +8,7 @@ const criacao=ForjaCriacao.criar({contexto:()=>contexto(),detalhes:()=>detalhesF
 const midia=ForjaMidia.criar({detalhes:()=>detalhesFicha,el,botao,salvar:()=>salvar(),atualizar:()=>midia.preencher()});
 const historia=ForjaHistoria.criar({contexto:()=>contexto(),detalhes:()=>detalhesFicha,campos:()=>camposHistoria,el,campo,botao,midia,salvar:()=>salvar(),tabelasPersonalidade,sugerirFisico});
 function el(tag,attrs={},...filhos){const n=document.createElement(tag);for(const [k,v]of Object.entries(attrs)){if(k==='text')n.textContent=v;else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);else if(k==='class')n.className=v;else if(k==='checked'||k==='disabled'||k==='hidden')n[k]=!!v;else n.setAttribute(k,String(v));}for(const f of filhos.flat(Infinity))if(f!==null&&f!==undefined)n.append(typeof f==='string'?document.createTextNode(f):f);return n;}
-function botao(text,acao,attrs={}){return el('button',{type:'button',class:'btn-secundario',onclick:()=>tentar(acao),...attrs},text);}
+function botao(text,acao,attrs={}){return el('button',{type:'button',class:'btn-secundario',onclick:e=>{if(e?.currentTarget&&document.activeElement!==e.currentTarget)e.currentTarget.focus();tentar(acao);},...attrs},text);}
 function icone(nome){const caminhos={fechar:'m6 6 12 12M18 6 6 18',lixeira:'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7',arquivo:'M14 3H5v18h14V8zM14 3v5h5M8 13h8M8 17h5',baixar:'M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5',enviar:'M12 16V4m-4 4 4-4 4 4M4 17v4h16v-4',voltar:'m14 5-7 7 7 7',mais:'M12 5v14M5 12h14',restaurar:'M4 10a8 8 0 1 1 1 8M4 4v6h6',menu:'M5 6h14M5 12h14M5 18h14'};const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');for(const [k,v]of Object.entries({viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true',class:'forja-icone'}))svg.setAttribute(k,v);const path=document.createElementNS(svg.namespaceURI,'path');path.setAttribute('d',caminhos[nome]||caminhos.arquivo);svg.append(path);return svg;}
 function acoesDialogo(principal){return el('div',{class:'forja-dialogo-acoes'},botao('Cancelar',fecharDialogo),principal);}
 function tentar(fn){try{return fn();}catch(e){mostrarToast(e.message,'aviso');}}
@@ -308,7 +308,9 @@ function iniciar(){
  const navMobile=el('nav',{id:'forja-mobile-nav',class:'forja-mobile-nav','aria-label':'Navegação do aplicativo'},...['Ficha','História','Magias'].map((nome,i)=>botao(nome,()=>abrirPaginaMobile(i),{'data-pagina':String(i+1),class:'forja-mobile-destino'+(i===0?' ativo':'')})),botao('Heróis',mostrarHub,{class:'forja-mobile-destino'}));
  document.body.prepend(hub);document.body.prepend(barra);document.body.prepend(topoMobile);document.body.append(navMobile,el('p',{id:'forja-mensagem',class:'forja-sr',role:'status','aria-live':'polite'}));
  const dialogo=el('dialog',{id:'forja-dialogo','aria-labelledby':'forja-dialogo-titulo'},el('div',{class:'forja-dialogo-topo'},el('h2',{id:'forja-dialogo-titulo'}),botao(icone('fechar'),fecharDialogo,{'aria-label':'Fechar diálogo',class:'forja-fechar-dialogo'})),el('div',{id:'forja-dialogo-corpo'}));
- dialogo.addEventListener('close',()=>{dialogoAtual='';$('forja-dialogo-corpo').replaceChildren();(focoDialogo?.isConnected?focoDialogo:(focoDialogoId?$(focoDialogoId):null))?.focus();});document.body.append(dialogo);
+ dialogo.addEventListener('cancel',e=>{e.preventDefault();fecharDialogo();});
+ dialogo.addEventListener('keydown',e=>{if(e.key==='Escape'&&dialogo.open){e.preventDefault();fecharDialogo();}});
+ dialogo.addEventListener('close',()=>{dialogoAtual='';$('forja-dialogo-corpo').replaceChildren();const alvo=focoDialogo?.isConnected?focoDialogo:(focoDialogoId?$(focoDialogoId):null);alvo?.focus();});document.body.append(dialogo);
  $('pagina-2').replaceChildren();$('pagina-3').replaceChildren();
  const p2=$('pagina-2');p2.append(el('h2',{},'História e apresentação'),el('div',{id:'forja-historia',class:'forja-grid'}),el('div',{id:'forja-auxiliares'}));
  montarHistoria();
@@ -338,7 +340,7 @@ function iniciar(){
 const focoModal=new Map();
 function abrirPaginaMobile(indice){const aba=$('forja-aba-'+(indice+1));aba?.click();document.querySelectorAll('.forja-mobile-destino[data-pagina]').forEach((b,i)=>b.classList.toggle('ativo',i===indice));window.scrollTo({top:0,behavior:'smooth'});}
 function abrirDialogo(titulo,conteudo,tipo=''){dialogoAtual=tipo;if(!$('forja-dialogo').open){focoDialogo=document.activeElement;focoDialogoId=focoDialogo?.id||'';}$('forja-dialogo').dataset.tipo=tipo;$('forja-dialogo-titulo').textContent=titulo;$('forja-dialogo-corpo').replaceChildren(conteudo);if(!$('forja-dialogo').open){$('forja-dialogo').showModal();ForjaTransicoes.animarDialogo?.($('forja-dialogo'));}$('forja-dialogo').scrollTop=0;ForjaSeletores.atualizar();}
-function fecharDialogo(){dialogoAtual='';$('forja-dialogo').close();$('forja-dialogo-corpo').replaceChildren();}
+function fecharDialogo(){dialogoAtual='';$('forja-dialogo').close();$('forja-dialogo-corpo').replaceChildren();const alvo=focoDialogo?.isConnected?focoDialogo:(focoDialogoId?$(focoDialogoId):null);alvo?.focus();}
 function editar(etapa){if($('ficha-completa').style.display==='block')criacao.preservarGanhos();exibindoHub=false;document.body.classList.remove('modo-hub');$('forja-hub').hidden=true;$('forja-barra').hidden=false;$('criacao-rapida').hidden=false;$('ficha-completa').hidden=false;$('criacao-rapida').style.display='block';$('ficha-completa').style.display='none';if(etapa===2)parteOrigem=1;mostrarEtapa(etapa);renderizar();document.querySelector('.etapa-criacao.ativa input,.etapa-criacao.ativa select,.etapa-criacao.ativa button')?.focus();}
 function metodosAtributos(){criacao.renderAtributos(limpar('forja-metodos'));}
 
@@ -599,7 +601,7 @@ function renderizarHub(){
   botao('Painel Admin',()=>{window.location.href='admin.html';}),
   botao('Instalar app',instalarApp,{'data-forja-instalar':'1',hidden:!promptInstalacao}),
   botao('Importar ficha',importar),
-  botao('Backup',confirmarBackup),botao([icone('lixeira'),el('span',{},'Lixeira'),el('span',{class:'forja-contador'},String(c.lixeira.length))],abrirLixeira,{'aria-label':'Abrir lixeira ('+c.lixeira.length+')',class:'btn-secundario forja-lixeira-atalho'})
+  botao('Backup',confirmarBackup),botao([icone('lixeira'),el('span',{},'Lixeira'),el('span',{class:'forja-contador'},String(c.lixeira.length))],abrirLixeira,{id:'forja-btn-lixeira-hub','aria-label':'Abrir lixeira ('+c.lixeira.length+')',class:'btn-secundario forja-lixeira-atalho'})
  );
  hub.append(el('header',{class:'forja-hub-cabecalho'},
   el('div',{},el('span',{class:'forja-hub-marca'},'FORJA DE PERSONAGENS'),el('h1',{},'Seus heróis'),el('p',{},c.personagens.length?'Escolha uma ficha para voltar à aventura.':'Crie seu primeiro personagem para começar.')),
