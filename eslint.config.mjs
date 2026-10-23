@@ -34,6 +34,10 @@ export default [
     rules: { 'no-redeclare': ['error', { builtinGlobals: false }] },
   },
   {
+    files: ['sw.js'],
+    languageOptions: { sourceType: 'script', globals: globals.serviceworker },
+  },
+  {
     files: ['**/*.cjs', '**/*.mjs'],
     languageOptions: { globals: globals.node },
   },

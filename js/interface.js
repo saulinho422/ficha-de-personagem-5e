@@ -3,7 +3,7 @@ const ForjaInterface = (() => {
 'use strict';
 const R=ForjaRegras, F=ForjaCampanha, O=ForjaOpcoes, A=ForjaAuxiliares;
 const $=id=>document.getElementById(id);
-let executando=false,temporizadorSalvar,ultimoUsoItem=null,focoDialogo=null,focoDialogoId='',exibindoHub=false,dialogoAtual='',ganhosPVNivel=null,parteOrigem=1;
+let executando=false,temporizadorSalvar,ultimoUsoItem=null,focoDialogo=null,focoDialogoId='',exibindoHub=false,dialogoAtual='',ganhosPVNivel=null,parteOrigem=1,promptInstalacao=null;
 const criacao=ForjaCriacao.criar({contexto:()=>contexto(),detalhes:()=>detalhesFicha,el,campo,botao,aplicar:()=>aplicar(),salvar:()=>salvar()});
 const midia=ForjaMidia.criar({detalhes:()=>detalhesFicha,el,botao,salvar:()=>salvar(),atualizar:()=>midia.preencher()});
 const historia=ForjaHistoria.criar({contexto:()=>contexto(),detalhes:()=>detalhesFicha,campos:()=>camposHistoria,el,campo,botao,midia,salvar:()=>salvar(),tabelasPersonalidade,sugerirFisico});
@@ -287,12 +287,22 @@ function irParteOrigem(p){parteOrigem=p;renderOrigem();}
 function avancarParteOrigem(){if(parteOrigem===1){parteOrigem=2;renderOrigem();return true;}return false;}
 function voltarParteOrigem(){if(parteOrigem===2){parteOrigem=1;renderOrigem();return true;}return false;}
 
+function instalarApp(){
+ if(!promptInstalacao)return;
+ promptInstalacao.prompt?.();
+ promptInstalacao.userChoice?.then(r=>{
+  if(r?.outcome==='accepted'){promptInstalacao=null;document.querySelectorAll('[data-forja-instalar]').forEach(b=>b.hidden=true);mostrarToast('Aplicativo instalado com sucesso!','sucesso');}
+ }).catch(()=>undefined);
+}
 function iniciar(){
  detalhesFicha.escolhas.criacaoNova=true;
+ if('serviceWorker' in navigator&&(window.location.protocol==='https:'||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')){navigator.serviceWorker.register('./sw.js').catch(()=>undefined);}
+ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptInstalacao=e;document.querySelectorAll('[data-forja-instalar]').forEach(b=>b.hidden=false);});
+ window.addEventListener('appinstalled',()=>{promptInstalacao=null;document.querySelectorAll('[data-forja-instalar]').forEach(b=>b.hidden=true);});
  const barra=el('header',{id:'forja-barra',class:'forja-barra'},el('div',{},el('strong',{},'FORJA DE PERSONAGENS'),el('small',{},'D&D 5e • base 2014 + Patrulheiro Revisado')),
- el('nav',{'aria-label':'Gerenciar fichas'},botao('Personagens',mostrarHub),botao('Editar criação',()=>editar(1)),botao('Exportar JSON',exportar),botao('Importar',importar),botao('Imprimir / PDF',imprimir)));
+ el('nav',{'aria-label':'Gerenciar fichas'},botao('Personagens',mostrarHub),botao('Editar criação',()=>editar(1)),botao('Exportar JSON',exportar),botao('Importar',importar),botao('Imprimir / PDF',imprimir),botao('Instalar app',instalarApp,{'data-forja-instalar':'1',hidden:!promptInstalacao})));
  const hub=el('main',{id:'forja-hub',class:'forja-hub',hidden:true});
- const topoMobile=el('header',{id:'forja-mobile-topo',class:'forja-mobile-topo'},botao('‹',mostrarHub,{'aria-label':'Voltar aos personagens',class:'forja-mobile-voltar'}),el('div',{},el('small',{},'PERSONAGEM ATUAL'),el('strong',{id:'forja-mobile-personagem'},'Forja de Personagens')),botao('•••',()=>abrirDialogo('Ações da ficha',el('div',{class:'forja-acoes-mobile'},botao('Editar criação',()=>{fecharDialogo();editar(1);}),botao('Exportar JSON',exportar),botao('Importar',importar),botao('Imprimir / PDF',imprimir))),{'aria-label':'Mais ações'}));
+ const topoMobile=el('header',{id:'forja-mobile-topo',class:'forja-mobile-topo'},botao('‹',mostrarHub,{'aria-label':'Voltar aos personagens',class:'forja-mobile-voltar'}),el('div',{},el('small',{},'PERSONAGEM ATUAL'),el('strong',{id:'forja-mobile-personagem'},'Forja de Personagens')),botao('•••',()=>abrirDialogo('Ações da ficha',el('div',{class:'forja-acoes-mobile'},botao('Editar criação',()=>{fecharDialogo();editar(1);}),botao('Exportar JSON',exportar),botao('Importar',importar),botao('Imprimir / PDF',imprimir),promptInstalacao?botao('Instalar aplicativo no celular',()=>{fecharDialogo();instalarApp();},{class:'btn-secundario forja-acao-principal'}):null)),{'aria-label':'Mais ações'}));
  const navMobile=el('nav',{id:'forja-mobile-nav',class:'forja-mobile-nav','aria-label':'Navegação do aplicativo'},...['Ficha','História','Magias'].map((nome,i)=>botao(nome,()=>abrirPaginaMobile(i),{'data-pagina':String(i+1),class:'forja-mobile-destino'+(i===0?' ativo':'')})),botao('Heróis',mostrarHub,{class:'forja-mobile-destino'}));
  document.body.prepend(hub);document.body.prepend(barra);document.body.prepend(topoMobile);document.body.append(navMobile,el('p',{id:'forja-mensagem',class:'forja-sr',role:'status','aria-live':'polite'}));
  const dialogo=el('dialog',{id:'forja-dialogo','aria-labelledby':'forja-dialogo-titulo'},el('div',{class:'forja-dialogo-topo'},el('h2',{id:'forja-dialogo-titulo'}),botao(icone('fechar'),fecharDialogo,{'aria-label':'Fechar diálogo',class:'forja-fechar-dialogo'})),el('div',{id:'forja-dialogo-corpo'}));
@@ -584,6 +594,7 @@ function renderizarHub(){
  const c=ForjaColecao.ler(window.localStorage),hub=limpar('forja-hub');
  const acoes=el('div',{class:'forja-hub-acoes'},
   botao('Novo personagem',confirmarNovoPersonagem,{class:'forja-acao-principal'}),
+  botao('Instalar app',instalarApp,{'data-forja-instalar':'1',hidden:!promptInstalacao}),
   botao('Importar ficha',importar),
   botao('Backup',confirmarBackup),botao([icone('lixeira'),el('span',{},'Lixeira'),el('span',{class:'forja-contador'},String(c.lixeira.length))],abrirLixeira,{'aria-label':'Abrir lixeira ('+c.lixeira.length+')',class:'btn-secundario forja-lixeira-atalho'})
  );
