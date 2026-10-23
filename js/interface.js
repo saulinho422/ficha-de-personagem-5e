@@ -626,6 +626,41 @@ function cancelarPVNivel(){ganhosPVNivel=null;}
 function renderRevisao(n,c){const attrs=R.atributos(c,bancoDnD);n.append(el('div',{class:'forja-revisao-identidade'},el('h3',{},c.nome||'Seu personagem'),el('p',{},(c.subraca||c.raca)+' · '+c.classe+' '+F.nivelTotal(c)+' · '+c.antecedente)),el('div',{class:'forja-revisao-grid'},el('section',{},el('h4',{},'Atributos finais'),el('div',{class:'forja-revisao-atributos'},Object.entries(attrs.valores).map(([s,v])=>el('span',{},el('small',{},s.toUpperCase()),el('strong',{},String(v)))))),el('section',{},el('h4',{},'Pontos de vida'),el('strong',{},String(F.pvMaximos(c,bancoDnD))+' PV máximos'),botao('Rever ganhos de PV',()=>editar(6))),el('section',{},el('h4',{},'Equipamento'),el('p',{},inventarioPersonagem.length+' itens · '+F.dinheiroEmCobre(detalhesFicha.moedas)/100+' PO'),botao('Rever equipamento',()=>editar(7))),el('section',{},el('h4',{},'Conjuração'),el('p',{},detalhesFicha.magias.selecoes.length+' magias registradas · '+F.fontesConjuracao(c,bancoDnD).length+' fontes'),botao('Rever magias',()=>editar(8)))));}
 function confirmarNovoPersonagem(){abrirDialogo('Criar um novo personagem?',el('div',{class:'forja-confirmacao'},el('p',{class:'forja-dialogo-descricao'},'Vamos começar uma nova ficha em nove etapas. Seus personagens atuais continuam salvos na coleção.'),acoesDialogo(botao('Continuar criando personagem',()=>{fecharDialogo();criarPersonagem();},{class:'forja-acao-principal'}))),'confirmacao');}
 function confirmarBackup(){const c=ForjaColecao.ler(window.localStorage);abrirDialogo('Backup da coleção',el('div',{class:'forja-confirmacao'},el('p',{class:'forja-dialogo-descricao'},'Guarde uma cópia dos seus personagens fora deste navegador.'),el('div',{class:'forja-backup-resumo'},icone('arquivo'),el('div',{},el('strong',{},'forja-colecao.json'),el('span',{},c.personagens.length+' personagens · '+c.lixeira.length+' na lixeira'),el('small',{},'Inclui inventário, história e imagens.'))),el('p',{class:'forja-nota'},'Você poderá importar os personagens desse arquivo em outro navegador.'),acoesDialogo(botao([icone('baixar'),'Baixar backup JSON'],()=>{baixar('forja-colecao.json',{formato:'forja-colecao',schemaVersion:1,personagens:c.personagens,lixeira:c.lixeira});fecharDialogo();mostrarToast('Backup preparado para download.','sucesso');},{class:'forja-acao-principal'}))),'backup');}
-function abrirLixeira(){const c=ForjaColecao.ler(window.localStorage),n=el('div',{class:'forja-lixeira-lista'});if(!c.lixeira.length)n.append(el('div',{class:'forja-estado-vazio'},icone('lixeira'),el('h3',{},'Nenhum personagem na lixeira'),el('p',{},'Personagens removidos aparecem aqui e podem voltar para sua coleção.')));else n.append(el('p',{class:'forja-dialogo-descricao'},'Restaure um personagem para continuar sua aventura.'));for(const p of c.lixeira)n.append(el('article',{class:'forja-lixeira-item'},el('div',{},el('strong',{},p.nome||'Rascunho'),el('small',{},(p.classe||'Classe pendente')+' · nível '+p.nivel)),botao([icone('restaurar'),'Restaurar'],()=>{ForjaColecao.restaurar(window.localStorage,p.detalhes.id);renderizarHub();abrirLixeira();mostrarToast('Personagem restaurado.','sucesso');},{'aria-label':'Restaurar '+p.nome})));abrirDialogo('Lixeira de personagens',n,'lixeira');}
+function confirmarExclusaoPermanente(p){
+ const nome=p.nome||'Rascunho';
+ abrirDialogo('Apagar permanentemente?',el('div',{class:'forja-confirmacao'},
+  el('p',{class:'forja-dialogo-descricao'},'Tem certeza que deseja apagar permanentemente "'+nome+'"? Esta ação não pode ser desfeita.'),
+  el('div',{class:'forja-dialogo-acoes'},
+   botao('Voltar à lixeira',abrirLixeira),
+   botao([icone('lixeira'),'Apagar permanentemente'],()=>{ForjaColecao.excluirPermanentemente(window.localStorage,p.detalhes.id);renderizarHub();abrirLixeira();mostrarToast('Personagem apagado permanentemente.','sucesso');},{class:'btn-secundario forja-btn-perigo','aria-label':'Confirmar exclusão permanente de '+nome})
+  )
+ ),'confirmacao');
+}
+function confirmarEsvaziarLixeira(){
+ const c=ForjaColecao.ler(window.localStorage);
+ abrirDialogo('Esvaziar lixeira?',el('div',{class:'forja-confirmacao'},
+  el('p',{class:'forja-dialogo-descricao'},'Tem certeza que deseja apagar permanentemente todos os '+c.lixeira.length+' personagens da lixeira? Esta ação não pode ser desfeita.'),
+  el('div',{class:'forja-dialogo-acoes'},
+   botao('Voltar à lixeira',abrirLixeira),
+   botao([icone('lixeira'),'Esvaziar lixeira'],()=>{ForjaColecao.esvaziarLixeira(window.localStorage);renderizarHub();abrirLixeira();mostrarToast('Lixeira esvaziada permanentemente.','sucesso');},{class:'btn-secundario forja-btn-perigo'})
+  )
+ ),'confirmacao');
+}
+function abrirLixeira(){
+ const c=ForjaColecao.ler(window.localStorage),n=el('div',{class:'forja-lixeira-lista'});
+ if(!c.lixeira.length)n.append(el('div',{class:'forja-estado-vazio'},icone('lixeira'),el('h3',{},'Nenhum personagem na lixeira'),el('p',{},'Personagens removidos aparecem aqui e podem voltar para sua coleção ou ser apagados definitivamente.')));
+ else n.append(el('div',{class:'forja-lixeira-cabecalho'},el('p',{class:'forja-dialogo-descricao'},'Restaure um personagem para sua coleção ou apague permanentemente.'),botao([icone('lixeira'),'Esvaziar lixeira'],confirmarEsvaziarLixeira,{class:'btn-secundario forja-btn-perigo'})));
+ for(const p of c.lixeira){
+  const nome=p.nome||'Rascunho';
+  n.append(el('article',{class:'forja-lixeira-item'},
+   el('div',{},el('strong',{},nome),el('small',{},(p.classe||'Classe pendente')+' · nível '+p.nivel)),
+   el('div',{class:'forja-lixeira-item-acoes'},
+    botao([icone('restaurar'),'Restaurar'],()=>{ForjaColecao.restaurar(window.localStorage,p.detalhes.id);renderizarHub();abrirLixeira();mostrarToast('Personagem restaurado.','sucesso');},{'aria-label':'Restaurar '+nome}),
+    botao([icone('lixeira'),'Apagar permanentemente'],()=>confirmarExclusaoPermanente(p),{class:'btn-secundario forja-btn-perigo','aria-label':'Apagar permanentemente '+nome})
+   )
+  ));
+ }
+ abrirDialogo('Lixeira de personagens',n,'lixeira');
+}
 return {iniciar,editar,abrirInventario,catalogo,prepararPVNivel,validarPVNivel,confirmarPVNivel,cancelarPVNivel,renderizar,pendencias,validarAtributos,prepararTalento,obterEscolhasTalento,podeRepetirTalento,aoSofrerDano,registrarCura,aposPV,adicionarItem,contexto,abrirHubInicial,mostrarHub,irParteOrigem,avancarParteOrigem,voltarParteOrigem};
 })();

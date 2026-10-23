@@ -657,7 +657,14 @@ button:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px soli
 .forja-backup-resumo span, .forja-backup-resumo small { font-size: 13px; color: var(--forja-muted); line-height: 1.4; }
 .forja-lixeira-atalho { min-height: 44px; }
 .forja-contador { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 5px; border-radius: 6px; background: #eee4d9; font-size: 12px; font-variant-numeric: tabular-nums; }
-.forja-lixeira-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; }
+.forja-lixeira-cabecalho { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid var(--forja-linha); }
+.forja-lixeira-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; border-bottom: 1px solid #eadfd2; }
+.forja-lixeira-item > div:first-child { display: grid; gap: 6px; min-width: 0; flex: 1; }
+.forja-lixeira-item small { color: var(--forja-muted); }
+.forja-lixeira-item-acoes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+.forja-lixeira-item button, .forja-lixeira-cabecalho button, .forja-btn-perigo { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.forja-btn-perigo { border-color: #d9a8b0 !important; background: #fdf2f4 !important; color: #7f1d2d !important; font-weight: 700; }
+.forja-btn-perigo:hover { background: #7f1d2d !important; color: #fffdf9 !important; border-color: #7f1d2d !important; }
 .forja-lixeira-item > div { display: grid; gap: 6px; min-width: 0; }
 .forja-lixeira-item small { color: var(--forja-muted); }
 .forja-lixeira-item button { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
