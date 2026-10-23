@@ -54,7 +54,7 @@ export default [
           'calcularDadosAtaque', 'capturarEstado', 'configuracaoPericiasClasse',
           'contextoDaFicha', 'equipamentoAtivo', 'formatarBonus', 'iniciarPersonagem',
           'listarArmasBanco', 'localizarArmadura', 'mostrarEtapa',
-          'novoId', 'obterIncrementosPendentes', 'recalcularFicha', 'salvarEstado',
+          'novoId', 'obterIncrementosPendentes', 'recalcularFicha', 'restaurarEstado', 'salvarEstado',
           'atualizarDisplayPV', 'abrirModalEquipamentos', 'mudarCategoriaModal',
         ].map(nome => [nome, 'readonly'])),
         ...Object.fromEntries([

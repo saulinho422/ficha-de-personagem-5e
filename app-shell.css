@@ -1,5 +1,6 @@
 /* Limita apenas as superfícies animadas; diálogos permanecem na camada superior. */
 #ficha-completa, #criacao-rapida, #forja-hub { overflow-x: clip; }
+html.forja-ocultar-criacao #criacao-rapida { display: none !important; }
 :root {
     --forja-vinho: #7f1d2d;
     --forja-vinho-escuro: #4f101d;

@@ -323,6 +323,7 @@ window.onload = function() {
     restaurarEstado();
     ForjaInterface.renderizar();
     ForjaInterface.abrirHubInicial();
+    document.documentElement.classList.remove('forja-ocultar-criacao');
 };
 
 function carregarOpcoes() {
