@@ -132,3 +132,42 @@ test('staggerCards com GSAP restaura opacity quando interrompido por limpar()', 
     assert.equal(grade.children[0].style.opacity, '');
     assert.deepEqual(eventos, [['fromTo', 2, 1], ['kill'], ['set', 'transform,opacity']]);
 });
+
+test('animarDialogo usa WAAPI sem chamar GSAP ou mover o dialog no DOM', async t => {
+    const dom = new JSDOM('<body><dialog id="forja-dialogo" open></dialog></body>', {
+        url: 'http://localhost/', runScripts: 'outside-only',
+    });
+    t.after(() => dom.window.close());
+    const w = dom.window, dialogo = w.document.getElementById('forja-dialogo');
+    const media = new w.EventTarget();
+    media.matches = false;
+    w.matchMedia = () => media;
+    let chamadasGsap = 0;
+    w.gsap = {
+        fromTo() { chamadasGsap++; return { kill() {}, eventCallback() {} }; },
+        set() {},
+    };
+    const animacoes = [];
+    dialogo.animate = (quadros, opcoes) => {
+        let concluir, rejeitar;
+        const anim = {
+            quadros, opcoes, cancelamentos: 0,
+            finished: new Promise((resolve, reject) => { concluir = resolve; rejeitar = reject; }),
+            concluir: () => concluir(),
+            cancel() { this.cancelamentos++; rejeitar(new Error('cancelada')); },
+        };
+        animacoes.push(anim);
+        return anim;
+    };
+    const api = w.eval(codigo + '\nForjaTransicoes;');
+    api.animarDialogo(dialogo);
+    assert.equal(chamadasGsap, 0);
+    assert.equal(animacoes.length, 1);
+    assert.equal(animacoes[0].opcoes.duration, 200);
+    api.limpar();
+    assert.equal(animacoes[0].cancelamentos, 1);
+    api.animarDialogo(dialogo);
+    animacoes[1].concluir();
+    await Promise.resolve();
+    assert.equal(animacoes[1].cancelamentos, 1);
+});

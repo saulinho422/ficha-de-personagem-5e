@@ -52,3 +52,19 @@ test('catálogo customizado do Admin conclui criação com raça, sub-raça, cla
  assert.equal(colecao.personagens[0].subclasse,'');
  assert(app.eval("Boolean(talentos['Telecinético Custom'])"));
 });
+
+test('abrirDialogo recupera diálogo aberto fora da camada modal sem perder conteúdo',async t=>{
+ const app=await interfaceFicha(ficha({nome:'Soren'}));t.after(app.fechar);
+ const d=app.w.document.getElementById('forja-dialogo');
+ d.showModal=()=>{d.open=true;};
+ d.close=()=>{d.open=false;d.dispatchEvent(new app.w.Event('close'));};
+ d.setAttribute('open','');
+ d.matches=s=>s===':modal'?false:app.w.Element.prototype.matches.call(d,s);
+ app.w.document.getElementById('forja-btn-lixeira-hub').click();
+ assert.equal(d.open,true);
+ assert.equal(app.w.document.getElementById('forja-dialogo-titulo').textContent,'Lixeira de personagens');
+ await new Promise(r=>setTimeout(r,20));
+ assert.equal(d.open,true);
+ assert.equal(app.w.document.getElementById('forja-dialogo-titulo').textContent,'Lixeira de personagens');
+ assert(app.w.document.getElementById('forja-dialogo-corpo').children.length>0);
+});

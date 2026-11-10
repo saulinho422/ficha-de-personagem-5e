@@ -1,5 +1,6 @@
 const ForjaTransicoes = (() => {
     let animacaoAtual = null;
+    let animacaoDialogo = null;
     let tweensAtivos = [];
     const movimentoReduzido = window.matchMedia?.('(prefers-reduced-motion: reduce)');
 
@@ -35,10 +36,17 @@ const ForjaTransicoes = (() => {
         });
     }
 
+    function cancelarDialogo() {
+        const anterior = animacaoDialogo;
+        animacaoDialogo = null;
+        anterior?.cancel();
+    }
+
     function limpar() {
         const anterior = animacaoAtual;
         animacaoAtual = null;
         anterior?.cancel();
+        cancelarDialogo();
         limparTweens();
     }
 
@@ -56,14 +64,25 @@ const ForjaTransicoes = (() => {
     }
 
     function animarDialogo(dialogo) {
-        if (!dialogo || movimentoReduzido?.matches || typeof window.gsap === 'undefined') return;
-        limparAlvos([dialogo]);
-        const tween = window.gsap.fromTo(
-            dialogo,
-            { opacity: 0.4, y: 12 },
-            { opacity: 1, y: 0, duration: 0.2, ease: 'power3.out', clearProps: 'transform,opacity' }
-        );
-        registrarTween([dialogo], tween);
+        cancelarDialogo();
+        if (!dialogo?.isConnected || movimentoReduzido?.matches || typeof dialogo.animate !== 'function') return;
+        // WAAPI anima na camada superior sem que GSAP remova ou reinsira o <dialog> no DOM.
+        let animacao;
+        try {
+            animacao = dialogo.animate([
+                { opacity: 0.4, transform: 'translateY(12px)' },
+                { opacity: 1, transform: 'translateY(0)' },
+            ], { duration: 200, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
+        } catch {
+            return;
+        }
+        animacaoDialogo = animacao;
+        animacao.finished.then(() => {
+            if (animacaoDialogo === animacao) animacaoDialogo = null;
+            animacao.cancel();
+        }, () => {
+            if (animacaoDialogo === animacao) animacaoDialogo = null;
+        });
     }
 
     function mostrar(elemento, { direcao = 1 } = {}) {

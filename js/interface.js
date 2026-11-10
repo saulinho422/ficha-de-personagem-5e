@@ -161,7 +161,7 @@ function montarCardCatalogoSubclasse(nome,classe,atual){
 function abrirCatalogoOrigem(tipo){
  const c=contexto(),racaBase=c.raca==='Humano Variante'?'Humano':c.raca;
  const titulos={raca:'Catálogo de Raças',classe:'Catálogo de Classes',subraca:'Sub-raças de '+(racaBase||'sua raça'),subclasse:'Subclasses de '+(c.classe||'sua classe')};
- const wrap=el('div',{class:'forja-catalogo-origem-modal forja-seletor-dialogo'});
+ const wrap=el('div',{class:'forja-catalogo-origem-modal'});
  const busca=el('input',{type:'search',class:'forja-seletor-busca','aria-label':'Buscar opções',placeholder:'Pesquisar no catálogo...'});
  const grade=el('div',{class:'forja-catalogo-origem-grade',role:'listbox','aria-label':titulos[tipo]});
  const renderLista=()=>{
@@ -201,8 +201,8 @@ function abrirCatalogoOrigem(tipo){
  wrap.append(busca);
  if(tipo==='subraca')wrap.append(el('div',{class:'forja-catalogo-subraca-topo'},el('span',{class:'forja-nota'},'A sub-raça é opcional. Você pode escolher uma linhagem abaixo ou seguir apenas com a raça base.'),botao('Manter sem sub-raça',()=>selecionarOrigem('subraca',''))));
  wrap.append(grade);
- renderLista();
  abrirDialogo(titulos[tipo],wrap,'catalogo-origem');
+ renderLista();
  busca.focus();
 }
 function renderOrigem(){
@@ -307,7 +307,7 @@ function iniciar(){
  const dialogo=el('dialog',{id:'forja-dialogo','aria-labelledby':'forja-dialogo-titulo'},el('div',{class:'forja-dialogo-topo'},el('h2',{id:'forja-dialogo-titulo'}),botao(icone('fechar'),fecharDialogo,{'aria-label':'Fechar diálogo',class:'forja-fechar-dialogo'})),el('div',{id:'forja-dialogo-corpo'}));
  dialogo.addEventListener('cancel',e=>{e.preventDefault();fecharDialogo();});
  dialogo.addEventListener('keydown',e=>{if(e.key==='Escape'&&dialogo.open){e.preventDefault();fecharDialogo();}});
- dialogo.addEventListener('close',()=>{dialogoAtual='';$('forja-dialogo-corpo').replaceChildren();const alvo=focoDialogo?.isConnected?focoDialogo:(focoDialogoId?$(focoDialogoId):null);alvo?.focus();});document.body.append(dialogo);
+ dialogo.addEventListener('close',()=>{if(dialogo.open)return;dialogoAtual='';$('forja-dialogo-corpo').replaceChildren();const alvo=focoDialogo?.isConnected?focoDialogo:(focoDialogoId?$(focoDialogoId):null);alvo?.focus();});document.body.append(dialogo);
  $('pagina-2').replaceChildren();$('pagina-3').replaceChildren();
  const p2=$('pagina-2');p2.append(el('h2',{},'História e apresentação'),el('div',{id:'forja-historia',class:'forja-grid'}),el('div',{id:'forja-auxiliares'}));
  montarHistoria();
@@ -336,7 +336,7 @@ function iniciar(){
 }
 const focoModal=new Map();
 function abrirPaginaMobile(indice){const aba=$('forja-aba-'+(indice+1));aba?.click();document.querySelectorAll('.forja-mobile-destino[data-pagina]').forEach((b,i)=>b.classList.toggle('ativo',i===indice));window.scrollTo({top:0,behavior:'smooth'});}
-function abrirDialogo(titulo,conteudo,tipo=''){dialogoAtual=tipo;if(!$('forja-dialogo').open){focoDialogo=document.activeElement;focoDialogoId=focoDialogo?.id||'';}$('forja-dialogo').dataset.tipo=tipo;$('forja-dialogo-titulo').textContent=titulo;$('forja-dialogo-corpo').replaceChildren(conteudo);if(!$('forja-dialogo').open){$('forja-dialogo').showModal();ForjaTransicoes.animarDialogo?.($('forja-dialogo'));}$('forja-dialogo').scrollTop=0;ForjaSeletores.atualizar();}
+function abrirDialogo(titulo,conteudo,tipo=''){const dialogo=$('forja-dialogo');if(dialogo.open&&dialogo.matches&&!dialogo.matches(':modal'))dialogo.close();dialogoAtual=tipo;if(!dialogo.open){focoDialogo=document.activeElement;focoDialogoId=focoDialogo?.id||'';}dialogo.dataset.tipo=tipo;$('forja-dialogo-titulo').textContent=titulo;$('forja-dialogo-corpo').replaceChildren(conteudo);if(!dialogo.open){dialogo.showModal();ForjaTransicoes.animarDialogo?.(dialogo);}dialogo.scrollTop=0;ForjaSeletores.atualizar();}
 function fecharDialogo(){dialogoAtual='';$('forja-dialogo').close();$('forja-dialogo-corpo').replaceChildren();const alvo=focoDialogo?.isConnected?focoDialogo:(focoDialogoId?$(focoDialogoId):null);alvo?.focus();}
 function editar(etapa){if($('ficha-completa').style.display==='block')criacao.preservarGanhos();exibindoHub=false;ForjaTransicoes.limpar?.();document.body.classList.remove('modo-hub');$('forja-hub').hidden=true;$('forja-barra').hidden=false;$('criacao-rapida').hidden=false;$('ficha-completa').hidden=false;$('criacao-rapida').style.display='block';$('ficha-completa').style.display='none';if(etapa===2)parteOrigem=1;mostrarEtapa(etapa);renderizar();document.querySelector('.etapa-criacao.ativa input,.etapa-criacao.ativa select,.etapa-criacao.ativa button')?.focus();}
 function metodosAtributos(){criacao.renderAtributos(limpar('forja-metodos'));}
@@ -606,7 +606,7 @@ function renderizarHub(){
  ));
  const grade=el('section',{class:'forja-herois-grade','aria-label':'Personagens salvos'});
  c.personagens.forEach(p=>grade.append(cardPersonagem(p)));
- if(!c.personagens.length)grade.append(el('div',{class:'forja-hub-vazio'},el('span',{'aria-hidden':'true'},'✦'),el('h2',{},'Uma nova história espera por você'),el('p',{},'Monte sua ficha em nove etapas e deixe os cálculos por conta da Forja.'),botao('Criar personagem',confirmarNovoPersonagem,{class:'forja-acao-principal'})));
+ if(!c.personagens.length)grade.append(el('div',{class:'forja-hub-vazio'},el('span',{'aria-hidden':'true'},'✦'),el('h2',{},'Uma nova história espera por você'),el('p',{},'Monte sua ficha em nove etapas e deixe os cálculos por conta da Forja.'),botao('Criar personagem',confirmarNovoPersonagem,{class:'btn-secundario forja-acao-principal'})));
  hub.append(grade);
  ForjaTransicoes.staggerCards?.(grade);
 }

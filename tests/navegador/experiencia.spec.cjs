@@ -167,3 +167,65 @@ test('redução de movimento evita slides e navegação conserva dados',async({p
  expect(await page.evaluate(()=>document.getAnimations().filter(x=>x.playState==='running').length)).toBe(0);
  expect(await page.evaluate(()=>({...localStorage}))).toEqual(antes);
 });
+
+test('mobile: criar personagem, excluir cards e abrir lixeira mantém diálogos modais e tela interativa',async({browser})=>{
+ const contexto=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+ const page=await contexto.newPage();
+ try{
+  const herois=[ficha({nome:'Arannis'}),ficha({nome:'Lyra'})];
+  herois[0].detalhes.id='heroi-mobile-1';
+  herois[1].detalhes.id='heroi-mobile-2';
+  await page.addInitScript(lista=>{
+   if(!sessionStorage.getItem('_seedMobile')){
+    localStorage.setItem('forjaPersonagens.ficha.v3',JSON.stringify(lista[0]));
+    localStorage.setItem('forjaPersonagens.colecao.v1',JSON.stringify({schemaVersion:1,personagens:lista,lixeira:[]}));
+    sessionStorage.setItem('_seedMobile','1');
+   }
+  },herois);
+  await page.goto('/');
+  await expect(page.getByRole('heading',{name:'Seus heróis'})).toBeVisible();
+
+  const conferirModalVisivel=async()=>{
+   await page.waitForTimeout(320);
+   const st=await page.evaluate(()=>{
+    const d=document.getElementById('forja-dialogo');
+    const r=d.getBoundingClientRect();
+    return {open:d.open,modal:d.matches(':modal'),pos:getComputedStyle(d).position,top:r.top,bottom:r.bottom,width:r.width,vh:window.innerHeight};
+   });
+   expect(st.open).toBe(true);
+   expect(st.modal).toBe(true);
+   expect(st.pos).toBe('fixed');
+   expect(st.top).toBeGreaterThanOrEqual(0);
+   expect(st.bottom).toBeLessThanOrEqual(st.vh+1);
+   expect(st.width).toBe(390);
+  };
+
+  await page.getByRole('button',{name:'Novo personagem',exact:true}).tap();
+  await conferirModalVisivel();
+  await page.getByRole('button',{name:'Cancelar',exact:true}).tap();
+
+  await page.locator('.forja-heroi-acoes button:has-text("Lixeira")').first().tap();
+  await page.locator('.forja-heroi-acoes button:has-text("Lixeira")').first().tap();
+  await expect(page.getByRole('button',{name:'Criar personagem',exact:true})).toBeVisible();
+  const boxCriar=await page.getByRole('button',{name:'Criar personagem',exact:true}).boundingBox();
+  expect(boxCriar.height).toBeGreaterThanOrEqual(44);
+
+  await page.locator('#forja-btn-lixeira-hub').tap();
+  await conferirModalVisivel();
+  await expect(page.locator('#forja-dialogo')).toContainText('Arannis');
+  await page.getByRole('button',{name:'Fechar diálogo',exact:true}).tap();
+
+  await page.getByRole('button',{name:'Criar personagem',exact:true}).tap();
+  await conferirModalVisivel();
+  await page.getByRole('button',{name:'Continuar criando personagem',exact:true}).tap();
+  await expect(page.locator('#criacao-rapida')).toBeVisible();
+  await expect(page.locator('#forja-hub')).toBeHidden();
+  await page.getByPlaceholder('Digite o nome').fill('Kael Mobile');
+  await page.locator('.etapa-criacao.ativa').getByRole('button',{name:'Continuar',exact:true}).tap();
+  await expect(page.locator('#forja-btn-origem-raca')).toBeVisible();
+  await page.locator('#forja-btn-origem-raca').tap();
+  await conferirModalVisivel();
+ }finally{
+  await contexto.close();
+ }
+});
