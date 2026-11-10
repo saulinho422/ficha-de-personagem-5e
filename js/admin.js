@@ -7,27 +7,56 @@
     ['int', 'inteligencia'], ['sab', 'sabedoria'], ['car', 'carisma'],
   ];
   const ROTULOS_CAT = { racas: 'Raça', subracas: 'Sub-raça', classes: 'Classe', subclasses: 'Subclasse' };
+  const IMAGENS_CAT = ['racas', 'subracas', 'classes', 'subclasses'];
   const COLECOES = ['racas', 'subracas', 'classes', 'subclasses', 'talentos', 'antecedentes'];
+  const PHB_RACAS = new Set(['Anão', 'Elfo', 'Halfling', 'Humano', 'Humano Variante', 'Draconato', 'Gnomo', 'Meio-Elfo', 'Meio-Orc', 'Tiefling']);
+  const PHB_CLASSES = new Set(['Bárbaro', 'Bardo', 'Bruxo', 'Clérigo', 'Druida', 'Feiticeiro', 'Guerreiro', 'Ladino', 'Mago', 'Monge', 'Paladino', 'Patrulheiro']);
   let filtroCat = 'todos';
   let termoBusca = '';
   let alvoUpload = null;
 
   const $ = id => document.getElementById(id);
   const val = id => $(id)?.value.trim() || '';
+  const escaparHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
   const avisar = (msg, tipo = 'sucesso') => {
     if (typeof raiz.mostrarToast === 'function') raiz.mostrarToast(msg, tipo);
   };
 
+  function criarRemovidosVazio() {
+    const rem = { imagens: {} };
+    for (const k of IMAGENS_CAT) rem.imagens[k] = [];
+    for (const k of COLECOES) rem[k] = [];
+    return rem;
+  }
+
+  function normalizarRemovidos(orig) {
+    const rem = criarRemovidosVazio();
+    const o = orig && typeof orig === 'object' ? orig : {};
+    for (const k of IMAGENS_CAT) if (Array.isArray(o.imagens?.[k])) rem.imagens[k] = [...new Set(o.imagens[k])];
+    for (const k of COLECOES) if (Array.isArray(o[k])) rem[k] = [...new Set(o[k])];
+    return rem;
+  }
+
+  const adicionarTombstone = (grupo, col, nome) => {
+    if (Array.isArray(grupo?.[col]) && !grupo[col].includes(nome)) grupo[col].push(nome);
+  };
+
+  const removerTombstone = (grupo, col, nome) => {
+    if (Array.isArray(grupo?.[col])) grupo[col] = grupo[col].filter(x => x !== nome);
+  };
+
   function lerEstado() {
-    const base = { imagens: { racas: {}, subracas: {}, classes: {}, subclasses: {} } };
-    for (const k of COLECOES) base[k] = {};
-    try {
-      const glob = raiz.ForjaCustomCatalogo || {};
-      const lido = JSON.parse(raiz.localStorage?.getItem(CHAVE) || '{}');
-      for (const k of Object.keys(base.imagens)) base.imagens[k] = { ...(glob.imagens?.[k] || {}), ...(lido.imagens?.[k] || {}) };
-      for (const k of COLECOES) base[k] = { ...(glob[k] || {}), ...(lido[k] || {}) };
-    } catch { /* ignora JSON corrompido */ }
-    return base;
+    let lido;
+    try { lido = JSON.parse(raiz.localStorage?.getItem(CHAVE) || '{}') || {}; }
+    catch { lido = {}; }
+    const glob = raiz.ForjaCustomCatalogo || {};
+    const mesclado = raiz.ForjaCatalogo?.mesclarFontesCustom
+      ? raiz.ForjaCatalogo.mesclarFontesCustom(glob, lido)
+      : { imagens: { racas: {}, subracas: {}, classes: {}, subclasses: {} }, racas: {}, subracas: {}, classes: {}, subclasses: {}, talentos: {}, antecedentes: {} };
+    mesclado.removidos = normalizarRemovidos(lido.removidos);
+    return mesclado;
   }
 
   function salvarEstado(estado) {
@@ -39,9 +68,12 @@
   function listarEntidadesGaleria(estado) {
     const itens = [];
     const imgOpcoes = ForjaOpcoes.imagensOrigem || {};
-    const add = (categoria, nome) => itens.push({
-      categoria, nome, url: estado.imagens[categoria]?.[nome] || imgOpcoes[categoria]?.[nome] || '',
-    });
+    const add = (categoria, nome) => {
+      const removida = estado.removidos?.imagens?.[categoria]?.includes(nome);
+      itens.push({
+        categoria, nome, url: removida ? '' : (estado.imagens[categoria]?.[nome] || imgOpcoes[categoria]?.[nome] || ''),
+      });
+    };
     Object.keys(bancoDnD.racas || {}).forEach(r => {
       add('racas', r);
       Object.keys(bancoDnD.racas[r]?.subracas || {}).forEach(sr => add('subracas', sr));
@@ -78,8 +110,16 @@
 
   function definirImagemItem(item, novaUrl) {
     const est = lerEstado();
-    if (novaUrl) est.imagens[item.categoria][item.nome] = novaUrl;
-    else delete est.imagens[item.categoria][item.nome];
+    est.removidos = normalizarRemovidos(est.removidos);
+    if (novaUrl) {
+      est.imagens[item.categoria][item.nome] = novaUrl;
+      if (est[item.categoria]?.[item.nome]) est[item.categoria][item.nome].imagem = novaUrl;
+      removerTombstone(est.removidos.imagens, item.categoria, item.nome);
+    } else {
+      delete est.imagens[item.categoria][item.nome];
+      if (est[item.categoria]?.[item.nome]) est[item.categoria][item.nome].imagem = '';
+      adicionarTombstone(est.removidos.imagens, item.categoria, item.nome);
+    }
     if (ForjaOpcoes.imagensOrigem?.[item.categoria]) ForjaOpcoes.imagensOrigem[item.categoria][item.nome] = novaUrl;
     salvarEstado(est);
   }
@@ -88,18 +128,24 @@
     const card = document.createElement('article');
     card.className = 'card-galeria-admin';
     const ok = Boolean(item.url);
+    const ehUpload = item.url.startsWith('data:');
+    const nomeEsc = escaparHtml(item.nome);
+    const urlEsc = escaparHtml(item.url);
     const midia = ok
-      ? `<img src="${item.url}" alt="${item.nome}" loading="lazy">`
-      : `<div class="card-galeria-placeholder">Sem ilustração cadastrada para<br><strong>${item.nome}</strong></div>`;
+      ? `<img src="${urlEsc}" alt="${nomeEsc}" loading="lazy">`
+      : `<div class="card-galeria-placeholder">Sem ilustração cadastrada para<br><strong>${nomeEsc}</strong></div>`;
+    const placeholder = ehUpload ? 'Imagem enviada via upload (cole URL para substituir)' : 'Cole o link (URL) ou faça upload...';
     card.innerHTML = `<div class="card-galeria-midia"><span class="tag-categoria-card">${ROTULOS_CAT[item.categoria]}</span>
       <span class="tag-status-imagem ${ok ? 'com-foto' : 'sem-foto'}">${ok ? 'Com Imagem' : 'Sem Imagem'}</span>${midia}</div>
-      <div class="card-galeria-corpo"><h3 class="card-galeria-titulo">${item.nome}</h3>
-      <input type="url" class="input-admin campo-url-card" placeholder="Cole o link (URL) ou faça upload..." value="${item.url.startsWith('data:') ? '' : item.url}">
+      <div class="card-galeria-corpo"><h3 class="card-galeria-titulo">${nomeEsc}</h3>
+      <input type="text" class="input-admin campo-url-card" placeholder="${placeholder}" value="${ehUpload ? '' : urlEsc}">
       <div class="card-galeria-acoes"><button type="button" class="btn-primario-admin btn-salvar-img">Salvar Link</button>
       <button type="button" class="btn-secundario-admin btn-upload-img">📁 Upload</button>
       <button type="button" class="btn-perigo-admin btn-limpar-img">Limpar</button></div></div>`;
     card.querySelector('.btn-salvar-img').addEventListener('click', () => {
-      definirImagemItem(item, card.querySelector('.campo-url-card').value.trim());
+      const nova = card.querySelector('.campo-url-card').value.trim();
+      if (!nova) { avisar('Cole uma URL ou use Limpar para remover a imagem.', 'aviso'); return; }
+      definirImagemItem(item, nova);
       avisar(`Imagem de "${item.nome}" salva!`);
     });
     card.querySelector('.btn-upload-img').addEventListener('click', () => { alvoUpload = item; $('upload-imagem-card').click(); });
@@ -165,11 +211,12 @@
   }
 
   function popularSelects() {
-    if ($('subraca-pai')) $('subraca-pai').innerHTML = Object.keys(bancoDnD.racas || {}).map(r => `<option value="${r}">${r}</option>`).join('');
-    if ($('subclasse-pai')) $('subclasse-pai').innerHTML = Object.keys(bancoDnD.classes || {}).map(c => `<option value="${c}">${c}</option>`).join('');
+    const opts = lista => lista.map(v => `<option value="${escaparHtml(v)}">${escaparHtml(v)}</option>`).join('');
+    if ($('subraca-pai')) $('subraca-pai').innerHTML = opts(Object.keys(bancoDnD.racas || {}));
+    if ($('subclasse-pai')) $('subclasse-pai').innerHTML = opts(Object.keys(bancoDnD.classes || {}));
     const p1 = $('antecedente-pericia-1'), p2 = $('antecedente-pericia-2'), pers = Object.keys(bancoDnD.pericias || {});
     if (p1 && p2 && !p1.options.length) {
-      p1.innerHTML = p2.innerHTML = pers.map(p => `<option value="${p}">${p}</option>`).join('');
+      p1.innerHTML = p2.innerHTML = opts(pers);
       if (pers[1]) p2.value = pers[1];
     }
   }
@@ -177,7 +224,7 @@
   function criarItemLista(titulo, sub, aoEd, aoEx) {
     const div = document.createElement('div');
     div.className = 'item-registro-admin';
-    div.innerHTML = `<div><strong>${titulo}</strong><small>${sub}</small></div><div class="card-galeria-acoes"></div>`;
+    div.innerHTML = `<div><strong>${escaparHtml(titulo)}</strong><small>${escaparHtml(sub)}</small></div><div class="card-galeria-acoes"></div>`;
     const acoes = div.querySelector('.card-galeria-acoes');
     if (aoEd) {
       const b = document.createElement('button');
@@ -190,90 +237,143 @@
     return div;
   }
 
+  function removerDaMemoria(col, nome, anterior) {
+    if (IMAGENS_CAT.includes(col)) delete ForjaOpcoes.imagensOrigem?.[col]?.[nome];
+    const acoes = {
+      racas: () => !PHB_RACAS.has(nome) && delete bancoDnD.racas[nome],
+      subracas: () => anterior?.racaPai && delete bancoDnD.racas[anterior.racaPai]?.subracas?.[nome],
+      classes: () => { if (!PHB_CLASSES.has(nome)) { delete bancoDnD.classes[nome]; delete ForjaClasses.classes[nome]; } },
+      subclasses: () => {
+        const pai = anterior?.classePai && bancoDnD.classes[anterior.classePai];
+        if (pai) pai.subclasses = (pai.subclasses || []).filter(s => s !== nome);
+        if (anterior?.classePai) delete ForjaClasses.classes[anterior.classePai]?.subclasses?.[nome];
+      },
+      talentos: () => {
+        const mapa = typeof talentos !== 'undefined' ? talentos : raiz.talentos;
+        if (mapa?.[nome]?.referencia?.livro === 'Customizado') delete mapa[nome];
+      },
+      antecedentes: () => bancoDnD.antecedentes?.[nome]?.customizado && delete bancoDnD.antecedentes[nome],
+    };
+    acoes[col]?.();
+  }
+
   function excluir(col, nome) {
-    const est = lerEstado(); delete est[col][nome]; salvarEstado(est);
+    const est = lerEstado();
+    const anterior = est[col][nome];
+    delete est[col][nome];
+    adicionarTombstone(est.removidos, col, nome);
+    if (IMAGENS_CAT.includes(col)) {
+      delete est.imagens[col][nome];
+      adicionarTombstone(est.removidos.imagens, col, nome);
+    }
+    removerDaMemoria(col, nome, anterior);
+    salvarEstado(est);
     avisar(`"${nome}" removido do catálogo customizado.`, 'aviso');
   }
 
-  function definirCampos(mapa) {
-    for (const [id, valor] of Object.entries(mapa)) if ($(id)) $(id).value = valor ?? '';
-  }
+  const definirCampos = mapa => Object.entries(mapa).forEach(([id, v]) => { if ($(id)) $(id).value = v ?? ''; });
+  const focarFormulario = idCampo => { $(idCampo)?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' }); $(idCampo)?.focus(); };
+  const preencherCampoImagem = (idCampo, est, cat, nome) => {
+    const el = $(idCampo); if (!el) return;
+    const url = est.imagens[cat]?.[nome] || est[cat]?.[nome]?.imagem || '';
+    if (url.startsWith('data:')) { el.value = ''; el.dataset.placeholderOriginal ??= el.placeholder; el.placeholder = 'Imagem enviada via upload (mantida ao salvar)'; }
+    else el.value = url;
+  };
+  const restaurarPlaceholderImagem = form => form.querySelectorAll('[data-placeholder-original]').forEach(el => { el.placeholder = el.dataset.placeholderOriginal; });
 
   function editarRacaOuSubraca(ehSub, nome, d) {
-    const habs = (d.caracteristicas || []).map(c => `${c}: ${d.descricoesCaracteristicas?.[c] || ''}`).join('\n');
+    const est = lerEstado(), habs = (d.caracteristicas || []).map(c => `${c}: ${d.descricoesCaracteristicas?.[c] || ''}`).join('\n');
     if (ehSub) {
-      definirCampos({ 'subraca-pai': d.racaPai, 'subraca-nome': nome, 'subraca-descricao': d.descricao, 'subraca-habilidades': habs, 'subraca-imagem': d.imagem });
-      preencherBonus('subraca', d.bonusAtributos);
+      definirCampos({ 'subraca-pai': d.racaPai, 'subraca-nome': nome, 'subraca-descricao': d.descricao, 'subraca-habilidades': habs });
+      preencherCampoImagem('subraca-imagem', est, 'subracas', nome); preencherBonus('subraca', d.bonusAtributos); focarFormulario('subraca-nome');
     } else {
-      definirCampos({ 'raca-nome': nome, 'raca-deslocamento': d.deslocamento || 9, 'raca-descricao': d.descricao, 'raca-idiomas': (d.idiomas || ['Comum']).join(', '), 'raca-habilidades': habs, 'raca-imagem': d.imagem });
-      preencherBonus('raca', d.bonusAtributos);
+      definirCampos({ 'raca-nome': nome, 'raca-deslocamento': d.deslocamento || 9, 'raca-descricao': d.descricao, 'raca-idiomas': (d.idiomas || ['Comum']).join(', '), 'raca-habilidades': habs });
+      preencherCampoImagem('raca-imagem', est, 'racas', nome); preencherBonus('raca', d.bonusAtributos); focarFormulario('raca-nome');
     }
   }
 
   function editarClasseOuSubclasse(ehSub, nome, d) {
-    const habs = (d.caracteristicas || []).map(c => `${c.nivel} | ${c.nome} | ${c.descricao}`).join('\n');
+    const est = lerEstado(), habs = (d.caracteristicas || []).map(c => `${c.nivel} | ${c.nome} | ${c.descricao}`).join('\n');
     if (ehSub) {
-      definirCampos({ 'subclasse-pai': d.classePai, 'subclasse-nome': nome, 'subclasse-descricao': d.descricao, 'subclasse-habilidades': habs, 'subclasse-imagem': d.imagem });
+      definirCampos({ 'subclasse-pai': d.classePai, 'subclasse-nome': nome, 'subclasse-descricao': d.descricao, 'subclasse-habilidades': habs });
+      preencherCampoImagem('subclasse-imagem', est, 'subclasses', nome); focarFormulario('subclasse-nome');
     } else {
       const s = d.proficienciasSalvaguarda || [];
-      definirCampos({ 'classe-nome': nome, 'classe-dado-vida': d.dadoVida || 8, 'classe-descricao': d.descricao, 'classe-salva-1': s[0] || 'constituicao', 'classe-salva-2': s[1] || 'inteligencia', 'classe-pericias-qtd': d.periciasQuantidade || 2, 'classe-habilidades': habs, 'classe-imagem': d.imagem });
+      definirCampos({ 'classe-nome': nome, 'classe-dado-vida': d.dadoVida || 8, 'classe-descricao': d.descricao, 'classe-salva-1': s[0] || 'constituicao', 'classe-salva-2': s[1] || 'inteligencia', 'classe-pericias-qtd': d.periciasQuantidade || 2, 'classe-habilidades': habs });
+      preencherCampoImagem('classe-imagem', est, 'classes', nome); focarFormulario('classe-nome');
     }
+  }
+
+  function editarTalento(nome, d) {
+    definirCampos({ 'talento-nome': nome, 'talento-prereq': d.preRequisitos || '', 'talento-beneficios': d.beneficios || '' });
+    focarFormulario('talento-nome');
+  }
+
+  function editarAntecedente(nome, d) {
+    const pers = d.pericias || [];
+    definirCampos({ 'antecedente-nome': nome, 'antecedente-pericia-1': pers[0] || '', 'antecedente-pericia-2': pers[1] || '', 'antecedente-habilidade': d.habilidade || '', 'antecedente-idiomas': d.idiomasEscolha || 0, 'antecedente-descricao': d.descricaoHabilidade || '' });
+    focarFormulario('antecedente-nome');
   }
 
   function renderizarListasCustom(est) {
     const r = $('lista-racas-custom'), c = $('lista-classes-custom'), t = $('lista-talentos-custom');
-    if (r) {
-      r.replaceChildren(
-        ...Object.entries(est.racas).map(([n, d]) => criarItemLista(`Raça: ${n}`, d.descricao || '', () => editarRacaOuSubraca(false, n, d), () => excluir('racas', n))),
-        ...Object.entries(est.subracas).map(([n, d]) => criarItemLista(`Sub-raça: ${n} (${d.racaPai})`, d.descricao || '', () => editarRacaOuSubraca(true, n, d), () => excluir('subracas', n)))
-      );
-    }
-    if (c) {
-      c.replaceChildren(
-        ...Object.entries(est.classes).map(([n, d]) => criarItemLista(`Classe: ${n} (d${d.dadoVida})`, d.descricao || '', () => editarClasseOuSubclasse(false, n, d), () => excluir('classes', n))),
-        ...Object.entries(est.subclasses).map(([n, d]) => criarItemLista(`Subclasse: ${n} (${d.classePai})`, d.descricao || '', () => editarClasseOuSubclasse(true, n, d), () => excluir('subclasses', n)))
-      );
-    }
-    if (t) {
-      t.replaceChildren(
-        ...Object.entries(est.talentos).map(([n, d]) => criarItemLista(`Talento: ${n}`, d.beneficios || '', null, () => excluir('talentos', n))),
-        ...Object.entries(est.antecedentes).map(([n, d]) => criarItemLista(`Antecedente: ${n}`, `${(d.pericias || []).join(', ')} • ${d.habilidade || ''}`, null, () => excluir('antecedentes', n)))
-      );
-    }
+    if (r) r.replaceChildren(
+      ...Object.entries(est.racas).map(([n, d]) => criarItemLista(`Raça: ${n}`, d.descricao || '', () => editarRacaOuSubraca(false, n, d), () => excluir('racas', n))),
+      ...Object.entries(est.subracas).map(([n, d]) => criarItemLista(`Sub-raça: ${n} (${d.racaPai})`, d.descricao || '', () => editarRacaOuSubraca(true, n, d), () => excluir('subracas', n)))
+    );
+    if (c) c.replaceChildren(
+      ...Object.entries(est.classes).map(([n, d]) => criarItemLista(`Classe: ${n} (d${d.dadoVida})`, d.descricao || '', () => editarClasseOuSubclasse(false, n, d), () => excluir('classes', n))),
+      ...Object.entries(est.subclasses).map(([n, d]) => criarItemLista(`Subclasse: ${n} (${d.classePai})`, d.descricao || '', () => editarClasseOuSubclasse(true, n, d), () => excluir('subclasses', n)))
+    );
+    if (t) t.replaceChildren(
+      ...Object.entries(est.talentos).map(([n, d]) => criarItemLista(`Talento: ${n}`, d.beneficios || '', () => editarTalento(n, d), () => excluir('talentos', n))),
+      ...Object.entries(est.antecedentes).map(([n, d]) => criarItemLista(`Antecedente: ${n}`, `${(d.pericias || []).join(', ')} • ${d.habilidade || ''}`, () => editarAntecedente(n, d), () => excluir('antecedentes', n)))
+    );
+  }
+
+  function gravarImagemFormulario(est, cat, nome, textoUrl) {
+    const prev = est.imagens[cat][nome] || est[cat][nome]?.imagem || '';
+    const final = textoUrl || (prev.startsWith('data:') ? prev : '');
+    if (final) { est.imagens[cat][nome] = final; removerTombstone(est.removidos.imagens, cat, nome); }
+    else { delete est.imagens[cat][nome]; if (prev) adicionarTombstone(est.removidos.imagens, cat, nome); }
+    return final;
   }
 
   function vincularSubmissoes() {
+    document.querySelectorAll('form.card-admin-form').forEach(f => f.addEventListener('reset', () => restaurarPlaceholderImagem(f)));
     $('form-raca')?.addEventListener('submit', ev => {
-      ev.preventDefault(); const n = val('raca-nome'), img = val('raca-imagem'), est = lerEstado(); if (!n) return;
-      est.racas[n] = { descricao: val('raca-descricao'), deslocamento: Number(val('raca-deslocamento')) || 9, bonusAtributos: lerBonus('raca'), idiomas: val('raca-idiomas').split(',').map(s => s.trim()).filter(Boolean), ...parsearHabsRaciais(val('raca-habilidades')), imagem: img };
-      if (img) est.imagens.racas[n] = img;
+      ev.preventDefault(); const n = val('raca-nome'), est = lerEstado(); if (!n) return;
+      const imagem = gravarImagemFormulario(est, 'racas', n, val('raca-imagem')); removerTombstone(est.removidos, 'racas', n);
+      est.racas[n] = { descricao: val('raca-descricao'), deslocamento: Number(val('raca-deslocamento')) || 9, bonusAtributos: lerBonus('raca'), idiomas: val('raca-idiomas').split(',').map(s => s.trim()).filter(Boolean), ...parsearHabsRaciais(val('raca-habilidades')), imagem };
       salvarEstado(est); ev.target.reset(); avisar(`Raça "${n}" cadastrada!`);
     });
     $('form-subraca')?.addEventListener('submit', ev => {
-      ev.preventDefault(); const n = val('subraca-nome'), pai = val('subraca-pai'), img = val('subraca-imagem'), est = lerEstado(); if (!n || !pai) return;
-      est.subracas[n] = { racaPai: pai, descricao: val('subraca-descricao'), bonusAtributos: lerBonus('subraca'), ...parsearHabsRaciais(val('subraca-habilidades')), imagem: img };
-      if (img) est.imagens.subracas[n] = img;
+      ev.preventDefault(); const n = val('subraca-nome'), pai = val('subraca-pai'), est = lerEstado(); if (!n || !pai) return;
+      const imagem = gravarImagemFormulario(est, 'subracas', n, val('subraca-imagem')); removerTombstone(est.removidos, 'subracas', n);
+      est.subracas[n] = { racaPai: pai, descricao: val('subraca-descricao'), bonusAtributos: lerBonus('subraca'), ...parsearHabsRaciais(val('subraca-habilidades')), imagem };
       salvarEstado(est); ev.target.reset(); avisar(`Sub-raça "${n}" salva!`);
     });
     $('form-classe')?.addEventListener('submit', ev => {
-      ev.preventDefault(); const n = val('classe-nome'), img = val('classe-imagem'), est = lerEstado(); if (!n) return;
-      est.classes[n] = { descricao: val('classe-descricao'), dadoVida: Number(val('classe-dado-vida')) || 8, proficienciasSalvaguarda: [val('classe-salva-1'), val('classe-salva-2')], periciasQuantidade: Number(val('classe-pericias-qtd')) || 2, caracteristicas: parsearHabsNivel(val('classe-habilidades'), `classe-${n}`), imagem: img };
-      if (img) est.imagens.classes[n] = img;
+      ev.preventDefault(); const n = val('classe-nome'), est = lerEstado(); if (!n) return;
+      const imagem = gravarImagemFormulario(est, 'classes', n, val('classe-imagem')); removerTombstone(est.removidos, 'classes', n);
+      est.classes[n] = { descricao: val('classe-descricao'), dadoVida: Number(val('classe-dado-vida')) || 8, proficienciasSalvaguarda: [val('classe-salva-1'), val('classe-salva-2')], periciasQuantidade: Number(val('classe-pericias-qtd')) || 2, caracteristicas: parsearHabsNivel(val('classe-habilidades'), `classe-${n}`), imagem };
       salvarEstado(est); ev.target.reset(); avisar(`Classe "${n}" salva!`);
     });
     $('form-subclasse')?.addEventListener('submit', ev => {
-      ev.preventDefault(); const n = val('subclasse-nome'), pai = val('subclasse-pai'), img = val('subclasse-imagem'), est = lerEstado(); if (!n || !pai) return;
-      est.subclasses[n] = { classePai: pai, descricao: val('subclasse-descricao'), caracteristicas: parsearHabsNivel(val('subclasse-habilidades'), `sub-${n}`), imagem: img };
-      if (img) est.imagens.subclasses[n] = img;
+      ev.preventDefault(); const n = val('subclasse-nome'), pai = val('subclasse-pai'), est = lerEstado(); if (!n || !pai) return;
+      const imagem = gravarImagemFormulario(est, 'subclasses', n, val('subclasse-imagem')); removerTombstone(est.removidos, 'subclasses', n);
+      est.subclasses[n] = { classePai: pai, descricao: val('subclasse-descricao'), caracteristicas: parsearHabsNivel(val('subclasse-habilidades'), `sub-${n}`), imagem };
       salvarEstado(est); ev.target.reset(); avisar(`Subclasse "${n}" salva!`);
     });
     $('form-talento')?.addEventListener('submit', ev => {
       ev.preventDefault(); const n = val('talento-nome'), est = lerEstado(); if (!n) return;
+      removerTombstone(est.removidos, 'talentos', n);
       est.talentos[n] = { id: 'talento-' + ForjaCatalogo.id(n), preRequisitos: val('talento-prereq'), beneficios: val('talento-beneficios') };
       salvarEstado(est); ev.target.reset(); avisar(`Talento "${n}" salvo!`);
     });
     $('form-antecedente')?.addEventListener('submit', ev => {
       ev.preventDefault(); const n = val('antecedente-nome'), est = lerEstado(); if (!n) return;
+      removerTombstone(est.removidos, 'antecedentes', n);
       est.antecedentes[n] = { pericias: [val('antecedente-pericia-1'), val('antecedente-pericia-2')], ferramentas: [], idiomasEscolha: Number(val('antecedente-idiomas')) || 0, habilidade: val('antecedente-habilidade'), descricaoHabilidade: val('antecedente-descricao') };
       salvarEstado(est); ev.target.reset(); avisar(`Antecedente "${n}" salvo!`);
     });
@@ -301,7 +401,11 @@
       catch { avisar('Não foi possível processar a imagem.', 'aviso'); }
     });
     $('btn-publicar-admin')?.addEventListener('click', () => {
-      raiz.ForjaPublicador?.abrirModalPublicacao(lerEstado, avisar);
+      raiz.ForjaPublicador?.abrirModalPublicacao(lerEstado, avisar, estadoLimpo => {
+        raiz.localStorage?.setItem(CHAVE, JSON.stringify({ ...estadoLimpo, removidos: criarRemovidosVazio() }));
+        raiz.ForjaCatalogo?.aplicarCustomizacoes?.(bancoDnD, ForjaOpcoes, ForjaClasses);
+        atualizarTudo();
+      });
     });
     $('btn-exportar-admin')?.addEventListener('click', () => {
       const url = URL.createObjectURL(new Blob([JSON.stringify(lerEstado(), null, 2)], { type: 'application/json' }));
@@ -314,8 +418,12 @@
       catch { avisar('Arquivo JSON inválido.', 'aviso'); }
     });
     $('btn-resetar-admin')?.addEventListener('click', () => {
-      raiz.localStorage?.removeItem(CHAVE); atualizarTudo();
-      avisar('Customizações limpas. Recarregue a página para restaurar os originais.', 'aviso');
+      const antes = lerEstado(), glob = raiz.ForjaCustomCatalogo || {};
+      raiz.localStorage?.removeItem(CHAVE);
+      for (const col of COLECOES) for (const n of Object.keys(antes[col] || {})) if (!glob[col]?.[n]) removerDaMemoria(col, n, antes[col][n]);
+      raiz.ForjaCatalogo?.aplicarCustomizacoes?.(bancoDnD, ForjaOpcoes, ForjaClasses);
+      atualizarTudo();
+      avisar('Customizações locais limpas.', 'aviso');
     });
   }
 

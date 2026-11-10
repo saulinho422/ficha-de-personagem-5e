@@ -10,3 +10,45 @@ test('hub vira a tela inicial quando existe personagem salvo',async t=>{const ap
 test('riqueza inicial válida não permanece como escolha pendente',async t=>{const e=ficha();e.detalhes.escolhas.kit={Mago:{modo:'riqueza',riqueza:40,alternativas:[],itens:{}}};const app=await interfaceFicha(e);t.after(app.fechar);const mensagens=app.eval('ForjaInterface.pendencias().map(x=>x.mensagem)');assert.equal(mensagens.includes('Escolha equipamento inicial ou riqueza.'),false);});
 test('testes contra a morte usam seis marcadores e só habilitam a zero PV',async t=>{const app=await interfaceFicha(ficha({recursos:{pvAtual:0,pvTemporarios:0}}));t.after(app.fechar);const pontos=app.w.document.querySelectorAll('.forja-morte-ponto');assert.equal(pontos.length,6);assert.equal([...pontos].every(x=>!x.disabled),true);pontos[2].click();assert.equal(app.eval('detalhesFicha.sessao.morte.sucessos'),3);assert.equal(app.eval('detalhesFicha.sessao.morte.estavel'),true);});
 test('abrir ficha pelo hub vai direto para a ficha completa sem exibir o guia de criação',async t=>{const app=await interfaceFicha(ficha({nome:'Lia do Bosque'}));t.after(app.fechar);const d=app.w.document;assert.equal(d.body.classList.contains('modo-hub'),true);const btn=[...d.querySelectorAll('.forja-heroi-card button')].find(b=>b.textContent==='Abrir ficha');assert(btn);btn.click();assert.equal(d.body.classList.contains('modo-hub'),false);assert.equal(d.getElementById('forja-hub').hidden,true);assert.equal(d.getElementById('criacao-rapida').hidden,true);assert.equal(d.getElementById('criacao-rapida').style.display,'none');assert.equal(d.getElementById('ficha-completa').hidden,false);assert.equal(d.getElementById('ficha-completa').style.display,'block');assert.equal(d.getElementById('display-nome').textContent,'Lia do Bosque');});
+
+test('concluir criação salva na coleção imediatamente e remove botão Instalar app',async t=>{
+ const app=await interfaceFicha();t.after(app.fechar);const d=app.w.document;
+ assert.equal([...d.querySelectorAll('button')].some(b=>/Instalar app/i.test(b.textContent)),false);
+ app.eval("document.getElementById('nome-personagem').value='Kael';document.getElementById('select-raca').value='Humano';carregarSubracas();document.getElementById('select-classe').value='Mago';carregarSubclasses();document.getElementById('select-alinhamento').value='Neutro';document.getElementById('select-antecedente').value='Acólito';renderizarPericiasDaClasse();");
+ const checks=[...d.querySelectorAll('#lista-pericias-criacao input[type="checkbox"]')].slice(0,2);
+ checks.forEach(c=>{c.checked=true;c.dispatchEvent(new app.w.Event('change',{bubbles:true}));});
+ app.eval("ForjaInterface.pendencias=()=>[];ForjaCriacao.validar=()=>true;detalhesFicha.kitAplicado={classe:'Mago',antecedente:'Acólito',modo:'equipamento',moedas:1500};iniciarPersonagem();");
+ const colecao=JSON.parse(app.w.localStorage.getItem(app.w.ForjaColecao.CHAVE));
+ assert.equal(colecao.personagens.length,1);
+ assert.equal(colecao.personagens[0].nome,'Kael');
+ app.eval('ForjaInterface.mostrarHub()');
+ assert.equal([...d.querySelectorAll('button')].some(b=>/Instalar app/i.test(b.textContent)),false);
+});
+
+test('catálogo customizado do Admin conclui criação com raça, sub-raça, classe sem subclasse, talento e antecedente',async t=>{
+ const app=await interfaceFicha();t.after(app.fechar);
+ app.w.localStorage.setItem('forjaPersonagens.customCatalogo.v1',JSON.stringify({
+  imagens:{racas:{Aasimar:'https://exemplo.com/aasimar.webp'}},
+  racas:{Aasimar:{descricao:'Celestial.',deslocamento:9,bonusAtributos:{carisma:2,forca:1},idiomas:['Comum','Celestial'],caracteristicas:['Luz Celestial'],descricoesCaracteristicas:{'Luz Celestial':'Emite luz.'}}},
+  subracas:{'Aasimar Protetor':{racaPai:'Aasimar',descricao:'Asas radiantes.',bonusAtributos:{sabedoria:1},caracteristicas:['Alma Radiante'],descricoesCaracteristicas:{'Alma Radiante':'Voo radiante.'}}},
+  classes:{'Artífice Custom':{descricao:'Inventor arcano.',dadoVida:8,proficienciasSalvaguarda:['constituicao','inteligencia'],periciasQuantidade:3,caracteristicas:[{id:'art-1',nivel:1,nome:'Engenhosidade',descricao:'Cria infusões.'}]}},
+  talentos:{'Telecinético Custom':{id:'talento-telecinetico-custom',preRequisitos:'',beneficios:'Empurra criaturas mentalmente.'}},
+  antecedentes:{'Investigador Custom':{pericias:['Investigação','Percepção'],ferramentas:[],idiomasEscolha:0,habilidade:'Pista Oculta',descricaoHabilidade:'Encontra pistas rapidamente.'}}
+ }));
+ app.eval("ForjaCatalogo.aplicarCustomizacoes(bancoDnD,ForjaOpcoes,ForjaClasses);carregarOpcoes();");
+ app.eval("document.getElementById('nome-personagem').value='Soren';document.getElementById('nivel-personagem').value=3;document.getElementById('select-raca').value='Aasimar';carregarSubracas();document.querySelector('input[name=\"usar-subraca\"][value=\"sim\"]').checked=true;alternarEscolhaSubraca();document.getElementById('select-subraca').value='Aasimar Protetor';document.getElementById('select-classe').value='Artífice Custom';carregarSubclasses();document.getElementById('select-alinhamento').value='Neutro e Bom';document.getElementById('select-antecedente').value='Investigador Custom';renderizarPericiasDaClasse();");
+ const checks=[...app.w.document.querySelectorAll('#lista-pericias-criacao input[type="checkbox"]')];
+ checks.filter(c=>['Arcanismo','História','Intuição'].includes(c.value)).forEach(c=>{c.checked=true;});
+ app.eval("atualizarContadorPericias();ForjaInterface.renderizar();document.getElementById('forja-criacao-escolhas-Artífice Custom-2-media').click();document.getElementById('forja-criacao-escolhas-Artífice Custom-3-media').click();");
+ const ctxAttrs=JSON.parse(app.eval('JSON.stringify(ForjaRegras.atributos(contextoDaFicha(),bancoDnD).valores)'));
+ assert.equal(ctxAttrs.car,12);
+ assert.equal(ctxAttrs.for,11);
+ assert.equal(ctxAttrs.sab,11);
+ app.eval("detalhesFicha.escolhas.proficiencias={'idioma:raca:Aasimar':[]};detalhesFicha.metodoAtributos='padrao';['for','des','con','int','sab','car'].forEach((s,i)=>document.getElementById('attr-'+s).value=[15,14,13,12,10,8][i]);[...document.querySelectorAll('#forja-criacao-kit button')].find(b=>b.textContent.includes('Adicionar equipamento')).click();ForjaInterface.renderizar();");
+ const pendentes=JSON.parse(app.eval('JSON.stringify(ForjaInterface.pendencias().map(x=>x.mensagem))'));
+ assert.deepEqual(pendentes,[]);
+ assert.equal(app.eval('iniciarPersonagem()'),true);
+ const colecao=JSON.parse(app.w.localStorage.getItem(app.w.ForjaColecao.CHAVE));
+ assert.equal(colecao.personagens[0].subclasse,'');
+ assert(app.eval("Boolean(talentos['Telecinético Custom'])"));
+});

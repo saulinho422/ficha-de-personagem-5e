@@ -61,7 +61,7 @@
             const base = Math.min(20, Math.max(1, inteiro(contexto.atributos?.[sigla], 10)));
             const partes = [{ origem: 'Base', valor: base }];
             [[contexto.raca, raca], [contexto.subraca, subraca]].forEach(([origem, dado]) => {
-                const valor = inteiro(dado.bonusAtributos?.[nome]);
+                const valor = inteiro(dado.bonusAtributos?.[nome] ?? dado.bonusAtributos?.[sigla]);
                 if (valor) partes.push({ origem, valor });
             });
             const raciais = contexto.detalhes?.escolhas || {};

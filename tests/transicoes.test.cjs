@@ -101,3 +101,34 @@ test('ausência de animate, falha da API, alvos ausentes e ocultos têm fallback
     assert.equal(await api.mostrar(alvo), false);
     assert.equal(animacoes.length, 0);
 });
+
+test('staggerCards com GSAP restaura opacity quando interrompido por limpar()', async t => {
+    const dom = new JSDOM('<section class="grade"><article>1</article><article>2</article></section>', {
+        url: 'http://localhost/', runScripts: 'outside-only',
+    });
+    t.after(() => dom.window.close());
+    const w = dom.window;
+    const eventos = [];
+    w.matchMedia = () => ({ matches: false });
+    w.gsap = {
+        fromTo(alvos, de, para) {
+            alvos.forEach(a => { a.style.opacity = String(de.opacity); });
+            eventos.push(['fromTo', alvos.length, para.opacity]);
+            return {
+                kill() { eventos.push(['kill']); },
+                eventCallback() {},
+            };
+        },
+        set(alvos, props) {
+            alvos.forEach(a => { a.style.opacity = ''; });
+            eventos.push(['set', props.clearProps]);
+        },
+    };
+    const api = w.eval(codigo + '\nForjaTransicoes;');
+    const grade = w.document.querySelector('.grade');
+    api.staggerCards(grade);
+    assert.equal(grade.children[0].style.opacity, '0');
+    api.limpar();
+    assert.equal(grade.children[0].style.opacity, '');
+    assert.deepEqual(eventos, [['fromTo', 2, 1], ['kill'], ['set', 'transform,opacity']]);
+});

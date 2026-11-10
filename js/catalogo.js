@@ -12,10 +12,17 @@ function lerCustom(){
  try{const b=globalThis.localStorage?.getItem(CHAVE_ADMIN);return b?JSON.parse(b):null;}catch{return null;}
 }
 function mesclarFontesCustom(globalCustom,localCustom){
- const g=obj(globalCustom),l=obj(localCustom);
+ const g=obj(globalCustom),l=obj(localCustom),rem=obj(l.removidos),remImg=obj(rem.imagens);
  const res={imagens:{racas:{},subracas:{},classes:{},subclasses:{}},racas:{},subracas:{},classes:{},subclasses:{},talentos:{},antecedentes:{}};
- for(const k of ['racas','subracas','classes','subclasses'])res.imagens[k]={...obj(g.imagens?.[k]),...obj(l.imagens?.[k])};
- for(const k of ['racas','subracas','classes','subclasses','talentos','antecedentes'])res[k]={...obj(g[k]),...obj(l[k])};
+ for(const k of ['racas','subracas','classes','subclasses']){
+  res.imagens[k]={...obj(g.imagens?.[k]),...obj(l.imagens?.[k])};
+  for(const n of arr(remImg[k]))delete res.imagens[k][n];
+ }
+ for(const k of ['racas','subracas','classes','subclasses','talentos','antecedentes']){
+  res[k]={...obj(g[k]),...obj(l[k])};
+  for(const n of arr(rem[k]))delete res[k][n];
+  for(const n of arr(remImg[k]))if(res[k][n])res[k][n]={...res[k][n],imagem:''};
+ }
  return res;
 }
 function mesclarImagens(opcoes,imagens){
@@ -39,10 +46,13 @@ function aplicarSubraca(ctx,nome,d){
 function registrarProgressaoClasse(progressao,nome,d){
  const base=progressao.classes[nome]||{id:'classe-'+id(nome),nome,pagina:0,caracteristicas:[],subclasses:{}};
  if(Array.isArray(d.caracteristicas))base.caracteristicas=d.caracteristicas;
- progressao.classes[nome]=base;
- if(globalThis.PERICIAS_POR_CLASSE){
+ if(d.periciasQuantidade!==undefined||d.periciasOpcoes!==undefined||!base.pericias){
   const opcoes=arr(d.periciasOpcoes);
-  globalThis.PERICIAS_POR_CLASSE[nome]={quantidade:num(d.periciasQuantidade,2),todas:!opcoes.length,opcoes};
+  base.pericias={quantidade:num(d.periciasQuantidade,2),todas:!opcoes.length,opcoes};
+ }
+ progressao.classes[nome]=base;
+ if(globalThis.PERICIAS_POR_CLASSE&&(d.periciasQuantidade!==undefined||d.periciasOpcoes!==undefined)){
+  globalThis.PERICIAS_POR_CLASSE[nome]=base.pericias;
  }
 }
 function aplicarClasse(ctx,nome,d){
@@ -148,5 +158,5 @@ function itens(banco){
  for(const g of ['equipamento_aventura','ferramentas','veiculos','bens','arreios'])for(const item of arr(banco.equipamentos[g]))lista.push({...item,nome:item.nome||item.item,preco:item.preco||item.custo,tipo:g});
  return lista;
 }
-return {id,aliases,CHAVE_ADMIN,aplicarCustomizacoes,preparar,itens};
+return {id,aliases,CHAVE_ADMIN,mesclarFontesCustom,aplicarCustomizacoes,preparar,itens};
 });

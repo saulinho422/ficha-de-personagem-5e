@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_ATUAL = 'forja-5e-pwa-v2';
+const CACHE_ATUAL = 'forja-5e-pwa-v3';
 const ARQUIVOS_ESSENCIAIS = [
   './',
   './index.html',

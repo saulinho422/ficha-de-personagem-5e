@@ -389,7 +389,8 @@ function iniciarPersonagem(restaurando = false) {
         if (pendentes.length) { mostrarToast(pendentes[0].mensagem); return false; }
     }
     const { nome, nivel, raca, subraca, classe, subclasse, alinhamento, antecedente } = contexto;
-    const precisaSubclasse = nivel >= ForjaRegras.nivelSubclasse(classe);
+    const temSubclasses = (bancoDnD.classes?.[classe]?.subclasses || []).length > 0;
+    const precisaSubclasse = nivel >= ForjaRegras.nivelSubclasse(classe) && temSubclasses;
     if (!nome || !raca || !classe || (precisaSubclasse && !subclasse) || !alinhamento || !antecedente) {
         if (!restaurando) mostrarToast('Conclua todas as escolhas antes de gerar a ficha.');
         return false;
@@ -400,12 +401,16 @@ function iniciarPersonagem(restaurando = false) {
         delete detalhesFicha.escolhas.criacaoNova;
     }
     personagemAtual = { nome, nivel, raca, subraca, classe, subclasse, alinhamento, antecedente };
+    document.getElementById('criacao-rapida').hidden = true;
+    document.getElementById('ficha-completa').hidden = false;
     document.getElementById('criacao-rapida').style.display = 'none';
     document.getElementById('ficha-completa').style.display = 'block';
     document.getElementById('display-nome').textContent = nome;
     document.getElementById('display-origem').textContent = subraca || raca;
     document.getElementById('display-classe').textContent = classe;
-    document.getElementById('display-subclasse').textContent = precisaSubclasse ? subclasse : 'Subclasse no nível ' + ForjaRegras.nivelSubclasse(classe);
+    document.getElementById('display-subclasse').textContent = precisaSubclasse
+        ? subclasse
+        : (!temSubclasses ? 'Sem subclasse cadastrada' : 'Subclasse no nível ' + ForjaRegras.nivelSubclasse(classe));
     document.getElementById('display-alinhamento').textContent = alinhamento;
     document.getElementById('display-antecedente').textContent = formatarNomeAntecedente(antecedente);
     document.getElementById('display-nivel').textContent = nivel;
@@ -413,6 +418,10 @@ function iniciarPersonagem(restaurando = false) {
     recalcularFicha();
     mudarAba('pagina-1');
     salvarEstado();
+    if (!restaurando && !salvamentoBloqueado && typeof ForjaColecao !== 'undefined') {
+        try { ForjaColecao.guardar(window.localStorage, capturarEstado()); }
+        catch (erro) { avisarFalhaSalvamento('A ficha foi gerada, mas não coube na coleção local. ' + erro.message); }
+    }
     return true;
 }
 
@@ -1143,7 +1152,16 @@ function salvarEstado() {
     if (restaurandoEstado || salvamentoBloqueado) return;
     try {
         const storage = window.localStorage;
-        ForjaEstado.salvar(storage, capturarEstado());
+        const atual = capturarEstado();
+        ForjaEstado.salvar(storage, atual);
+        if (atual.fichaGerada && typeof ForjaColecao !== 'undefined' && storage.getItem(ForjaColecao.CHAVE)) {
+            try {
+                const colecao = ForjaColecao.ler(storage);
+                if (colecao.personagens.some(p => p.detalhes?.id === atual.detalhes?.id)) {
+                    ForjaColecao.guardar(storage, atual);
+                }
+            } catch (_) { /* mantém a coleção intacta sem bloquear o salvamento ativo */ }
+        }
         document.getElementById('alerta-salvamento').hidden = true;
     } catch (erro) {
         salvamentoBloqueado = true;
@@ -1255,7 +1273,8 @@ function proximaEtapa(numero) {
         if (typeof ForjaInterface !== 'undefined' && ForjaInterface.avancarParteOrigem && ForjaInterface.avancarParteOrigem()) {
             return;
         }
-        if (validarNivel() >= ForjaRegras.nivelSubclasse(classe) && !subclasse) {
+        const temSubclasses = (bancoDnD.classes?.[classe]?.subclasses || []).length > 0;
+        if (validarNivel() >= ForjaRegras.nivelSubclasse(classe) && temSubclasses && !subclasse) {
             mostrarToast('Escolha uma subclasse para continuar.');
             return;
         }
@@ -1297,12 +1316,15 @@ function carregarSubclasses() {
     const classe = document.getElementById('select-classe').value;
     const select = document.getElementById('select-subclasse');
     const anterior = select.value;
-    const liberada = validarNivel() >= ForjaRegras.nivelSubclasse(classe);
+    const subs = bancoDnD.classes[classe]?.subclasses || [];
+    const liberada = validarNivel() >= ForjaRegras.nivelSubclasse(classe) && subs.length > 0;
     select.innerHTML = '';
     const vazio = document.createElement('option'); vazio.value = '';
-    vazio.textContent = liberada ? '-- Escolha uma Subclasse --' : 'Escolha no nível ' + ForjaRegras.nivelSubclasse(classe);
+    vazio.textContent = subs.length
+        ? (liberada ? '-- Escolha uma Subclasse --' : 'Escolha no nível ' + ForjaRegras.nivelSubclasse(classe))
+        : 'Sem subclasse cadastrada';
     select.appendChild(vazio);
-    (bancoDnD.classes[classe]?.subclasses || []).forEach(nome => {
+    subs.forEach(nome => {
         const opcao = document.createElement('option'); opcao.value = nome; opcao.textContent = nome; select.appendChild(opcao);
     });
     if ([...select.options].some(opcao => opcao.value === anterior)) select.value = anterior;
@@ -1428,7 +1450,8 @@ function salvarNovoNivel(evento) {
     const novoNivel = ForjaRegras.nivel(document.getElementById('novo-nivel-personagem').value);
     const classe = document.getElementById('select-classe').value;
     const subclasse = document.getElementById('nova-subclasse-personagem').value;
-    if (novoNivel >= ForjaRegras.nivelSubclasse(classe) && !subclasse) {
+    const temSubclasses = (bancoDnD.classes?.[classe]?.subclasses || []).length > 0;
+    if (novoNivel >= ForjaRegras.nivelSubclasse(classe) && temSubclasses && !subclasse) {
         mostrarToast('Escolha a subclasse para este nível.');
         return;
     }
@@ -1669,10 +1692,13 @@ function salvarProgressao(evento) {
 
 function configuracaoPericiasClasse() {
     const classe = document.getElementById('select-classe').value;
-    const config = PERICIAS_POR_CLASSE[classe] || { quantidade: 0, opcoes: [] };
+    const customPericias = typeof ForjaClasses !== 'undefined' ? ForjaClasses.classes?.[classe]?.pericias : null;
+    const fallback = classe && bancoDnD.classes?.[classe] ? { quantidade: 2, todas: true, opcoes: [] } : { quantidade: 0, opcoes: [] };
+    const config = PERICIAS_POR_CLASSE[classe] || customPericias || fallback;
+    const listaOpcoes = Array.isArray(config.opcoes) ? config.opcoes : [];
     return {
         quantidade: config.quantidade,
-        opcoes: config.todas ? Object.keys(bancoDnD.pericias) : config.opcoes.filter(nome => nome in bancoDnD.pericias)
+        opcoes: config.todas ? Object.keys(bancoDnD.pericias) : listaOpcoes.filter(nome => nome in bancoDnD.pericias)
     };
 }
 
@@ -1727,6 +1753,8 @@ function validarPericiasDaClasse(restaurando = false) {
     const config = configuracaoPericiasClasse();
     const quantidade = obterPericiasSelecionadas().length;
     if (quantidade !== config.quantidade) {
+        document.getElementById('ficha-completa').hidden = true;
+        document.getElementById('criacao-rapida').hidden = false;
         document.getElementById('ficha-completa').style.display = 'none';
         document.getElementById('criacao-rapida').style.display = 'block';
         mostrarEtapa(4);
@@ -2347,15 +2375,18 @@ function atualizarSubclasseNivelModal() {
     const n = ForjaRegras.nivel(document.getElementById('novo-nivel-personagem').value);
     const select = document.getElementById('nova-subclasse-personagem');
     const anterior = select.value || document.getElementById('select-subclasse').value;
+    const subs = bancoDnD.classes[classe]?.subclasses || [];
     select.innerHTML = '<option value="">-- Escolha uma Subclasse --</option>';
-    (bancoDnD.classes[classe]?.subclasses || []).forEach(nome => {
+    subs.forEach(nome => {
         const opcao = document.createElement('option'); opcao.value = nome; opcao.textContent = nome; select.appendChild(opcao);
     });
     if ([...select.options].some(opcao => opcao.value === anterior)) select.value = anterior;
-    select.disabled = n < ForjaRegras.nivelSubclasse(classe);
-    document.getElementById('ajuda-subclasse-nivel').textContent = select.disabled
-        ? 'A escolha fica disponível no nível ' + ForjaRegras.nivelSubclasse(classe) + '.'
-        : 'Escolha a subclasse para continuar.';
+    select.disabled = n < ForjaRegras.nivelSubclasse(classe) || !subs.length;
+    document.getElementById('ajuda-subclasse-nivel').textContent = !subs.length
+        ? 'Esta classe não possui subclasses cadastradas.'
+        : select.disabled
+            ? 'A escolha fica disponível no nível ' + ForjaRegras.nivelSubclasse(classe) + '.'
+            : 'Escolha a subclasse para continuar.';
     ForjaInterface.prepararPVNivel();
 }
 

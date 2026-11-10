@@ -4,17 +4,51 @@
   const CHAVE_GH = 'forjaPersonagens.githubConfig.v1';
   const REPO_PADRAO = 'saulinho422/ficha-de-personagem-5e';
   const CAMINHO_ARQUIVO = 'dados/custom-catalogo.js';
+  const BRANCHES_TODAS = ['main', 'codex/mobile-app-redesign', 'codex/mega-atualizacao-ficha-5e'];
+  const CATEGORIAS_IMG = ['racas', 'subracas', 'classes', 'subclasses'];
+  const COLECOES = ['racas', 'subracas', 'classes', 'subclasses', 'talentos', 'antecedentes'];
+
+  const escaparHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+
+  function normalizarRepo(repo) {
+    const limpo = String(repo || '')
+      .trim()
+      .replace(/^https?:\/\/github\.com\//i, '')
+      .replace(/\.git$/i, '')
+      .replace(/^\/+|\/+$/g, '');
+    if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(limpo)) {
+      throw new Error('Informe o repositório no formato usuario/repositorio.');
+    }
+    return limpo;
+  }
+
+  function sanitizarEstado(estado) {
+    const orig = estado && typeof estado === 'object' ? estado : {};
+    const limpo = { imagens: {} };
+    for (const k of CATEGORIAS_IMG) {
+      limpo.imagens[k] = {};
+      for (const [nome, url] of Object.entries(orig.imagens?.[k] || {})) {
+        if (url) limpo.imagens[k][nome] = url;
+      }
+    }
+    for (const k of COLECOES) {
+      limpo[k] = { ...(orig[k] || {}) };
+    }
+    return limpo;
+  }
 
   function lerConfigGitHub() {
     try {
       const lido = JSON.parse(raiz.localStorage?.getItem(CHAVE_GH) || '{}');
       return {
         repo: lido.repo || REPO_PADRAO,
-        branch: lido.branch || 'main',
+        branch: lido.branch || 'todas',
         token: lido.token || '',
       };
     } catch {
-      return { repo: REPO_PADRAO, branch: 'main', token: '' };
+      return { repo: REPO_PADRAO, branch: 'todas', token: '' };
     }
   }
 
@@ -23,7 +57,7 @@
   }
 
   function gerarCodigoModulo(estado) {
-    const json = JSON.stringify(estado, null, 2);
+    const json = JSON.stringify(sanitizarEstado(estado), null, 2);
     return [
       '(function (r, f) {',
       '  const d = f();',
@@ -39,9 +73,11 @@
 
   function utf8ParaBase64(str) {
     const bytes = new TextEncoder().encode(str);
-    let bin = '';
-    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    return btoa(bin);
+    const partes = [];
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      partes.push(String.fromCharCode(...bytes.subarray(i, i + 0x8000)));
+    }
+    return btoa(partes.join(''));
   }
 
   async function obterShaAtual(repo, branch, token) {
@@ -50,6 +86,7 @@
       headers: {
         Accept: 'application/vnd.github+json',
         Authorization: `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
       },
     });
     if (res.status === 404) return null;
@@ -58,34 +95,44 @@
     return dados.sha || null;
   }
 
+  async function enviarArquivoBranch(repoNormalizado, br, base64, cfg) {
+    const sha = await obterShaAtual(repoNormalizado, br, cfg.token);
+    const url = `https://api.github.com/repos/${repoNormalizado}/contents/${CAMINHO_ARQUIVO}`;
+    const body = {
+      message: 'feat(catalogo): atualizar catalogo customizado e imagens via Painel Admin',
+      content: base64,
+      branch: br,
+    };
+    if (sha) body.sha = sha;
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${cfg.token}`,
+        'Content-Type': 'application/json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) return true;
+    if (cfg.alvoBranch === 'todas' && br !== 'main' && (res.status === 404 || res.status === 422)) return false;
+    const erro = await res.json().catch(() => ({}));
+    throw new Error(erro.message || `Erro HTTP ${res.status} ao publicar na branch ${br}.`);
+  }
+
   async function publicarNoGitHub(estado, { repo, branch, token }) {
+    const repoNormalizado = normalizarRepo(repo);
     if (!token) throw new Error('Informe seu Token do GitHub (Personal Access Token) para publicar.');
-    const conteudoJs = gerarCodigoModulo(estado);
-    const base64 = utf8ParaBase64(conteudoJs);
-    const branches = branch === 'todas' ? ['main', 'codex/mobile-app-redesign', 'codex/mega-atualizacao-ficha-5e'] : [branch];
+    const estadoLimpo = sanitizarEstado(estado);
+    const base64 = utf8ParaBase64(gerarCodigoModulo(estadoLimpo));
+    const alvoBranch = String(branch || '').trim() || 'todas';
+    const branches = alvoBranch === 'todas' ? BRANCHES_TODAS : [alvoBranch];
+    const publicadas = [];
     for (const br of branches) {
-      const sha = await obterShaAtual(repo, br, token);
-      const url = `https://api.github.com/repos/${repo}/contents/${CAMINHO_ARQUIVO}`;
-      const body = {
-        message: 'feat(catalogo): atualizar catalogo customizado e imagens via Painel Admin',
-        content: base64,
-        branch: br,
-      };
-      if (sha) body.sha = sha;
-      const res = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          Accept: 'application/vnd.github+json',
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const erro = await res.json().catch(() => ({}));
-        throw new Error(erro.message || `Erro HTTP ${res.status} ao publicar na branch ${br}.`);
-      }
+      if (await enviarArquivoBranch(repoNormalizado, br, base64, { token, alvoBranch })) publicadas.push(br);
     }
+    if (!publicadas.length) throw new Error('Nenhuma branch de destino foi encontrada no repositório.');
+    return { estadoLimpo, branches: publicadas };
   }
 
   function baixarArquivoJs(estado) {
@@ -98,7 +145,19 @@
     URL.revokeObjectURL(url);
   }
 
-  function abrirModalPublicacao(obterEstado, avisar) {
+  function opcoesBranchHtml(selecionada) {
+    const lista = [
+      ['todas', 'Todas as branches (main + codex/*)'],
+      ['main', 'Apenas main'],
+      ['codex/mobile-app-redesign', 'Apenas codex/mobile-app-redesign'],
+      ['codex/mega-atualizacao-ficha-5e', 'Apenas codex/mega-atualizacao-ficha-5e'],
+    ];
+    return lista.map(([val, rotulo]) =>
+      `<option value="${val}"${selecionada === val ? ' selected' : ''}>${rotulo}</option>`
+    ).join('');
+  }
+
+  function abrirModalPublicacao(obterEstado, avisar, aoPublicar) {
     let dlg = document.getElementById('modal-publicar-github');
     if (!dlg) {
       dlg = document.createElement('dialog');
@@ -112,16 +171,13 @@
         <h2>🌐 Publicar para Todos os Jogadores</h2>
         <p class="subtitulo-form">Salva todas as suas raças, classes, subclasses, talentos e imagens diretamente no repositório oficial (<code>dados/custom-catalogo.js</code>) para que apareçam para qualquer pessoa que abrir o site.</p>
         <label>Repositório no GitHub
-          <input type="text" id="gh-repo" class="input-admin" value="${cfg.repo}" required>
+          <input type="text" id="gh-repo" class="input-admin" value="${escaparHtml(cfg.repo)}" required>
         </label>
         <label>Branch de destino
-          <select id="gh-branch" class="input-admin">
-            <option value="todas" selected>Todas as branches (main + codex/*)</option>
-            <option value="main">Apenas main</option>
-          </select>
+          <select id="gh-branch" class="input-admin">${opcoesBranchHtml(cfg.branch)}</select>
         </label>
         <label>Token do GitHub (Personal Access Token com permissão <code>repo</code> ou <code>contents:write</code>)
-          <input type="password" id="gh-token" class="input-admin" value="${cfg.token}" placeholder="ghp_... ou github_pat_...">
+          <input type="password" id="gh-token" class="input-admin" value="${escaparHtml(cfg.token)}" placeholder="ghp_... ou github_pat_...">
         </label>
         <p class="subtitulo-form" style="margin:4px 0 0;font-size:12px;">🔒 O token fica salvo apenas no seu navegador para você publicar com 1 clique sempre que quiser. Se preferir não usar token, clique em <strong>Baixar custom-catalogo.js</strong> e substitua na pasta <code>dados/</code>.</p>
         <div class="acoes-form" style="justify-content:flex-end;margin-top:12px;">
@@ -143,13 +199,17 @@
         branch: dlg.querySelector('#gh-branch').value,
         token: dlg.querySelector('#gh-token').value.trim(),
       };
-      salvarConfigGitHub(novaCfg);
       btn.disabled = true;
       btn.textContent = '⏳ Publicando no GitHub...';
       try {
-        await publicarNoGitHub(obterEstado(), novaCfg);
+        const repoLimpo = normalizarRepo(novaCfg.repo);
+        novaCfg.repo = repoLimpo;
+        salvarConfigGitHub(novaCfg);
+        const { estadoLimpo, branches } = await publicarNoGitHub(obterEstado(), novaCfg);
+        raiz.ForjaCustomCatalogo = estadoLimpo;
+        if (typeof aoPublicar === 'function') aoPublicar(estadoLimpo);
         dlg.close();
-        avisar('Publicado com sucesso no GitHub! Em instantes estará visível para todos no site.');
+        avisar(`Publicado com sucesso no GitHub (${branches.join(', ')})! Em instantes estará visível para todos no site.`);
       } catch (e) {
         avisar(e.message || 'Erro ao publicar no GitHub.', 'aviso');
       } finally {
@@ -160,5 +220,7 @@
     dlg.showModal?.();
   }
 
-  raiz.ForjaPublicador = { gerarCodigoModulo, abrirModalPublicacao };
+  const api = { sanitizarEstado, normalizarRepo, gerarCodigoModulo, abrirModalPublicacao };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else raiz.ForjaPublicador = api;
 })(globalThis);

@@ -241,7 +241,7 @@ body {
 
 .grid-galeria-admin {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
   gap: 18px;
 }
 
@@ -339,7 +339,7 @@ body {
 
 .admin-duas-colunas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
   gap: 22px;
 }
 
@@ -473,7 +473,7 @@ body {
 
 .lista-registros-admin {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 12px;
 }
 
@@ -483,9 +483,16 @@ body {
   border-radius: 10px;
   padding: 12px 14px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
+}
+
+.item-registro-admin > div:first-child {
+  min-width: 0;
+  flex: 1 1 180px;
+  overflow-wrap: anywhere;
 }
 
 .item-registro-admin strong {
@@ -528,6 +535,11 @@ body {
 
 .toast-notificacao.sucesso {
   background: #14532d;
+}
+
+.toast-notificacao.aviso {
+  background: #7f1d2d;
+  border: 1px solid var(--admin-dourado);
 }
 
 .toast-fechar {
