@@ -5,17 +5,17 @@
 })(globalThis, function () {
   'use strict';
   return {
-    imagens: {
-      racas: {},
-      subracas: {},
-      classes: {},
-      subclasses: {}
+    "imagens": {
+      "racas": {},
+      "subracas": {},
+      "classes": {},
+      "subclasses": {}
     },
-    racas: {},
-    subracas: {},
-    classes: {},
-    subclasses: {},
-    talentos: {},
-    antecedentes: {}
+    "racas": {},
+    "subracas": {},
+    "classes": {},
+    "subclasses": {},
+    "talentos": {},
+    "antecedentes": {}
   };
 });
