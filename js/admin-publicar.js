@@ -4,9 +4,15 @@
   const CHAVE_GH = 'forjaPersonagens.githubConfig.v1';
   const REPO_PADRAO = 'saulinho422/ficha-de-personagem-5e';
   const CAMINHO_ARQUIVO = 'dados/custom-catalogo.js';
-  const BRANCHES_TODAS = ['main', 'codex/mobile-app-redesign', 'codex/mega-atualizacao-ficha-5e'];
+  const BRANCH_PADRAO = 'main';
+  const BRANCHES_LEGADAS = new Set(['', 'todas', 'codex/mobile-app-redesign', 'codex/mega-atualizacao-ficha-5e']);
   const CATEGORIAS_IMG = ['racas', 'subracas', 'classes', 'subclasses'];
   const COLECOES = ['racas', 'subracas', 'classes', 'subclasses', 'talentos', 'antecedentes'];
+
+  function resolverBranch(branch) {
+    const limpa = String(branch || '').trim();
+    return BRANCHES_LEGADAS.has(limpa) ? BRANCH_PADRAO : limpa;
+  }
 
   const escaparHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -44,11 +50,11 @@
       const lido = JSON.parse(raiz.localStorage?.getItem(CHAVE_GH) || '{}');
       return {
         repo: lido.repo || REPO_PADRAO,
-        branch: lido.branch || 'todas',
+        branch: resolverBranch(lido.branch),
         token: lido.token || '',
       };
     } catch {
-      return { repo: REPO_PADRAO, branch: 'todas', token: '' };
+      return { repo: REPO_PADRAO, branch: BRANCH_PADRAO, token: '' };
     }
   }
 
@@ -115,7 +121,6 @@
       body: JSON.stringify(body),
     });
     if (res.ok) return true;
-    if (cfg.alvoBranch === 'todas' && br !== 'main' && (res.status === 404 || res.status === 422)) return false;
     const erro = await res.json().catch(() => ({}));
     throw new Error(erro.message || `Erro HTTP ${res.status} ao publicar na branch ${br}.`);
   }
@@ -125,14 +130,9 @@
     if (!token) throw new Error('Informe seu Token do GitHub (Personal Access Token) para publicar.');
     const estadoLimpo = sanitizarEstado(estado);
     const base64 = utf8ParaBase64(gerarCodigoModulo(estadoLimpo));
-    const alvoBranch = String(branch || '').trim() || 'todas';
-    const branches = alvoBranch === 'todas' ? BRANCHES_TODAS : [alvoBranch];
-    const publicadas = [];
-    for (const br of branches) {
-      if (await enviarArquivoBranch(repoNormalizado, br, base64, { token, alvoBranch })) publicadas.push(br);
-    }
-    if (!publicadas.length) throw new Error('Nenhuma branch de destino foi encontrada no repositório.');
-    return { estadoLimpo, branches: publicadas };
+    const alvoBranch = resolverBranch(branch);
+    await enviarArquivoBranch(repoNormalizado, alvoBranch, base64, { token });
+    return { estadoLimpo, branches: [alvoBranch] };
   }
 
   function baixarArquivoJs(estado) {
@@ -146,15 +146,9 @@
   }
 
   function opcoesBranchHtml(selecionada) {
-    const lista = [
-      ['todas', 'Todas as branches (main + codex/*)'],
-      ['main', 'Apenas main'],
-      ['codex/mobile-app-redesign', 'Apenas codex/mobile-app-redesign'],
-      ['codex/mega-atualizacao-ficha-5e', 'Apenas codex/mega-atualizacao-ficha-5e'],
-    ];
-    return lista.map(([val, rotulo]) =>
-      `<option value="${val}"${selecionada === val ? ' selected' : ''}>${rotulo}</option>`
-    ).join('');
+    const alvo = resolverBranch(selecionada);
+    const rotulo = alvo === BRANCH_PADRAO ? 'main (padrão do site)' : alvo;
+    return `<option value="${escaparHtml(alvo)}" selected>${escaparHtml(rotulo)}</option>`;
   }
 
   function abrirModalPublicacao(obterEstado, avisar, aoPublicar) {
@@ -220,7 +214,7 @@
     dlg.showModal?.();
   }
 
-  const api = { sanitizarEstado, normalizarRepo, gerarCodigoModulo, abrirModalPublicacao };
+  const api = { sanitizarEstado, normalizarRepo, resolverBranch, lerConfigGitHub, gerarCodigoModulo, abrirModalPublicacao };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else raiz.ForjaPublicador = api;
 })(globalThis);

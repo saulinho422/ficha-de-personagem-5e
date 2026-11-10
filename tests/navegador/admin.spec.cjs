@@ -83,6 +83,11 @@ test('painel admin cadastra entidades, edita imagens e integra com a criação d
 
 test('painel admin exporta JSON, baixa módulo JS e publica no GitHub sem removidos', async ({ page }) => {
   await page.addInitScript(() => {
+    localStorage.setItem('forjaPersonagens.githubConfig.v1', JSON.stringify({
+      repo: 'saulinho422/ficha-de-personagem-5e',
+      branch: 'todas',
+      token: '',
+    }));
     localStorage.setItem('forjaPersonagens.customCatalogo.v1', JSON.stringify({
       imagens: { racas: { Elfo: 'https://cdn.exemplo.com/elfo.webp' }, subracas: {}, classes: {}, subclasses: {} },
       racas: { Aasimar: { descricao: 'Celestial.', deslocamento: 9, bonusAtributos: { carisma: 2 }, idiomas: ['Comum'], caracteristicas: [] } },
@@ -116,7 +121,7 @@ test('painel admin exporta JSON, baixa módulo JS e publica no GitHub sem removi
 
   await page.locator('#btn-publicar-admin').click();
   await expect(page.locator('#modal-publicar-github')).toBeVisible();
-  await page.locator('#gh-branch').selectOption('main');
+  await expect(page.locator('#gh-branch')).toHaveValue('main');
   await page.locator('#gh-token').fill('ghp_token_teste_simulado');
 
   const dlJs = page.waitForEvent('download');

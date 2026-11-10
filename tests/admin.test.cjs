@@ -37,6 +37,10 @@ test('mesclarFontesCustom combina fonte global e local e respeita removidos', ()
 });
 
 test('ForjaPublicador normaliza repo, sanitiza estado e gera módulo JS válido', () => {
+  assert.equal(ForjaPublicador.resolverBranch(''), 'main');
+  assert.equal(ForjaPublicador.resolverBranch('todas'), 'main');
+  assert.equal(ForjaPublicador.resolverBranch('codex/mobile-app-redesign'), 'main');
+  assert.equal(ForjaPublicador.resolverBranch('codex/mega-atualizacao-ficha-5e'), 'main');
   assert.equal(ForjaPublicador.normalizarRepo('https://github.com/saulinho422/ficha-de-personagem-5e.git'), 'saulinho422/ficha-de-personagem-5e');
   assert.throws(() => ForjaPublicador.normalizarRepo('invalido'), /usuario\/repositorio/);
   const sujo = {
