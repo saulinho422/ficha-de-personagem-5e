@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261109-1">
+  <link rel="stylesheet" href="admin.css?v=20261109-3">
 </head>
 <body>
   <div class="admin-shell">
@@ -90,9 +90,13 @@
             <label>Habilidades Raciais (uma por linha no formato <code>Nome: Descrição</code>)
               <textarea id="raca-habilidades" class="input-admin" rows="4" placeholder="Visão no Escuro: Enxerga no escuro até 18 metros.&#10;Mãos Curativas: Como uma ação, toca uma criatura e restaura PV igual ao seu nível."></textarea>
             </label>
-            <label>URL da Imagem (ou faça upload na Galeria)
-              <input type="text" id="raca-imagem" class="input-admin" placeholder="https://exemplo.com/imagem.webp">
-            </label>
+            <div class="campo-imagem-grupo">
+              <label for="raca-imagem">URL da Imagem (ou faça upload na Galeria)</label>
+              <div class="campo-imagem-linha">
+                <input type="text" id="raca-imagem" class="input-admin" placeholder="https://exemplo.com/imagem.webp">
+                <button type="button" class="btn-secundario-admin btn-posicionar-form" data-cat="racas" data-nome-id="raca-nome" data-url-id="raca-imagem">🎯 Posicionar</button>
+              </div>
+            </div>
             <div class="acoes-form">
               <button type="submit" class="btn-primario-admin">💾 Salvar Raça</button>
               <button type="reset" class="btn-secundario-admin">Limpar</button>
@@ -127,9 +131,13 @@
             <label>Habilidades da Sub-raça (uma por linha: <code>Nome: Descrição</code>)
               <textarea id="subraca-habilidades" class="input-admin" rows="4" placeholder="Alma Radiante: A partir do 3º nível, libera asas luminosas por 1 minuto."></textarea>
             </label>
-            <label>URL da Imagem
-              <input type="text" id="subraca-imagem" class="input-admin" placeholder="https://exemplo.com/subraca.webp">
-            </label>
+            <div class="campo-imagem-grupo">
+              <label for="subraca-imagem">URL da Imagem</label>
+              <div class="campo-imagem-linha">
+                <input type="text" id="subraca-imagem" class="input-admin" placeholder="https://exemplo.com/subraca.webp">
+                <button type="button" class="btn-secundario-admin btn-posicionar-form" data-cat="subracas" data-nome-id="subraca-nome" data-url-id="subraca-imagem">🎯 Posicionar</button>
+              </div>
+            </div>
             <div class="acoes-form">
               <button type="submit" class="btn-primario-admin">💾 Salvar Sub-raça</button>
               <button type="reset" class="btn-secundario-admin">Limpar</button>
@@ -193,9 +201,13 @@
             <label>Características por Nível (uma por linha: <code>Nível | Nome | Descrição</code>)
               <textarea id="classe-habilidades" class="input-admin" rows="4" placeholder="1 | Engenhosidade Mágica | Imbui objetos mundanos com efeitos arcanos.&#10;2 | Infundir Item | Cria infusões mágicas em equipamentos."></textarea>
             </label>
-            <label>URL da Imagem
-              <input type="text" id="classe-imagem" class="input-admin" placeholder="https://exemplo.com/classe.webp">
-            </label>
+            <div class="campo-imagem-grupo">
+              <label for="classe-imagem">URL da Imagem</label>
+              <div class="campo-imagem-linha">
+                <input type="text" id="classe-imagem" class="input-admin" placeholder="https://exemplo.com/classe.webp">
+                <button type="button" class="btn-secundario-admin btn-posicionar-form" data-cat="classes" data-nome-id="classe-nome" data-url-id="classe-imagem">🎯 Posicionar</button>
+              </div>
+            </div>
             <div class="acoes-form">
               <button type="submit" class="btn-primario-admin">💾 Salvar Classe</button>
               <button type="reset" class="btn-secundario-admin">Limpar</button>
@@ -219,9 +231,13 @@
             <label>Habilidades por Nível (uma por linha: <code>Nível | Nome | Descrição</code>)
               <textarea id="subclasse-habilidades" class="input-admin" rows="5" placeholder="1 | Maldição da Lâmina | Marca um alvo com ação bônus para causar dano extra.&#10;1 | Combatente Maldito | Usa Carisma nos ataques e danos com armas pactuadas."></textarea>
             </label>
-            <label>URL da Imagem
-              <input type="text" id="subclasse-imagem" class="input-admin" placeholder="https://exemplo.com/subclasse.webp">
-            </label>
+            <div class="campo-imagem-grupo">
+              <label for="subclasse-imagem">URL da Imagem</label>
+              <div class="campo-imagem-linha">
+                <input type="text" id="subclasse-imagem" class="input-admin" placeholder="https://exemplo.com/subclasse.webp">
+                <button type="button" class="btn-secundario-admin btn-posicionar-form" data-cat="subclasses" data-nome-id="subclasse-nome" data-url-id="subclasse-imagem">🎯 Posicionar</button>
+              </div>
+            </div>
             <div class="acoes-form">
               <button type="submit" class="btn-primario-admin">💾 Salvar Subclasse</button>
               <button type="reset" class="btn-secundario-admin">Limpar</button>
@@ -302,13 +318,14 @@
   <script src="js/notificacoes.js"></script>
   <script src="banco_phb.js"></script>
   <script src="talentos_phb.js"></script>
-  <script src="dados/opcoes.js"></script>
+  <script src="dados/opcoes.js?v=20261109-3"></script>
   <script src="dados/aventura.js"></script>
   <script src="dados/classes.js"></script>
   <script src="dados/auxiliares.js"></script>
-  <script src="dados/custom-catalogo.js?v=20261109-1"></script>
-  <script src="js/catalogo.js?v=20261109-1"></script>
-  <script src="js/admin-publicar.js?v=20261109-2"></script>
-  <script src="js/admin.js?v=20261109-1"></script>
+  <script src="dados/custom-catalogo.js?v=20261109-3"></script>
+  <script src="js/catalogo.js?v=20261109-3"></script>
+  <script src="js/admin-publicar.js?v=20261109-3"></script>
+  <script src="js/admin-imagem.js?v=20261109-3"></script>
+  <script src="js/admin.js?v=20261109-3"></script>
 </body>
 </html>

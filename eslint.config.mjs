@@ -9,7 +9,7 @@ const compartilhados = Object.fromEntries([
   'ForjaOpcoes', 'ForjaAventura', 'ForjaClasses', 'ForjaAuxiliares', 'ForjaKits',
   'ForjaMagias', 'ForjaMagiasOrigem', 'ForjaCriacaoRegras', 'ForjaCriacao',
   'ForjaMidia', 'ForjaHistoria', 'ForjaVitais', 'ForjaSeletores', 'ForjaTransicoes',
-  'ForjaCustomCatalogo', 'ForjaPublicador',
+  'ForjaCustomCatalogo', 'ForjaPublicador', 'ForjaAdminImagem',
 ].map(nome => [nome, 'readonly']));
 
 export default [
@@ -78,7 +78,7 @@ export default [
   },
   {
     files: ['scripts/servidor.cjs', 'tests/servidor.test.cjs', 'js/notificacoes.js', 'tests/notificacoes.test.cjs',
-      'js/criacao-regras.js', 'js/criacao.js', 'js/midia.js', 'js/historia.js', 'js/vitais.js', 'js/seletores.js', 'js/transicoes.js',
+      'js/criacao-regras.js', 'js/criacao.js', 'js/midia.js', 'js/historia.js', 'js/vitais.js', 'js/seletores.js', 'js/transicoes.js', 'js/admin-imagem.js',
       'tests/criacao-regras.test.cjs', 'tests/historia.test.cjs', 'tests/seletores.test.cjs', 'tests/transicoes.test.cjs'],
     // Ferramentas novas não herdam o período de adoção da dívida da aplicação.
     rules: {

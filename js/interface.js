@@ -32,8 +32,12 @@ function formatarBonusRaca(nome,dado){
 function quadroArteOrigem(categoria,nome,subtitulo=''){
  const url=O.imagensOrigem?.[categoria]?.[nome]||'';
  const wrap=el('div',{class:'forja-origem-card-midia'+(url?' com-imagem':'')});
- if(url)wrap.append(el('img',{src:url,alt:nome,class:'forja-origem-card-img',loading:'lazy'}));
- else wrap.append(el('div',{class:'forja-origem-card-placeholder','aria-hidden':'true'},el('span',{class:'forja-origem-emblema'},'✦'),el('small',{},'Espaço reservado para arte')));
+ if(url){
+  const img=el('img',{src:url,alt:nome,class:'forja-origem-card-img',loading:'lazy'});
+  const est=ForjaCatalogo.estiloImagem?.(O.posicoesOrigem?.[categoria]?.[nome]);
+  if(est)Object.assign(img.style,est);
+  wrap.append(img);
+ }else wrap.append(el('div',{class:'forja-origem-card-placeholder','aria-hidden':'true'},el('span',{class:'forja-origem-emblema'},'✦'),el('small',{},'Espaço reservado para arte')));
  if(subtitulo)wrap.append(el('span',{class:'forja-origem-card-tag'},subtitulo));
  return wrap;
 }

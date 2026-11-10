@@ -30,6 +30,33 @@
     return limpo;
   }
 
+  function normalizarPosicao(pos) {
+    if (raiz.ForjaCatalogo?.normalizarPosicaoImagem) return raiz.ForjaCatalogo.normalizarPosicaoImagem(pos);
+    const p = pos && typeof pos === 'object' ? pos : {};
+    const lim = (v, min, max, def) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : def;
+    };
+    return {
+      x: Math.round(lim(p.x, 0, 100, 50)),
+      y: Math.round(lim(p.y, 0, 100, 50)),
+      zoom: Math.round(lim(p.zoom, 1, 2.5, 1) * 100) / 100,
+    };
+  }
+
+  function sanitizarPosicoes(posOrig, imagensLimpas) {
+    const out = {};
+    for (const k of CATEGORIAS_IMG) {
+      out[k] = {};
+      for (const [nome, pos] of Object.entries(posOrig?.[k] || {})) {
+        if (!imagensLimpas[k]?.[nome]) continue;
+        const p = normalizarPosicao(pos);
+        if (p.x !== 50 || p.y !== 50 || p.zoom !== 1) out[k][nome] = p;
+      }
+    }
+    return out;
+  }
+
   function sanitizarEstado(estado) {
     const orig = estado && typeof estado === 'object' ? estado : {};
     const limpo = { imagens: {} };
@@ -39,6 +66,7 @@
         if (url) limpo.imagens[k][nome] = url;
       }
     }
+    limpo.posicoesImagens = sanitizarPosicoes(orig.posicoesImagens, limpo.imagens);
     for (const k of COLECOES) {
       limpo[k] = { ...(orig[k] || {}) };
     }

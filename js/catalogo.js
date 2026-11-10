@@ -7,41 +7,57 @@ const arr=v=>Array.isArray(v)?v:[];
 const obj=v=>v&&typeof v==='object'?v:{};
 const txt=v=>String(v||'');
 const num=(v,p=0)=>Number(v)||p;
+function normalizarPosicaoImagem(pos){
+ const p=obj(pos);
+ const lim=(v,min,max,def)=>{const n=Number(v);return Number.isFinite(n)?Math.min(max,Math.max(min,n)):def;};
+ return {x:Math.round(lim(p.x,0,100,50)),y:Math.round(lim(p.y,0,100,50)),zoom:Math.round(lim(p.zoom,1,2.5,1)*100)/100};
+}
+function estiloImagem(pos){
+ const p=normalizarPosicaoImagem(pos);
+ return {objectPosition:p.x+'% '+p.y+'%',transformOrigin:p.x+'% '+p.y+'%',transform:p.zoom>1?'scale('+p.zoom+')':''};
+}
 
 function lerCustom(){
  try{const b=globalThis.localStorage?.getItem(CHAVE_ADMIN);return b?JSON.parse(b):null;}catch{return null;}
 }
 function mesclarFontesCustom(globalCustom,localCustom){
  const g=obj(globalCustom),l=obj(localCustom),rem=obj(l.removidos),remImg=obj(rem.imagens);
- const res={imagens:{racas:{},subracas:{},classes:{},subclasses:{}},racas:{},subracas:{},classes:{},subclasses:{},talentos:{},antecedentes:{}};
+ const res={imagens:{racas:{},subracas:{},classes:{},subclasses:{}},posicoesImagens:{racas:{},subracas:{},classes:{},subclasses:{}},racas:{},subracas:{},classes:{},subclasses:{},talentos:{},antecedentes:{}};
  for(const k of ['racas','subracas','classes','subclasses']){
   res.imagens[k]={...obj(g.imagens?.[k]),...obj(l.imagens?.[k])};
-  for(const n of arr(remImg[k]))delete res.imagens[k][n];
+  res.posicoesImagens[k]={};
+  for(const [n,pos]of Object.entries({...obj(g.posicoesImagens?.[k]),...obj(l.posicoesImagens?.[k])}))res.posicoesImagens[k][n]=normalizarPosicaoImagem(pos);
+  for(const n of arr(remImg[k])){delete res.imagens[k][n];delete res.posicoesImagens[k][n];}
  }
  for(const k of ['racas','subracas','classes','subclasses','talentos','antecedentes']){
   res[k]={...obj(g[k]),...obj(l[k])};
   for(const n of arr(rem[k]))delete res[k][n];
-  for(const n of arr(remImg[k]))if(res[k][n])res[k][n]={...res[k][n],imagem:''};
+  for(const n of arr(remImg[k]))if(res[k][n])res[k][n]={...res[k][n],imagem:'',posicaoImagem:null};
  }
  return res;
 }
-function mesclarImagens(opcoes,imagens){
- const orig=obj(opcoes.imagensOrigem);
- const nov=obj(imagens);
- for(const k of ['racas','subracas','classes','subclasses'])orig[k]={...obj(orig[k]),...obj(nov[k])};
- opcoes.imagensOrigem=orig;
+function mesclarImagens(opcoes,imagens,posicoes){
+ const orig=obj(opcoes.imagensOrigem),origPos=obj(opcoes.posicoesOrigem);
+ const nov=obj(imagens),novPos=obj(posicoes);
+ for(const k of ['racas','subracas','classes','subclasses']){
+  orig[k]={...obj(orig[k]),...obj(nov[k])};
+  origPos[k]={...obj(origPos[k]),...obj(novPos[k])};
+ }
+ opcoes.imagensOrigem=orig;opcoes.posicoesOrigem=origPos;
 }
 function aplicarRaca(ctx,nome,d){
  const atual=obj(ctx.banco.racas[nome]);
  ctx.banco.racas[nome]={...atual,descricao:txt(d.descricao),deslocamento:num(d.deslocamento,9),bonusAtributos:obj(d.bonusAtributos),idiomas:d.idiomas||['Comum'],idiomasEscolha:num(d.idiomasEscolha),proficienciasArmas:arr(d.proficienciasArmas),proficienciasArmaduras:arr(d.proficienciasArmaduras),proficienciasFerramentas:arr(d.proficienciasFerramentas),ferramentasEscolha:0,caracteristicas:arr(d.caracteristicas),descricoesCaracteristicas:obj(d.descricoesCaracteristicas),subracas:obj(atual.subracas),customizado:true};
- if(d.imagem)ctx.opcoes.imagensOrigem.racas[nome]=d.imagem;
+ if(d.imagem&&!ctx.opcoes.imagensOrigem.racas[nome])ctx.opcoes.imagensOrigem.racas[nome]=d.imagem;
+ if(d.posicaoImagem&&!ctx.opcoes.posicoesOrigem.racas[nome])ctx.opcoes.posicoesOrigem.racas[nome]=normalizarPosicaoImagem(d.posicaoImagem);
 }
 function aplicarSubraca(ctx,nome,d){
  const pai=ctx.banco.racas[d.racaPai];if(!pai)return;
  pai.subracas=obj(pai.subracas);
  pai.subracas[nome]={...obj(pai.subracas[nome]),bonusAtributos:obj(d.bonusAtributos),caracteristicas:arr(d.caracteristicas),descricoesCaracteristicas:obj(d.descricoesCaracteristicas),idiomas:arr(d.idiomas),idiomasEscolha:0,proficienciasArmas:[],proficienciasArmaduras:[],proficienciasFerramentas:[],ferramentasEscolha:0,customizado:true};
  if(d.descricao)ctx.opcoes.descricoesSubracas[nome]=d.descricao;
- if(d.imagem)ctx.opcoes.imagensOrigem.subracas[nome]=d.imagem;
+ if(d.imagem&&!ctx.opcoes.imagensOrigem.subracas[nome])ctx.opcoes.imagensOrigem.subracas[nome]=d.imagem;
+ if(d.posicaoImagem&&!ctx.opcoes.posicoesOrigem.subracas[nome])ctx.opcoes.posicoesOrigem.subracas[nome]=normalizarPosicaoImagem(d.posicaoImagem);
 }
 function registrarProgressaoClasse(progressao,nome,d){
  const base=progressao.classes[nome]||{id:'classe-'+id(nome),nome,pagina:0,caracteristicas:[],subclasses:{}};
@@ -59,7 +75,8 @@ function aplicarClasse(ctx,nome,d){
  const atual=obj(ctx.banco.classes[nome]);
  ctx.banco.classes[nome]={...atual,dadoVida:num(d.dadoVida,8),proficienciasSalvaguarda:d.proficienciasSalvaguarda||['forca','constituicao'],proficienciasArmasArmaduras:d.proficienciasArmasArmaduras||['Armas simples'],proficienciasArmas:d.proficienciasArmas||['Armas simples'],proficienciasArmaduras:arr(d.proficienciasArmaduras),proficienciasFerramentas:arr(d.proficienciasFerramentas),ferramentasEscolha:0,subclasses:arr(atual.subclasses),customizado:true};
  if(d.descricao)ctx.opcoes.descricoesClasses[nome]=d.descricao;
- if(d.imagem)ctx.opcoes.imagensOrigem.classes[nome]=d.imagem;
+ if(d.imagem&&!ctx.opcoes.imagensOrigem.classes[nome])ctx.opcoes.imagensOrigem.classes[nome]=d.imagem;
+ if(d.posicaoImagem&&!ctx.opcoes.posicoesOrigem.classes[nome])ctx.opcoes.posicoesOrigem.classes[nome]=normalizarPosicaoImagem(d.posicaoImagem);
  registrarProgressaoClasse(ctx.progressao,nome,d);
 }
 function aplicarSubclasse(ctx,nome,d){
@@ -69,7 +86,8 @@ function aplicarSubclasse(ctx,nome,d){
  registrarProgressaoClasse(ctx.progressao,d.classePai,{});
  ctx.progressao.classes[d.classePai].subclasses[nome]=arr(d.caracteristicas);
  if(d.descricao)ctx.opcoes.descricoesSubclasses[nome]=d.descricao;
- if(d.imagem)ctx.opcoes.imagensOrigem.subclasses[nome]=d.imagem;
+ if(d.imagem&&!ctx.opcoes.imagensOrigem.subclasses[nome])ctx.opcoes.imagensOrigem.subclasses[nome]=d.imagem;
+ if(d.posicaoImagem&&!ctx.opcoes.posicoesOrigem.subclasses[nome])ctx.opcoes.posicoesOrigem.subclasses[nome]=normalizarPosicaoImagem(d.posicaoImagem);
 }
 function aplicarTalentosCustom(talentosCustom){
  const alvo=globalThis.talentos||(typeof talentos!=='undefined'?talentos:null);
@@ -103,7 +121,7 @@ function aplicarCustomizacoes(banco,opcoes,progressao){
  if(!banco||!opcoes||!progressao||(!globalCustom&&!localCustom))return banco;
  const custom=mesclarFontesCustom(globalCustom,localCustom);
  const ctx={banco,opcoes,progressao};
- mesclarImagens(opcoes,custom.imagens);
+ mesclarImagens(opcoes,custom.imagens,custom.posicoesImagens);
  for(const [n,d]of Object.entries(obj(custom.racas)))aplicarRaca(ctx,n,d);
  for(const [n,d]of Object.entries(obj(custom.subracas)))aplicarSubraca(ctx,n,d);
  for(const [n,d]of Object.entries(obj(custom.classes)))aplicarClasse(ctx,n,d);
@@ -158,5 +176,5 @@ function itens(banco){
  for(const g of ['equipamento_aventura','ferramentas','veiculos','bens','arreios'])for(const item of arr(banco.equipamentos[g]))lista.push({...item,nome:item.nome||item.item,preco:item.preco||item.custo,tipo:g});
  return lista;
 }
-return {id,aliases,CHAVE_ADMIN,mesclarFontesCustom,aplicarCustomizacoes,preparar,itens};
+return {id,aliases,CHAVE_ADMIN,normalizarPosicaoImagem,estiloImagem,mesclarFontesCustom,aplicarCustomizacoes,preparar,itens};
 });

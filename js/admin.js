@@ -14,9 +14,16 @@
   let filtroCat = 'todos';
   let termoBusca = '';
   let alvoUpload = null;
+  const posicoesForm = { racas: null, subracas: null, classes: null, subclasses: null };
+  const FORM_POR_CAT = { 'form-raca': 'racas', 'form-subraca': 'subracas', 'form-classe': 'classes', 'form-subclasse': 'subclasses' };
 
   const $ = id => document.getElementById(id);
   const val = id => $(id)?.value.trim() || '';
+  const normalizarPosicao = pos => raiz.ForjaCatalogo?.normalizarPosicaoImagem?.(pos) || { x: 50, y: 50, zoom: 1 };
+  const aplicarEstiloImg = (img, pos) => {
+    const est = raiz.ForjaCatalogo?.estiloImagem?.(pos);
+    if (img && est) Object.assign(img.style, est);
+  };
   const escaparHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
@@ -54,7 +61,7 @@
     const glob = raiz.ForjaCustomCatalogo || {};
     const mesclado = raiz.ForjaCatalogo?.mesclarFontesCustom
       ? raiz.ForjaCatalogo.mesclarFontesCustom(glob, lido)
-      : { imagens: { racas: {}, subracas: {}, classes: {}, subclasses: {} }, racas: {}, subracas: {}, classes: {}, subclasses: {}, talentos: {}, antecedentes: {} };
+      : { imagens: { racas: {}, subracas: {}, classes: {}, subclasses: {} }, posicoesImagens: { racas: {}, subracas: {}, classes: {}, subclasses: {} }, racas: {}, subracas: {}, classes: {}, subclasses: {}, talentos: {}, antecedentes: {} };
     mesclado.removidos = normalizarRemovidos(lido.removidos);
     return mesclado;
   }
@@ -68,10 +75,14 @@
   function listarEntidadesGaleria(estado) {
     const itens = [];
     const imgOpcoes = ForjaOpcoes.imagensOrigem || {};
+    const posOpcoes = ForjaOpcoes.posicoesOrigem || {};
     const add = (categoria, nome) => {
       const removida = estado.removidos?.imagens?.[categoria]?.includes(nome);
       itens.push({
-        categoria, nome, url: removida ? '' : (estado.imagens[categoria]?.[nome] || imgOpcoes[categoria]?.[nome] || ''),
+        categoria,
+        nome,
+        url: removida ? '' : (estado.imagens[categoria]?.[nome] || imgOpcoes[categoria]?.[nome] || ''),
+        posicao: removida ? normalizarPosicao() : normalizarPosicao(estado.posicoesImagens?.[categoria]?.[nome] || posOpcoes[categoria]?.[nome]),
       });
     };
     Object.keys(bancoDnD.racas || {}).forEach(r => {
@@ -108,16 +119,30 @@
     return !termoBusca || `${item.nome} ${ROTULOS_CAT[item.categoria]}`.toLowerCase().includes(termoBusca.toLowerCase());
   }
 
-  function definirImagemItem(item, novaUrl) {
+  function definirImagemItem(item, novaUrl, novaPosicao) {
     const est = lerEstado();
     est.removidos = normalizarRemovidos(est.removidos);
+    est.posicoesImagens ??= { racas: {}, subracas: {}, classes: {}, subclasses: {} };
     if (novaUrl) {
       est.imagens[item.categoria][item.nome] = novaUrl;
       if (est[item.categoria]?.[item.nome]) est[item.categoria][item.nome].imagem = novaUrl;
+      if (novaPosicao !== undefined) {
+        const pos = normalizarPosicao(novaPosicao);
+        est.posicoesImagens[item.categoria][item.nome] = pos;
+        if (est[item.categoria]?.[item.nome]) est[item.categoria][item.nome].posicaoImagem = pos;
+        ForjaOpcoes.posicoesOrigem ??= {};
+        ForjaOpcoes.posicoesOrigem[item.categoria] ??= {};
+        ForjaOpcoes.posicoesOrigem[item.categoria][item.nome] = pos;
+      }
       removerTombstone(est.removidos.imagens, item.categoria, item.nome);
     } else {
       delete est.imagens[item.categoria][item.nome];
-      if (est[item.categoria]?.[item.nome]) est[item.categoria][item.nome].imagem = '';
+      delete est.posicoesImagens[item.categoria][item.nome];
+      if (est[item.categoria]?.[item.nome]) {
+        est[item.categoria][item.nome].imagem = '';
+        est[item.categoria][item.nome].posicaoImagem = null;
+      }
+      delete ForjaOpcoes.posicoesOrigem?.[item.categoria]?.[item.nome];
       adicionarTombstone(est.removidos.imagens, item.categoria, item.nome);
     }
     if (ForjaOpcoes.imagensOrigem?.[item.categoria]) ForjaOpcoes.imagensOrigem[item.categoria][item.nome] = novaUrl;
@@ -141,7 +166,9 @@
       <input type="text" class="input-admin campo-url-card" placeholder="${placeholder}" value="${ehUpload ? '' : urlEsc}">
       <div class="card-galeria-acoes"><button type="button" class="btn-primario-admin btn-salvar-img">Salvar Link</button>
       <button type="button" class="btn-secundario-admin btn-upload-img">📁 Upload</button>
+      <button type="button" class="btn-secundario-admin btn-posicionar-img">🎯 Posicionar</button>
       <button type="button" class="btn-perigo-admin btn-limpar-img">Limpar</button></div></div>`;
+    if (ok) aplicarEstiloImg(card.querySelector('.card-galeria-midia img'), item.posicao);
     card.querySelector('.btn-salvar-img').addEventListener('click', () => {
       const nova = card.querySelector('.campo-url-card').value.trim();
       if (!nova) { avisar('Cole uma URL ou use Limpar para remover a imagem.', 'aviso'); return; }
@@ -149,6 +176,21 @@
       avisar(`Imagem de "${item.nome}" salva!`);
     });
     card.querySelector('.btn-upload-img').addEventListener('click', () => { alvoUpload = item; $('upload-imagem-card').click(); });
+    card.querySelector('.btn-posicionar-img').addEventListener('click', () => {
+      const urlAlvo = card.querySelector('.campo-url-card').value.trim() || item.url;
+      if (!urlAlvo) { avisar('Cole uma URL ou faça upload de uma imagem antes de posicionar.', 'aviso'); return; }
+      raiz.ForjaAdminImagem?.abrirEditorPosicao({
+        categoria: item.categoria,
+        nome: item.nome,
+        rotuloCategoria: ROTULOS_CAT[item.categoria],
+        url: urlAlvo,
+        posicaoInicial: item.posicao,
+        aoSalvar: pos => {
+          definirImagemItem(item, urlAlvo, pos);
+          avisar(`Posição da imagem de "${item.nome}" salva!`);
+        },
+      });
+    });
     card.querySelector('.btn-limpar-img').addEventListener('click', () => {
       definirImagemItem(item, '');
       avisar(`Imagem de "${item.nome}" removida.`, 'aviso');
@@ -162,26 +204,7 @@
     grid.replaceChildren(...listarEntidadesGaleria(estado).filter(passaFiltroGaleria).map(criarCardGaleria));
   }
 
-  function comprimirParaWebP(arquivo) {
-    return new Promise((resolve, reject) => {
-      const leitor = new FileReader();
-      leitor.onerror = () => reject(new Error('Erro de leitura'));
-      leitor.onload = () => {
-        const img = new Image();
-        img.onerror = () => reject(new Error('Imagem inválida'));
-        img.onload = () => {
-          const esc = Math.min(1, 560 / Math.max(img.width || 1, img.height || 1));
-          const cv = document.createElement('canvas');
-          cv.width = Math.max(1, Math.round(img.width * esc));
-          cv.height = Math.max(1, Math.round(img.height * esc));
-          cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-          resolve(cv.toDataURL('image/webp', 0.82));
-        };
-        img.src = String(leitor.result);
-      };
-      leitor.readAsDataURL(arquivo);
-    });
-  }
+  const comprimirParaWebP = arquivo => raiz.ForjaAdminImagem.comprimirParaWebP(arquivo);
 
   function lerBonus(prefixo) {
     const b = {};
@@ -238,7 +261,10 @@
   }
 
   function removerDaMemoria(col, nome, anterior) {
-    if (IMAGENS_CAT.includes(col)) delete ForjaOpcoes.imagensOrigem?.[col]?.[nome];
+    if (IMAGENS_CAT.includes(col)) {
+      delete ForjaOpcoes.imagensOrigem?.[col]?.[nome];
+      delete ForjaOpcoes.posicoesOrigem?.[col]?.[nome];
+    }
     const acoes = {
       racas: () => !PHB_RACAS.has(nome) && delete bancoDnD.racas[nome],
       subracas: () => anterior?.racaPai && delete bancoDnD.racas[anterior.racaPai]?.subracas?.[nome],
@@ -264,6 +290,7 @@
     adicionarTombstone(est.removidos, col, nome);
     if (IMAGENS_CAT.includes(col)) {
       delete est.imagens[col][nome];
+      delete est.posicoesImagens?.[col]?.[nome];
       adicionarTombstone(est.removidos.imagens, col, nome);
     }
     removerDaMemoria(col, nome, anterior);
@@ -283,6 +310,8 @@
 
   function editarRacaOuSubraca(ehSub, nome, d) {
     const est = lerEstado(), habs = (d.caracteristicas || []).map(c => `${c}: ${d.descricoesCaracteristicas?.[c] || ''}`).join('\n');
+    const cat = ehSub ? 'subracas' : 'racas';
+    posicoesForm[cat] = est.posicoesImagens?.[cat]?.[nome] || d.posicaoImagem || null;
     if (ehSub) {
       definirCampos({ 'subraca-pai': d.racaPai, 'subraca-nome': nome, 'subraca-descricao': d.descricao, 'subraca-habilidades': habs });
       preencherCampoImagem('subraca-imagem', est, 'subracas', nome); preencherBonus('subraca', d.bonusAtributos); focarFormulario('subraca-nome');
@@ -294,6 +323,8 @@
 
   function editarClasseOuSubclasse(ehSub, nome, d) {
     const est = lerEstado(), habs = (d.caracteristicas || []).map(c => `${c.nivel} | ${c.nome} | ${c.descricao}`).join('\n');
+    const cat = ehSub ? 'subclasses' : 'classes';
+    posicoesForm[cat] = est.posicoesImagens?.[cat]?.[nome] || d.posicaoImagem || null;
     if (ehSub) {
       definirCampos({ 'subclasse-pai': d.classePai, 'subclasse-nome': nome, 'subclasse-descricao': d.descricao, 'subclasse-habilidades': habs });
       preencherCampoImagem('subclasse-imagem', est, 'subclasses', nome); focarFormulario('subclasse-nome');
@@ -339,30 +370,84 @@
     return final;
   }
 
+  function gravarPosicaoFormulario(est, cat, nome, temImagem) {
+    est.posicoesImagens ??= { racas: {}, subracas: {}, classes: {}, subclasses: {} };
+    if (!temImagem) {
+      delete est.posicoesImagens[cat][nome];
+      if (ForjaOpcoes.imagensOrigem?.[cat]) ForjaOpcoes.imagensOrigem[cat][nome] = '';
+      delete ForjaOpcoes.posicoesOrigem?.[cat]?.[nome];
+      posicoesForm[cat] = null;
+      return null;
+    }
+    const pos = posicoesForm[cat] || est.posicoesImagens[cat][nome] || est[cat]?.[nome]?.posicaoImagem || null;
+    posicoesForm[cat] = null;
+    if (!pos) return null;
+    const norm = normalizarPosicao(pos);
+    est.posicoesImagens[cat][nome] = norm;
+    ForjaOpcoes.posicoesOrigem ??= {};
+    ForjaOpcoes.posicoesOrigem[cat] ??= {};
+    ForjaOpcoes.posicoesOrigem[cat][nome] = norm;
+    return norm;
+  }
+
+  function vincularPosicaoFormularios() {
+    document.querySelectorAll('.btn-posicionar-form').forEach(btn => btn.addEventListener('click', () => {
+      const { cat, nomeId, urlId } = btn.dataset;
+      const nome = val(nomeId);
+      const est = lerEstado();
+      const urlAlvo = val(urlId) || (nome ? (est.imagens[cat]?.[nome] || est[cat]?.[nome]?.imagem || '') : '');
+      if (!urlAlvo) { avisar('Cole uma URL ou envie a imagem pela Galeria antes de posicionar.', 'aviso'); return; }
+      const inicial = posicoesForm[cat] || (nome ? (est.posicoesImagens?.[cat]?.[nome] || est[cat]?.[nome]?.posicaoImagem) : null) || normalizarPosicao();
+      raiz.ForjaAdminImagem?.abrirEditorPosicao({
+        categoria: cat,
+        nome,
+        rotuloCategoria: ROTULOS_CAT[cat],
+        url: urlAlvo,
+        posicaoInicial: inicial,
+        aoSalvar: pos => {
+          posicoesForm[cat] = pos;
+          avisar('Posição da imagem ajustada! Clique em Salvar para gravar.');
+        },
+      });
+    }));
+  }
+
   function vincularSubmissoes() {
-    document.querySelectorAll('form.card-admin-form').forEach(f => f.addEventListener('reset', () => restaurarPlaceholderImagem(f)));
+    document.querySelectorAll('form.card-admin-form').forEach(f => f.addEventListener('reset', () => {
+      restaurarPlaceholderImagem(f);
+      if (FORM_POR_CAT[f.id]) posicoesForm[FORM_POR_CAT[f.id]] = null;
+    }));
+    vincularPosicaoFormularios();
     $('form-raca')?.addEventListener('submit', ev => {
       ev.preventDefault(); const n = val('raca-nome'), est = lerEstado(); if (!n) return;
-      const imagem = gravarImagemFormulario(est, 'racas', n, val('raca-imagem')); removerTombstone(est.removidos, 'racas', n);
-      est.racas[n] = { descricao: val('raca-descricao'), deslocamento: Number(val('raca-deslocamento')) || 9, bonusAtributos: lerBonus('raca'), idiomas: val('raca-idiomas').split(',').map(s => s.trim()).filter(Boolean), ...parsearHabsRaciais(val('raca-habilidades')), imagem };
+      const imagem = gravarImagemFormulario(est, 'racas', n, val('raca-imagem'));
+      const posicaoImagem = gravarPosicaoFormulario(est, 'racas', n, imagem);
+      removerTombstone(est.removidos, 'racas', n);
+      est.racas[n] = { descricao: val('raca-descricao'), deslocamento: Number(val('raca-deslocamento')) || 9, bonusAtributos: lerBonus('raca'), idiomas: val('raca-idiomas').split(',').map(s => s.trim()).filter(Boolean), ...parsearHabsRaciais(val('raca-habilidades')), imagem, ...(posicaoImagem ? { posicaoImagem } : {}) };
       salvarEstado(est); ev.target.reset(); avisar(`Raça "${n}" cadastrada!`);
     });
     $('form-subraca')?.addEventListener('submit', ev => {
       ev.preventDefault(); const n = val('subraca-nome'), pai = val('subraca-pai'), est = lerEstado(); if (!n || !pai) return;
-      const imagem = gravarImagemFormulario(est, 'subracas', n, val('subraca-imagem')); removerTombstone(est.removidos, 'subracas', n);
-      est.subracas[n] = { racaPai: pai, descricao: val('subraca-descricao'), bonusAtributos: lerBonus('subraca'), ...parsearHabsRaciais(val('subraca-habilidades')), imagem };
+      const imagem = gravarImagemFormulario(est, 'subracas', n, val('subraca-imagem'));
+      const posicaoImagem = gravarPosicaoFormulario(est, 'subracas', n, imagem);
+      removerTombstone(est.removidos, 'subracas', n);
+      est.subracas[n] = { racaPai: pai, descricao: val('subraca-descricao'), bonusAtributos: lerBonus('subraca'), ...parsearHabsRaciais(val('subraca-habilidades')), imagem, ...(posicaoImagem ? { posicaoImagem } : {}) };
       salvarEstado(est); ev.target.reset(); avisar(`Sub-raça "${n}" salva!`);
     });
     $('form-classe')?.addEventListener('submit', ev => {
       ev.preventDefault(); const n = val('classe-nome'), est = lerEstado(); if (!n) return;
-      const imagem = gravarImagemFormulario(est, 'classes', n, val('classe-imagem')); removerTombstone(est.removidos, 'classes', n);
-      est.classes[n] = { descricao: val('classe-descricao'), dadoVida: Number(val('classe-dado-vida')) || 8, proficienciasSalvaguarda: [val('classe-salva-1'), val('classe-salva-2')], periciasQuantidade: Number(val('classe-pericias-qtd')) || 2, caracteristicas: parsearHabsNivel(val('classe-habilidades'), `classe-${n}`), imagem };
+      const imagem = gravarImagemFormulario(est, 'classes', n, val('classe-imagem'));
+      const posicaoImagem = gravarPosicaoFormulario(est, 'classes', n, imagem);
+      removerTombstone(est.removidos, 'classes', n);
+      est.classes[n] = { descricao: val('classe-descricao'), dadoVida: Number(val('classe-dado-vida')) || 8, proficienciasSalvaguarda: [val('classe-salva-1'), val('classe-salva-2')], periciasQuantidade: Number(val('classe-pericias-qtd')) || 2, caracteristicas: parsearHabsNivel(val('classe-habilidades'), `classe-${n}`), imagem, ...(posicaoImagem ? { posicaoImagem } : {}) };
       salvarEstado(est); ev.target.reset(); avisar(`Classe "${n}" salva!`);
     });
     $('form-subclasse')?.addEventListener('submit', ev => {
       ev.preventDefault(); const n = val('subclasse-nome'), pai = val('subclasse-pai'), est = lerEstado(); if (!n || !pai) return;
-      const imagem = gravarImagemFormulario(est, 'subclasses', n, val('subclasse-imagem')); removerTombstone(est.removidos, 'subclasses', n);
-      est.subclasses[n] = { classePai: pai, descricao: val('subclasse-descricao'), caracteristicas: parsearHabsNivel(val('subclasse-habilidades'), `sub-${n}`), imagem };
+      const imagem = gravarImagemFormulario(est, 'subclasses', n, val('subclasse-imagem'));
+      const posicaoImagem = gravarPosicaoFormulario(est, 'subclasses', n, imagem);
+      removerTombstone(est.removidos, 'subclasses', n);
+      est.subclasses[n] = { classePai: pai, descricao: val('subclasse-descricao'), caracteristicas: parsearHabsNivel(val('subclasse-habilidades'), `sub-${n}`), imagem, ...(posicaoImagem ? { posicaoImagem } : {}) };
       salvarEstado(est); ev.target.reset(); avisar(`Subclasse "${n}" salva!`);
     });
     $('form-talento')?.addEventListener('submit', ev => {
@@ -402,6 +487,7 @@
     });
     $('btn-publicar-admin')?.addEventListener('click', () => {
       raiz.ForjaPublicador?.abrirModalPublicacao(lerEstado, avisar, estadoLimpo => {
+        ForjaOpcoes.posicoesOrigem = { racas: {}, subracas: {}, classes: {}, subclasses: {} };
         raiz.localStorage?.setItem(CHAVE, JSON.stringify({ ...estadoLimpo, removidos: criarRemovidosVazio() }));
         raiz.ForjaCatalogo?.aplicarCustomizacoes?.(bancoDnD, ForjaOpcoes, ForjaClasses);
         atualizarTudo();
@@ -421,6 +507,12 @@
       const antes = lerEstado(), glob = raiz.ForjaCustomCatalogo || {};
       raiz.localStorage?.removeItem(CHAVE);
       for (const col of COLECOES) for (const n of Object.keys(antes[col] || {})) if (!glob[col]?.[n]) removerDaMemoria(col, n, antes[col][n]);
+      for (const cat of IMAGENS_CAT) {
+        if (ForjaOpcoes.imagensOrigem?.[cat]) {
+          for (const n of Object.keys(ForjaOpcoes.imagensOrigem[cat])) if (!glob.imagens?.[cat]?.[n]) ForjaOpcoes.imagensOrigem[cat][n] = '';
+        }
+        if (ForjaOpcoes.posicoesOrigem) ForjaOpcoes.posicoesOrigem[cat] = {};
+      }
       raiz.ForjaCatalogo?.aplicarCustomizacoes?.(bancoDnD, ForjaOpcoes, ForjaClasses);
       atualizarTudo();
       avisar('Customizações locais limpas.', 'aviso');

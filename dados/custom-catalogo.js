@@ -11,6 +11,12 @@
       "classes": {},
       "subclasses": {}
     },
+    "posicoesImagens": {
+      "racas": {},
+      "subracas": {},
+      "classes": {},
+      "subclasses": {}
+    },
     "racas": {},
     "subracas": {},
     "classes": {},

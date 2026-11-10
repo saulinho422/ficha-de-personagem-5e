@@ -12,7 +12,12 @@ async function gerarPngBase64(page) {
   });
 }
 
-test('painel admin cadastra entidades, edita imagens e integra com a criação da ficha', async ({ page }) => {
+test('painel admin cadastra entidades, edita e posiciona imagens e integra com a criação da ficha', async ({ page }) => {
+  await page.route('https://cdn.exemplo.com/**', async rota => {
+    const pngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    await rota.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from(pngBase64, 'base64') });
+  });
+
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto('/admin.html');
   await expect(page.getByRole('heading', { name: /Painel do Mestre/ })).toBeVisible();
@@ -27,11 +32,37 @@ test('painel admin cadastra entidades, edita imagens e integra com a criação d
   await expect(page.locator('#toast-notificacao')).toContainText('otimizada e salva');
   await expect(cardElfo.locator('img')).toHaveAttribute('src', /^data:image\/webp/);
 
+  await cardElfo.locator('.btn-posicionar-img').click();
+  await expect(page.locator('#modal-posicionar-imagem')).toBeVisible();
+  await page.locator('.btn-preset-pos[data-y="0"]').click();
+  await page.locator('#pos-slider-zoom').fill('140');
+  await page.locator('#pos-slider-zoom').dispatchEvent('input');
+  await page.locator('#btn-salvar-posicao').click();
+  await expect(page.locator('#modal-posicionar-imagem')).toBeHidden();
+  await expect(cardElfo.locator('img')).toHaveCSS('object-position', '50% 0%');
+  expect(await cardElfo.locator('img').evaluate(el => el.style.transform)).toBe('scale(1.4)');
+
+  const cardAnao = page.locator('.card-galeria-admin').filter({ hasText: 'Anão' }).first();
+  await cardAnao.locator('.campo-url-card').fill('https://cdn.exemplo.com/anao.png');
+  await cardAnao.locator('.btn-posicionar-img').click();
+  await expect(page.locator('#modal-posicionar-imagem')).toBeVisible();
+  await page.locator('#pos-slider-y').fill('12');
+  await page.locator('#pos-slider-y').dispatchEvent('input');
+  await page.locator('#btn-salvar-posicao').click();
+  await expect(cardAnao.locator('img')).toHaveAttribute('src', 'https://cdn.exemplo.com/anao.png');
+  await expect(cardAnao.locator('img')).toHaveCSS('object-position', '50% 12%');
+
   await page.getByRole('tab', { name: /Raças/ }).click();
   await page.locator('#raca-nome').fill('Aasimar Teste');
   await page.locator('#raca-descricao').fill('Seres tocados pelos planos celestiais.');
   await page.locator('#raca-car').fill('2');
   await page.locator('#raca-habilidades').fill('Luz Celestial: Emite luz.');
+  await page.locator('#raca-imagem').fill('https://cdn.exemplo.com/aasimar.png');
+  await page.locator('#form-raca .btn-posicionar-form').click();
+  await expect(page.locator('#modal-posicionar-imagem')).toBeVisible();
+  await page.locator('#pos-slider-y').fill('18');
+  await page.locator('#pos-slider-y').dispatchEvent('input');
+  await page.locator('#btn-salvar-posicao').click();
   await page.locator('#form-raca button[type="submit"]').click();
   await expect(page.locator('#lista-racas-custom')).toContainText('Aasimar Teste');
 
@@ -72,7 +103,13 @@ test('painel admin cadastra entidades, edita imagens e integra com a criação d
   await page.getByPlaceholder('Digite o nome').fill('Vesper');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await page.getByRole('button', { name: /^Escolher Raça:/ }).click();
-  await page.locator('#forja-dialogo').getByRole('option', { name: 'Aasimar Teste', exact: true }).click();
+  const catalogoDialogo = page.locator('#forja-dialogo');
+  const elfoCatalogoImg = catalogoDialogo.locator('img[alt="Elfo"]');
+  await expect(elfoCatalogoImg).toHaveCSS('object-position', '50% 0%');
+  expect(await elfoCatalogoImg.evaluate(el => el.style.transform)).toBe('scale(1.4)');
+  await expect(catalogoDialogo.locator('img[alt="Anão"]')).toHaveCSS('object-position', '50% 12%');
+  await expect(catalogoDialogo.locator('img[alt="Aasimar Teste"]')).toHaveCSS('object-position', '50% 18%');
+  await catalogoDialogo.getByRole('option', { name: 'Aasimar Teste', exact: true }).click();
   await page.getByRole('button', { name: /^Escolher Classe:/ }).click();
   await page.locator('#forja-dialogo').getByRole('option', { name: 'Artífice Teste', exact: true }).click();
   await page.getByRole('button', { name: /^Escolher Escolha a sub-raça:/ }).click();
@@ -89,9 +126,10 @@ test('painel admin exporta JSON, baixa módulo JS e publica no GitHub sem removi
       token: '',
     }));
     localStorage.setItem('forjaPersonagens.customCatalogo.v1', JSON.stringify({
-      imagens: { racas: { Elfo: 'https://cdn.exemplo.com/elfo.webp' }, subracas: {}, classes: {}, subclasses: {} },
+      imagens: { racas: { Elfo: 'https://cdn.exemplo.com/elfo.webp', Anao: 'https://cdn.exemplo.com/anao.webp' }, subracas: {}, classes: {}, subclasses: {} },
+      posicoesImagens: { racas: { Elfo: { x: 45, y: 8, zoom: 1.5 }, Anao: { x: 50, y: 50, zoom: 1 } }, subracas: {}, classes: {}, subclasses: {} },
       racas: { Aasimar: { descricao: 'Celestial.', deslocamento: 9, bonusAtributos: { carisma: 2 }, idiomas: ['Comum'], caracteristicas: [] } },
-      removidos: { racas: ['Antiga'], imagens: { racas: ['Anao'] } },
+      removidos: { racas: ['Antiga'], imagens: { racas: ['Gnomo'] } },
     }));
   });
 
@@ -137,5 +175,7 @@ test('painel admin exporta JSON, baixa módulo JS e publica no GitHub sem removi
   expect(requisicoesPut[0].body.branch).toBe('main');
   const conteudoDecodificado = Buffer.from(requisicoesPut[0].body.content, 'base64').toString('utf8');
   expect(conteudoDecodificado).toContain('Aasimar');
+  expect(conteudoDecodificado).toContain('posicoesImagens');
+  expect(conteudoDecodificado).toContain('"zoom": 1.5');
   expect(conteudoDecodificado).not.toContain('removidos');
 });

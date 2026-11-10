@@ -100,6 +100,7 @@ const imagensOrigem={
  classes:{'Bárbaro':'','Bardo':'','Bruxo':'','Clérigo':'','Druida':'','Feiticeiro':'','Guerreiro':'','Ladino':'','Mago':'','Monge':'','Paladino':'','Patrulheiro':''},
  subclasses:{}
 };
-const dados={ferramentas,veiculos,pacotes,extras,dragoes,prioridades,estilos,manobras,metamagias,disciplinas,xp,condicoes,descricoesClasses,descricoesSubracas,descricoesSubclasses,imagensOrigem};
+const posicoesOrigem={racas:{},subracas:{},classes:{},subclasses:{}};
+const dados={ferramentas,veiculos,pacotes,extras,dragoes,prioridades,estilos,manobras,metamagias,disciplinas,xp,condicoes,descricoesClasses,descricoesSubracas,descricoesSubclasses,imagensOrigem,posicoesOrigem};
 if(typeof module!=='undefined'&&module.exports)module.exports=dados;else r.ForjaOpcoes=dados;
 })(globalThis);

@@ -257,7 +257,8 @@ body {
 
 .card-galeria-midia {
   position: relative;
-  height: 175px;
+  aspect-ratio: 16 / 9;
+  min-height: 165px;
   background: linear-gradient(135deg, #2d1b1e 0%, #4b242c 100%);
   display: flex;
   align-items: center;
@@ -285,6 +286,7 @@ body {
   position: absolute;
   top: 10px;
   left: 10px;
+  z-index: 2;
   background: rgba(35, 24, 21, 0.82);
   color: var(--admin-dourado-claro);
   font-size: 11px;
@@ -299,6 +301,7 @@ body {
   position: absolute;
   top: 10px;
   right: 10px;
+  z-index: 2;
   font-size: 11px;
   font-weight: 700;
   padding: 4px 8px;
@@ -576,4 +579,136 @@ dialog.modal-admin-publicar {
 dialog.modal-admin-publicar::backdrop {
   background: rgba(20, 12, 10, 0.72);
   backdrop-filter: blur(3px);
+}
+
+.campo-imagem-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.campo-imagem-linha {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.campo-imagem-linha input {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+dialog.modal-admin-posicao {
+  width: min(640px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+}
+
+.modal-posicao-form {
+  margin: 0;
+  border: 0;
+}
+
+.palco-posicao-img {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  border: 1px solid var(--admin-dourado);
+  background: linear-gradient(135deg, #2d1b1e 0%, #4b242c 100%);
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.palco-posicao-img:active {
+  cursor: grabbing;
+}
+
+.img-posicao-palco {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.palco-posicao-guia {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  background-image:
+    linear-gradient(to right, transparent 33.2%, rgba(255, 255, 255, 0.14) 33.4%, transparent 33.6%, transparent 66.5%, rgba(255, 255, 255, 0.14) 66.7%, transparent 66.9%),
+    linear-gradient(to bottom, transparent 33.2%, rgba(255, 255, 255, 0.14) 33.4%, transparent 33.6%, transparent 66.5%, rgba(255, 255, 255, 0.14) 66.7%, transparent 66.9%);
+}
+
+.palco-posicao-dica {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(20, 12, 10, 0.78);
+  color: #f6e7c8;
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.posicao-erro {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 12.5px;
+}
+
+.posicao-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.posicao-presets button {
+  flex: 1 1 110px;
+}
+
+.posicao-sliders {
+  display: grid;
+  gap: 10px;
+}
+
+.posicao-slider-linha {
+  display: grid !important;
+  gap: 4px !important;
+}
+
+.posicao-slider-linha > span {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--admin-texto-suave);
+}
+
+.posicao-slider-linha strong {
+  color: var(--admin-vinho);
+  font-variant-numeric: tabular-nums;
+}
+
+.posicao-slider-linha input[type="range"] {
+  width: 100%;
+  accent-color: var(--admin-vinho);
+  cursor: pointer;
+}
+
+.acoes-modal-posicao {
+  justify-content: flex-end;
+  margin-top: 4px;
+  flex-wrap: wrap;
 }
